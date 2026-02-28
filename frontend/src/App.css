@@ -1,0 +1,288 @@
+/* ===============================
+   DASHBOARD LAYOUT
+================================ */
+
+.dashboard {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.dashboard-body {
+  display: flex;
+  height: 100vh;
+}
+
+/* ===============================
+   SIDEBAR
+================================ */
+
+.sidebar {
+  background: linear-gradient(180deg, #0f5132, #0a2f1f);
+  color: #fff;
+  height: 100vh;
+  transition: width 0.3s ease;
+  overflow: hidden;
+  padding: 16px;
+}
+
+.sidebar-open {
+  width: 240px;
+}
+
+.sidebar-collapsed {
+  width: 72px;
+}
+
+/* HEADER */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.sidebar-header h4 {
+  font-size: 18px;
+  margin: 0;
+}
+
+/* TOGGLE BUTTON */
+.toggle-btn {
+  background: #145c32;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* LIST */
+.sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-list-item {
+  margin-bottom: 6px;
+}
+
+.sidebar-list-item a,
+.logout-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  border-radius: 8px;
+  color: #e5e7eb;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+/* ICON SIZE */
+.sidebar i {
+  font-size: 18px;
+  min-width: 22px;
+}
+
+/* TEXT */
+.menu-text {
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+
+/* COLLAPSED STATE */
+.sidebar-collapsed .menu-text {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar-collapsed .sidebar-list-item a,
+.sidebar-collapsed .logout-item {
+  justify-content: center;
+}
+
+/* HOVER + ACTIVE */
+.sidebar-list-item a:hover,
+.logout-item:hover {
+  background: #145c32;
+}
+
+.active-link a {
+  background: #145c32;
+  color: #fff;
+}
+
+/* LOGOUT */
+.logout-item {
+  margin-top: 20px;
+  color: #f87171;
+  cursor: pointer;
+}
+
+/* ===============================
+   MAIN CONTENT
+================================ */
+
+.main-container {
+  flex: 1;
+  padding: 0px;
+  overflow-y: auto;
+  background: #f9fafb;
+}
+
+.admin-content-wrapper {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+}
+/* =============================
+   ADMIN DASHBOARD IMPROVED
+============================= */
+
+/* =============================
+   ADMIN DASHBOARD CLEAN STYLE
+============================= */
+
+.admin-dashboard {
+  background: #f1f5f9;
+  min-height: 100vh;
+  padding: 40px;
+}
+
+.admin-wrapper {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 40px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.05);
+}
+
+/* Top Section */
+.dashboard-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.dashboard-header h3 {
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.dashboard-header p {
+  color: #64748b;
+  margin: 0;
+}
+
+/* Summary Boxes */
+.quick-summary {
+  display: flex;
+  gap: 20px;
+}
+
+.summary-box {
+  padding: 18px 28px;
+  border-radius: 16px;
+  min-width: 150px;
+  text-align: center;
+  transition: 0.3s;
+}
+
+.summary-box span {
+  font-size: 12px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.summary-box h4 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.summary-box.dark {
+  background: #0f172a;
+  color: white;
+}
+
+.summary-box.green {
+  background: #16a34a;
+  color: white;
+}
+
+/* Cards Section */
+.dashboard-cards {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.admin-card {
+  flex: 1;
+  min-width: 260px;
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  transition: 0.3s ease;
+   box-shadow: 0 15px 40px rgba(0,0,0,0.06);
+   border: none;
+}
+
+.admin-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.card-icon {
+  font-size: 18px;
+  padding: 14px;
+  border-radius: 12px;
+  color: white;
+}
+
+.card-icon.blue {
+  background: #3b82f6;
+}
+
+.card-icon.purple {
+  background: #9333ea;
+}
+
+.card-icon.orange {
+  background: #f97316;
+}
+
+.admin-card h3 {
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.admin-card p {
+  color: #64748b;
+  margin: 0;
+}
+
+.growth {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.growth.positive {
+  color: #16a34a;
+}
+
+.growth.negative {
+  color: #dc2626;
+}

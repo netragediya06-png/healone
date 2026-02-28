@@ -1,0 +1,50 @@
+/* =============================
+   SPECIALIST DASHBOARD STYLE
+============================= */
+
+.spec-dashboard {
+  background: #f0fdf4;
+  min-height: 100vh;
+  padding: 40px;
+}
+
+.spec-wrapper {
+  background: #ffffff;
+  border-radius: 25px;
+  padding: 40px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.04);
+}
+
+/* Header */
+.spec-header h2 {
+  font-weight: 700;
+  color: #166534;
+  margin-bottom: 5px;
+}
+
+.spec-header p {
+  color: #4b5563;
+  margin-bottom: 35px;
+}
+
+/* Card Styling */
+.spec-card {
+  border-radius: 22px !important;
+  transition: 0.3s ease;
+}
+
+.spec-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(22, 163, 74, 0.15) !important;
+}
+
+/* Bigger Numbers */
+.spec-number {
+  font-size: 34px !important;
+  font-weight: 700 !important;
+}
+
+/* Muted text */
+.spec-card .text-muted {
+  font-size: 13px;
+}

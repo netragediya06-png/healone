@@ -1,0 +1,176 @@
+Project Name: HealOne – Ayurvedic Wellness Ecosystem Platform
+
+Tech Stack:
+- MERN Stack (MongoDB, Express, React Vite, Node.js)
+- MongoDB Atlas (Cloud)
+- Mongoose
+- Firebase Authentication
+- Cloudinary (Image Upload)
+- Bootstrap 5
+
+Project Concept:
+HealOne is NOT just an e-commerce website.
+It is a role-based Ayurvedic Wellness Ecosystem that combines:
+
+1) Ayurvedic Products (E-commerce)
+2) Natural Remedies (Gharelu Nuskha)
+3) Yoga Guidance
+4) Wellness Programs (Service-based)
+5) Health-category-based recommendation system
+6) Specialist content approval workflow
+
+Platform Type:
+Not a doctor-patient system.
+No appointment booking.
+No prescription system.
+Only wellness guidance + product + programs.
+
+---------------------------------
+ROLE-BASED STRUCTURE (4 PANELS)
+---------------------------------
+
+1) Admin Panel
+- Full system control
+- Manage Products
+- Manage Remedies
+- Manage Yoga
+- Manage Services (Wellness Programs)
+- Approve Specialist Content
+- Manage Users
+- Dashboard Analytics
+- Order Management
+
+2) Specialist Panel
+- Add Remedy
+- Add Yoga
+- Add Wellness Program
+- Content goes to "Pending"
+- Admin approves before publishing
+- Cannot manage users or analytics
+
+3) User Panel
+- Register/Login
+- Browse products
+- Add to cart
+- Place order
+- View remedies & yoga
+- Enroll in wellness programs
+- Get recommendations based on healthCategory
+- Track orders
+
+4) Guest Panel
+- View products
+- View remedies
+- View yoga
+- View programs
+- Cannot purchase or enroll
+
+---------------------------------
+CORE LOGIC
+---------------------------------
+
+All modules are connected using:
+
+healthCategory field
+Examples:
+- Stress
+- Immunity
+- Digestion
+- Skin
+- Hair
+
+If product.healthCategory = "Stress"
+System shows:
+- Stress remedies
+- Stress yoga
+- Stress wellness program
+
+---------------------------------
+MAIN MODULES
+---------------------------------
+
+User Schema:
+name
+email
+password
+role (admin / specialist / user)
+status
+
+Product Schema:
+name
+description
+price
+stock
+category
+healthCategory
+image
+status
+createdBy
+
+Remedy Schema:
+title
+ingredients (array)
+steps (array)
+healthCategory
+relatedProducts
+image
+status (pending/approved)
+createdBy
+
+Yoga Schema:
+name
+benefits
+steps
+difficulty
+duration
+healthCategory
+image
+status (pending/approved)
+createdBy
+
+Service Schema:
+title
+description
+duration
+healthCategory
+dailyPlan (array)
+relatedProducts
+relatedYoga
+relatedRemedies
+status
+createdBy
+
+Order Schema:
+user
+products
+totalAmount
+orderStatus
+paymentStatus
+
+---------------------------------
+NAVBAR STRUCTURE (USER SIDE)
+---------------------------------
+Home | Shop | Remedies | Yoga | Programs | About | Contact | Cart | Account
+
+---------------------------------
+PROJECT GOAL
+---------------------------------
+Build a semi-production level MERN application
+showing:
+- Role-based authentication
+- Content moderation workflow
+- Cloud integration
+- Ecosystem-based recommendation
+- Product + Service combination
+
+---------------------------------
+CURRENT DEVELOPMENT STAGE
+---------------------------------
+Admin panel completed:
+- Categories CRUD
+- Cloudinary image upload
+- Protected routes
+- Dashboard layout
+
+Next step:
+Start Admin Product Module.

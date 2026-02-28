@@ -1,0 +1,5 @@
+Username : netragediya06_db_user
+
+Password : VL5Mm8I1Js9ZIG9E
+
+mongo atlas password

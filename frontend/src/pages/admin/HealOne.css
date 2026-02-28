@@ -1,0 +1,156 @@
+/* =============================
+   HEALONE THEME
+============================= */
+
+.healone-title {
+  color: #0f5132;
+}
+
+.healone-btn {
+  background: linear-gradient(135deg, #198754, #0f5132);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+.healone-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* SEARCH */
+.healone-search {
+  border-radius: 12px;
+  padding: 10px 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* CARD */
+.healone-card {
+  border: none;
+  border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.healone-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+/* IMAGE */
+.healone-img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+}
+
+/* PLACEHOLDER */
+.healone-placeholder {
+  width: 90px;
+  height: 90px;
+  background: #f1f5f9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  font-size: 28px;
+  color: #94a3b8;
+}
+
+/* MODAL */
+.healone-modal {
+  border-radius: 20px;
+}
+/* =============================
+   ADMIN DASHBOARD STYLING
+============================= */
+
+.admin-dashboard {
+  padding: 30px;
+  background: #f4f6f9;
+  min-height: 100vh;
+}
+
+.dashboard-header h2 {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.dashboard-subtitle {
+  color: #64748b;
+  margin-bottom: 30px;
+}
+
+.dashboard-cards {
+  display: flex;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+.admin-card {
+  flex: 1;
+  min-width: 250px;
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  transition: 0.3s ease;
+}
+
+.admin-card:hover {
+  transform: translateY(-8px);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.card-icon {
+  font-size: 18px;
+  padding: 12px;
+  border-radius: 12px;
+  color: white;
+}
+
+.card-icon.blue {
+  background: linear-gradient(135deg, #2193b0, #6dd5ed);
+}
+
+.card-icon.purple {
+  background: linear-gradient(135deg, #7f00ff, #e100ff);
+}
+
+.card-icon.orange {
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+}
+
+.admin-card h3 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: #0f172a;
+}
+
+.admin-card p {
+  color: #64748b;
+  margin: 0;
+}
+
+.growth {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.growth.positive {
+  color: #16a34a;
+}
+
+.growth.negative {
+  color: #dc2626;
+}
