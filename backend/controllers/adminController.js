@@ -1,9 +1,23 @@
 const User = require("../models/User");
 
 /* ===================================
+   GET ALL SPECIALISTS (ALL STATUS)
+=================================== */
+exports.getAllSpecialists = async (req, res) => {
+  try {
+    const specialists = await User.find({
+      role: "specialist",
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json(specialists);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* ===================================
    GET ALL PENDING SPECIALISTS
 =================================== */
-
 exports.getPendingSpecialists = async (req, res) => {
   try {
     const specialists = await User.find({
@@ -17,11 +31,9 @@ exports.getPendingSpecialists = async (req, res) => {
   }
 };
 
-
 /* ===================================
    APPROVE SPECIALIST
 =================================== */
-
 exports.approveSpecialist = async (req, res) => {
   try {
     const { id } = req.params;
@@ -49,11 +61,9 @@ exports.approveSpecialist = async (req, res) => {
   }
 };
 
-
 /* ===================================
    REJECT SPECIALIST
 =================================== */
-
 exports.rejectSpecialist = async (req, res) => {
   try {
     const { id } = req.params;

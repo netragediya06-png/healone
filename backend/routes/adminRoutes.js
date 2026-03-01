@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
+  getAllSpecialists,
   getPendingSpecialists,
   approveSpecialist,
   rejectSpecialist,
@@ -9,9 +10,19 @@ const {
 
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
-// ===============================
-// GET ALL PENDING SPECIALISTS
-// ===============================
+/* ===============================
+   GET ALL SPECIALISTS (ALL STATUS)
+=============================== */
+router.get(
+  "/specialists",
+  protect,
+  adminOnly,
+  getAllSpecialists
+);
+
+/* ===============================
+   GET ALL PENDING SPECIALISTS
+=============================== */
 router.get(
   "/specialists/pending",
   protect,
@@ -19,9 +30,9 @@ router.get(
   getPendingSpecialists
 );
 
-// ===============================
-// APPROVE SPECIALIST
-// ===============================
+/* ===============================
+   APPROVE SPECIALIST
+=============================== */
 router.put(
   "/specialists/:id/approve",
   protect,
@@ -29,9 +40,9 @@ router.put(
   approveSpecialist
 );
 
-// ===============================
-// REJECT SPECIALIST
-// ===============================
+/* ===============================
+   REJECT SPECIALIST
+=============================== */
 router.put(
   "/specialists/:id/reject",
   protect,
