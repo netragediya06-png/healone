@@ -1,0 +1,15 @@
+.specialist-card {
+  border-radius: 16px;
+  transition: 0.3s ease;
+}
+
+.specialist-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.admin-wrapper {
+  background: #f8f9fa;
+  padding: 30px;
+  border-radius: 20px;
+}
