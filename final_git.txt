@@ -1,0 +1,92 @@
+STEP 1 — Go To Correct Root Folder
+
+Make sure you are inside your main HealOne folder:
+
+PS F:\Final Project\Healone>
+
+This is correct 👍
+
+STEP 2 — Initialize Git
+
+Run:
+
+git init
+
+You should see:
+
+Initialized empty Git repository
+
+STEP 3 — Create .gitignore
+
+Now create .gitignore file in:
+
+F:\Final Project\Healone
+
+Paste this inside:
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+
+# Logs
+*.log
+
+# Build folders
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+
+STEP 4 — Add Files
+
+Now run:
+
+git add .
+
+Then:
+
+git status
+
+You should see files staged.
+
+On branch master
+
+No commits yet
+
+🚀 STEP 5 — First Commit
+git commit -m "Initial HealOne project structure"
+
+STEP 6 — Create GitHub Repo
+
+1️⃣ Go to GitHub
+2️⃣ Create new repository
+3️⃣ Do NOT initialize with README
+4️⃣ Copy the repo URL
+
+Example:
+
+https://github.com/yourusername/healone.git
+
+🚀 STEP 7 — Connect to GitHub
+
+Run:
+
+git remote add origin https://github.com/yourusername/healone.git
+git branch -M main
+git push -u origin main
+
+After This
+
+Your project will be live on GitHub.
+
+Then your team can:
+
+git clone <repo-url>
+npm install

@@ -1,55 +1,42 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
 
-// Get pending specialists
-router.get("/specialists/pending", async (req, res) => {
-  try {
-    const specialists = await User.find({
-      role: "specialist",
-      approvalStatus: "pending",
-    });
+const {
+  getPendingSpecialists,
+  approveSpecialist,
+  rejectSpecialist,
+} = require("../controllers/adminController");
 
-    res.json(specialists);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+const { protect, adminOnly } = require("../middleware/authMiddleware");
 
-// Approve specialist
-router.put("/specialists/:id/approve", async (req, res) => {
-  try {
-    const specialist = await User.findByIdAndUpdate(
-      req.params.id,
-      { approvalStatus: "approved" },
-      { new: true }
-    );
+// ===============================
+// GET ALL PENDING SPECIALISTS
+// ===============================
+router.get(
+  "/specialists/pending",
+  protect,
+  adminOnly,
+  getPendingSpecialists
+);
 
-    res.json({
-      message: "Specialist approved successfully",
-      specialist,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+// ===============================
+// APPROVE SPECIALIST
+// ===============================
+router.put(
+  "/specialists/:id/approve",
+  protect,
+  adminOnly,
+  approveSpecialist
+);
 
-// Reject specialist
-router.put("/specialists/:id/reject", async (req, res) => {
-  try {
-    const specialist = await User.findByIdAndUpdate(
-      req.params.id,
-      { approvalStatus: "rejected" },
-      { new: true }
-    );
-
-    res.json({
-      message: "Specialist rejected",
-      specialist,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+// ===============================
+// REJECT SPECIALIST
+// ===============================
+router.put(
+  "/specialists/:id/reject",
+  protect,
+  adminOnly,
+  rejectSpecialist
+);
 
 module.exports = router;

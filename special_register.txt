@@ -1,0 +1,95 @@
+🔒 Special User (Doctor / Specialist)
+
+They CANNOT be auto-approved.
+
+Flow should be:
+
+They fill detailed form
+
+Status = pending
+
+Admin reviews
+
+Admin Approves / Rejects
+
+Only after approval → they can access specialist panel
+
+📋 Required Fields for Special User Registration
+
+Now this is the important part 👇
+These are professional-level fields:
+
+👤 Basic Info (Common)
+
+Full Name
+
+Email
+
+Password
+
+Phone Number
+
+Profile Photo
+
+🧑‍⚕️ Professional Information (MANDATORY)
+
+These should appear ONLY when role = "Special User"
+
+1️⃣ Professional Details
+
+Specialization
+(Ayurveda, Panchakarma, Herbal Medicine, Yoga Therapy etc.)
+
+Experience (Years)
+
+Qualification (BAMS, MD Ayurveda, Certification etc.)
+
+Registration Number (Medical License Number)
+
+Clinic / Practice Name
+
+Consultation Mode
+
+Online
+
+Offline
+
+Both
+
+2️⃣ Documents (VERY IMPORTANT)
+
+Admin needs proof.
+
+Government ID Proof (Aadhar/PAN upload)
+
+Degree Certificate upload
+
+Medical Registration Certificate upload
+
+Profile Image
+
+3️⃣ Location Details
+
+State
+
+City
+
+Full Address
+
+Pincode
+
+4️⃣ Short Bio
+
+About Specialist
+
+Treatment Approach
+
+Expertise Summary
+
+5️⃣ Optional But Advanced
+
+Consultation Fees
+
+Available Time Slots
+
+Languages Spoken

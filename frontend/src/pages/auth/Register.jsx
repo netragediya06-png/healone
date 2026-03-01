@@ -1,220 +1,188 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebase";
-import { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import "../auth/Register.css";
 
-export default function Register() {
-  const navigate = useNavigate();
+import StepRole from "../../components/RegisterSteps/StepRole";
+import StepBasic from "../../components/RegisterSteps/StepBasic";
+import StepProfessional from "../../components/RegisterSteps/StepProfessional";
+import StepLocation from "../../components/RegisterSteps/StepLocation";
+import StepDocuments from "../../components/RegisterSteps/StepDocuments";
+import StepProfile from "../../components/RegisterSteps/StepProfile";
+import StepReview from "../../components/RegisterSteps/StepReview";
+
+const Register = () => {
+  const [step, setStep] = useState(0);
+  const [role, setRole] = useState("");
 
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     email: "",
     password: "",
-    role: "user",
-    profession: "",
-    experience: "",
+    phone: "",
+    profilePhoto: "",
+
+    professionalDetails: {
+      specialization: "",
+      experience: "",
+      qualification: "",
+      practiceName: "",
+      consultationMode: "",
+    },
+
+    location: {
+      state: "",
+      city: "",
+      address: "",
+      pincode: "",
+    },
+
+    documents: {
+      idProof: "",
+      certificationProof: "",
+    },
+
+    bio: "",
+    expertiseSummary: "",
+    treatmentApproach: "",
+    consultationFees: "",
+    availableTimeSlots: "",
+    languagesSpoken: "",
   });
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const handleChange = (e, section = null) => {
+    const { name, value } = e.target;
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    try {
-      // 1️⃣ Create Firebase Account
-      await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-
-      // 2️⃣ Save User in MongoDB
-      await axios.post("http://localhost:5000/api/auth/register", {
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
-        profession: formData.role === "specialist" ? formData.profession : undefined,
-        experience: formData.role === "specialist" ? formData.experience : undefined,
-      });
-
-      if (formData.role === "specialist") {
-        setSuccess("Specialist registration submitted. Waiting for admin approval 🌿");
-      } else {
-        setSuccess("Registration successful 🎉 You can now login.");
-      }
-
-      setTimeout(() => navigate("/login"), 2000);
-
-    } catch (error) {
-      console.log(error);
-      setError(error.response?.data?.message || error.message);
+    if (section) {
+      setFormData((prev) => ({
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [name]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
   };
 
-  return (
-    <div
-      className="d-flex justify-content-center align-items-center"
-      style={{
-        height: "100vh",
-        background: "linear-gradient(135deg, #e8f5e9, #c8e6c9)",
-      }}
-    >
-      <div
-        style={{
-          width: "420px",
-          padding: "40px",
-          borderRadius: "18px",
-          background: "#ffffff",
-          boxShadow: "0 18px 40px rgba(0,0,0,0.15)",
-        }}
-      >
-        <div className="text-center mb-4">
-          <div
-            style={{
-              width: "55px",
-              height: "55px",
-              margin: "0 auto",
-              borderRadius: "50%",
-              background: "#2e7d32",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              fontSize: "20px",
-            }}
-          >
-            🌿
-          </div>
+  const handleSubmit = async () => {
+    try {
+      const payload = { ...formData, role };
 
-          <h4 className="fw-semibold mt-3 mb-1">
-            Create HealOne Account
-          </h4>
-          <small className="text-muted">
-            Join our Ayurvedic wellness ecosystem
-          </small>
+      if (role === "user") {
+        delete payload.professionalDetails;
+        delete payload.documents;
+        delete payload.bio;
+        delete payload.expertiseSummary;
+        delete payload.treatmentApproach;
+        delete payload.consultationFees;
+        delete payload.availableTimeSlots;
+        delete payload.languagesSpoken;
+      }
+
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        payload
+      );
+
+      alert(res.data.message);
+    } catch (error) {
+      alert(error.response?.data?.message || "Registration failed");
+    }
+  };
+
+  const specialistSteps = [
+    StepRole,
+    StepBasic,
+    StepProfessional,
+    StepLocation,
+    StepDocuments,
+    StepProfile,
+    StepReview,
+  ];
+
+  const userSteps = [
+    StepRole,
+    StepBasic,
+    StepReview,
+  ];
+
+  const steps = role === "specialist" ? specialistSteps : userSteps;
+  const CurrentStep = steps[step];
+
+  const nextStep = () => {
+    if (step < steps.length - 1) {
+      setStep((prev) => prev + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (step > 0) {
+      setStep((prev) => prev - 1);
+    }
+  };
+
+return (
+  <div className="register-wrapper">
+{/* LEFT PANEL */}
+<div className="register-left">
+<div className="brand-content">
+
+  <div className="brand-logo">
+    <div className="logo-placeholder">🌿</div>
+    <h1 className="brand-title">HealOne</h1>
+  </div>
+
+  <h2 className="brand-headline">
+    Where Nature Meets Wellness
+  </h2>
+
+  <p className="brand-description">
+    Discover holistic products and trusted specialists.
+  </p>
+
+  <div className="brand-tags">
+    Ayurveda • Yoga • Therapy • Natural Remedies
+  </div>
+
+</div>
+</div>
+
+    {/* RIGHT PANEL */}
+    <div className="register-right">
+      <div className="form-container">
+
+        <div className="step-indicator">
+          <div
+            className="step-progress-line"
+            style={{
+              width: `${((step + 1) / steps.length) * 100}%`,
+            }}
+          ></div>
         </div>
 
-        {error && <div className="alert alert-danger py-1 text-center">{error}</div>}
-        {success && <div className="alert alert-success py-1 text-center">{success}</div>}
+        <div className="step-counter">
+          Step {step + 1} of {steps.length}
+        </div>
 
-        <form onSubmit={handleRegister}>
+        <CurrentStep
+          role={role}
+          setRole={setRole}
+          formData={formData}
+          handleChange={handleChange}
+          nextStep={nextStep}
+          prevStep={prevStep}
+          handleSubmit={handleSubmit}
+        />
 
-          <div className="mb-3">
-            <input
-              type="text"
-              name="name"
-              className="form-control"
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              style={{ borderRadius: "10px" }}
-            />
-          </div>
-
-          <div className="mb-3">
-            <input
-              type="email"
-              name="email"
-              className="form-control"
-              placeholder="Email Address"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              style={{ borderRadius: "10px" }}
-            />
-          </div>
-
-          <div className="mb-3">
-            <input
-              type="password"
-              name="password"
-              className="form-control"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              style={{ borderRadius: "10px" }}
-            />
-          </div>
-
-          {/* Role Selection */}
-          <div className="mb-3">
-            <select
-              name="role"
-              className="form-control"
-              value={formData.role}
-              onChange={handleChange}
-              style={{ borderRadius: "10px" }}
-            >
-              <option value="user">User</option>
-              <option value="specialist">Specialist</option>
-            </select>
-          </div>
-
-          {/* Show Extra Fields If Specialist */}
-          {formData.role === "specialist" && (
-            <>
-              <div className="mb-3">
-                <input
-                  type="text"
-                  name="profession"
-                  className="form-control"
-                  placeholder="Profession (Ayurveda Doctor, Yoga Guru...)"
-                  value={formData.profession}
-                  onChange={handleChange}
-                  required
-                  style={{ borderRadius: "10px" }}
-                />
-              </div>
-
-              <div className="mb-3">
-                <input
-                  type="number"
-                  name="experience"
-                  className="form-control"
-                  placeholder="Experience (Years)"
-                  value={formData.experience}
-                  onChange={handleChange}
-                  required
-                  style={{ borderRadius: "10px" }}
-                />
-              </div>
-            </>
-          )}
-
-          <button
-            type="submit"
-            className="btn w-100"
-            style={{
-              background: "#2e7d32",
-              color: "white",
-              borderRadius: "10px",
-              padding: "10px",
-              fontWeight: "500",
-            }}
-          >
-            Register
-          </button>
-
-          <div className="text-center mt-3">
-            <small className="text-muted">
-              Already have an account? <Link to="/login">Login</Link>
-            </small>
-          </div>
-        </form>
       </div>
     </div>
-  );
-}
+
+  </div>
+);
+};
+
+export default Register;
