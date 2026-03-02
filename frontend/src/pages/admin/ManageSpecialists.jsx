@@ -93,21 +93,17 @@ export default function ManageSpecialists() {
         </div>
 
         {/* FILTER BUTTONS */}
-        <div className="mb-4 d-flex gap-2 flex-wrap">
-          {["all", "pending", "approved", "rejected"].map((status) => (
-            <button
-              key={status}
-              className={`btn btn-sm ${
-                filterStatus === status
-                  ? "btn-primary"
-                  : "btn-outline-primary"
-              }`}
-              onClick={() => setFilterStatus(status)}
-            >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </button>
-          ))}
-        </div>
+       <div className="filter-tabs">
+  {["all","pending","approved","rejected"].map(status => (
+    <button
+      key={status}
+      className={filterStatus === status ? "active" : ""}
+      onClick={() => setFilterStatus(status)}
+    >
+      {status}
+    </button>
+  ))}
+</div>
 
         {/* CONTENT */}
         {loading ? (
@@ -162,32 +158,34 @@ export default function ManageSpecialists() {
                     </span>
 
                     {/* Action Buttons */}
-                    <div className="d-flex justify-content-between">
-                      <button
-                        className="btn btn-outline-primary btn-sm"
-                        data-bs-toggle="offcanvas"
-                        data-bs-target="#specialistDetails"
-                        onClick={() => setSelectedSpecialist(sp)}
-                      >
-                        View Details
-                      </button>
+                   <div className="card-actions">
 
-                      <div>
-                        <button
-                          className="btn btn-success btn-sm me-2"
-                          onClick={() => handleApprove(sp._id)}
-                        >
-                          Approve
-                        </button>
+  <button
+    className="view-btn"
+    data-bs-toggle="offcanvas"
+    data-bs-target="#specialistDetails"
+    onClick={() => setSelectedSpecialist(sp)}
+  >
+    View
+  </button>
 
-                        <button
-                          className="btn btn-outline-danger btn-sm"
-                          onClick={() => handleReject(sp._id)}
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </div>
+  <div className="approval-actions">
+    <button
+      className="approve-btn"
+      onClick={() => handleApprove(sp._id)}
+    >
+      ✓
+    </button>
+
+    <button
+      className="reject-btn"
+      onClick={() => handleReject(sp._id)}
+    >
+      ✕
+    </button>
+  </div>
+
+</div>
 
                   </div>
                 </div>

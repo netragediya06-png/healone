@@ -2,72 +2,63 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  createRemedy,
-  getAllRemedies,
-  getApprovedRemedies,
-  getMyRemedies,
-  updateRemedy,
-  updateRemedyStatus,
-  deleteRemedy,
-} = require("../controllers/remedyController");
+  createYogaService,
+  getAllYogaServices,
+  getMyYogaServices,
+  getApprovedYogaServices,
+  updateYogaService,
+  updateYogaStatus,
+  deleteYogaService,
+} = require("../controllers/yogaServiceController");
 
-const {
-  protect,
-  authorize,
-  adminOnly,
-  specialistApprovedOnly,
-} = require("../middleware/authMiddleware");
+const { protect, authorize } = require("../middleware/authMiddleware");
+
 
 /* ======================================================
-   CREATE REMEDY - SPECIALIST (APPROVED ONLY)
+   CREATE YOGA SERVICE
+   Admin + Specialist
 ====================================================== */
 router.post(
-  "/specialist",
+  "/",
   protect,
-  specialistApprovedOnly,
-  createRemedy
+  authorize("admin", "specialist"),
+  createYogaService
 );
 
-/* ======================================================
-   CREATE REMEDY - ADMIN (AUTO APPROVED)
-====================================================== */
-router.post(
-  "/admin",
-  protect,
-  adminOnly,
-  createRemedy
-);
 
 /* ======================================================
-   GET ALL REMEDIES (ADMIN ONLY)
+   GET ALL YOGA SERVICES (ADMIN ONLY)
 ====================================================== */
 router.get(
   "/",
   protect,
-  adminOnly,
-  getAllRemedies
+  authorize("admin"),
+  getAllYogaServices
 );
 
+
 /* ======================================================
-   GET MY REMEDIES (SPECIALIST ONLY)
+   GET MY YOGA SERVICES (SPECIALIST ONLY)
 ====================================================== */
 router.get(
   "/my",
   protect,
   authorize("specialist"),
-  getMyRemedies
+  getMyYogaServices
 );
 
+
 /* ======================================================
-   GET APPROVED REMEDIES (PUBLIC)
+   GET APPROVED YOGA SERVICES (PUBLIC)
 ====================================================== */
 router.get(
   "/approved",
-  getApprovedRemedies
+  getApprovedYogaServices
 );
 
+
 /* ======================================================
-   UPDATE REMEDY
+   UPDATE YOGA SERVICE
    Admin → Any
    Specialist → Own Only
 ====================================================== */
@@ -75,8 +66,9 @@ router.put(
   "/:id",
   protect,
   authorize("admin", "specialist"),
-  updateRemedy
+  updateYogaService
 );
+
 
 /* ======================================================
    UPDATE STATUS (ADMIN ONLY)
@@ -84,12 +76,13 @@ router.put(
 router.put(
   "/:id/status",
   protect,
-  adminOnly,
-  updateRemedyStatus
+  authorize("admin"),
+  updateYogaStatus
 );
 
+
 /* ======================================================
-   DELETE REMEDY
+   DELETE YOGA SERVICE
    Admin → Any
    Specialist → Own Only
 ====================================================== */
@@ -97,7 +90,7 @@ router.delete(
   "/:id",
   protect,
   authorize("admin", "specialist"),
-  deleteRemedy
+  deleteYogaService
 );
 
 module.exports = router;

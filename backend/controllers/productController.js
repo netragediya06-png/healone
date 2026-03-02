@@ -25,8 +25,8 @@ exports.createProduct = async (req, res) => {
       description: req.body.description,
       price: Number(req.body.price),
       stock: stockValue,
-      category: req.body.category,
-      healthCategory: req.body.healthCategory,
+      category: req.body.category,          // must be Category ObjectId
+      healthCategory: req.body.healthCategory, // must be HealthCategory ObjectId
       image: imageUrl,
       status: stockValue > 0 ? "active" : "inactive",
       createdBy: req.user._id
@@ -67,7 +67,7 @@ exports.getAdminProducts = async (req, res) => {
     }
 
     if (healthCategory) {
-      query.healthCategory = healthCategory;
+      query.healthCategory = healthCategory; // must be ObjectId
     }
 
     if (status) {
@@ -75,6 +75,8 @@ exports.getAdminProducts = async (req, res) => {
     }
 
     const products = await Product.find(query)
+      .populate("category", "name")
+      .populate("healthCategory", "name")
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit))
       .sort({ createdAt: -1 });
@@ -110,7 +112,7 @@ exports.getActiveProducts = async (req, res) => {
 
     const query = {
       status: "active",
-      stock: { $gt: 0 } // IMPORTANT: only show if in stock
+      stock: { $gt: 0 }
     };
 
     if (search) {
@@ -118,10 +120,12 @@ exports.getActiveProducts = async (req, res) => {
     }
 
     if (healthCategory) {
-      query.healthCategory = healthCategory;
+      query.healthCategory = healthCategory; // ObjectId
     }
 
     const products = await Product.find(query)
+      .populate("category", "name")
+      .populate("healthCategory", "name")
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit))
       .sort({ createdAt: -1 });
@@ -168,7 +172,6 @@ exports.updateProduct = async (req, res) => {
 
     const updatedStock = Number(req.body.stock);
 
-    // Auto deactivate if stock 0
     if (updatedStock <= 0) {
       req.body.status = "inactive";
     }
@@ -177,7 +180,9 @@ exports.updateProduct = async (req, res) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    );
+    )
+      .populate("category", "name")
+      .populate("healthCategory", "name");
 
     res.json({
       success: true,
@@ -193,36 +198,7 @@ exports.updateProduct = async (req, res) => {
 
 
 // ===============================
-// TOGGLE PRODUCT STATUS
-// ===============================
-exports.toggleProductStatus = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    product.status =
-      product.status === "active" ? "inactive" : "active";
-
-    await product.save();
-
-    res.json({
-      success: true,
-      message: "Product status updated",
-      product
-    });
-
-  } catch (error) {
-    console.error("TOGGLE STATUS ERROR:", error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-
-// ===============================
-// DELETE PRODUCT (SOFT)
+// DELETE PRODUCT (SOFT DELETE)
 // ===============================
 exports.deleteProduct = async (req, res) => {
   try {
@@ -245,12 +221,16 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
 // ===============================
 // GET SINGLE PRODUCT
 // ===============================
 exports.getSingleProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id)
+      .populate("category", "name")
+      .populate("healthCategory", "name");
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });

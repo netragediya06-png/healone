@@ -1,5 +1,3 @@
-// models/Product.js
-
 const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
@@ -23,11 +21,13 @@ const productSchema = new mongoose.Schema(
       default: 0
     },
     category: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
       required: true
     },
     healthCategory: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "HealthCategory",
       required: true
     },
     image: {

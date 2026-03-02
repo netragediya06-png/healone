@@ -13,6 +13,9 @@ import AdminProductList from "./pages/admin/products/AdminProductList";
 import AddProduct from "./pages/admin/products/AddProduct";
 import EditProduct from "./pages/admin/products/EditProduct";
 import ManageSpecialists from "./pages/admin/ManageSpecialists";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminRemedies from "./pages/admin/AdminRemedies";
+import AdminYogaServices from "./pages/admin/AdminYogaServices";
 
 /* ---------------- SPECIALIST ---------------- */
 import SpecialistRoute from "./pages/specialist/SpecialistRoute";
@@ -49,6 +52,9 @@ function App() {
           <Route path="products/add" element={<AddProduct />} />
           <Route path="products/edit/:id" element={<EditProduct />} />
           <Route path="specialists" element={<ManageSpecialists />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="remedies" element={<AdminRemedies />} />
+          <Route path="yoga-services" element={<AdminYogaServices />} />
         </Route>
 
         {/* ================= SPECIALIST ROUTES ================= */}

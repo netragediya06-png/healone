@@ -9,7 +9,7 @@ exports.createRemedy = async (req, res) => {
   try {
     let statusValue = "Pending";
 
-    // If admin creates → auto approve
+    // Admin auto approve
     if (req.user.role === "admin") {
       statusValue = "Approved";
     }
@@ -28,14 +28,13 @@ exports.createRemedy = async (req, res) => {
 
 /* ======================================================
    GET ALL REMEDIES (ADMIN ONLY)
+   With status filter + pagination
 ====================================================== */
 exports.getAllRemedies = async (req, res) => {
   try {
     const { status, page = 1, limit = 10 } = req.query;
 
     const filter = {};
-
-    // Filter by status (Pending / Approved / Rejected)
     if (status) {
       filter.status = status;
     }
@@ -61,7 +60,6 @@ exports.getAllRemedies = async (req, res) => {
   }
 };
 
-
 /* ======================================================
    GET MY REMEDIES (SPECIALIST ONLY)
 ====================================================== */
@@ -69,7 +67,9 @@ exports.getMyRemedies = async (req, res) => {
   try {
     const remedies = await Remedy.find({
       createdBy: req.user._id,
-    }).sort({ createdAt: -1 });
+    })
+      .populate("relatedProducts")
+      .sort({ createdAt: -1 });
 
     res.json(remedies);
   } catch (error) {
@@ -105,7 +105,7 @@ exports.updateRemedy = async (req, res) => {
       return res.status(404).json({ message: "Remedy not found" });
     }
 
-    // Admin can update any remedy
+    // ADMIN: Can update anything
     if (req.user.role === "admin") {
       const updated = await Remedy.findByIdAndUpdate(
         req.params.id,
@@ -115,7 +115,7 @@ exports.updateRemedy = async (req, res) => {
       return res.json(updated);
     }
 
-    // Specialist can update only own remedy
+    // SPECIALIST: Only own remedy
     if (
       req.user.role === "specialist" &&
       remedy.createdBy.toString() === req.user._id.toString()
@@ -137,6 +137,7 @@ exports.updateRemedy = async (req, res) => {
 
 /* ======================================================
    UPDATE REMEDY STATUS (ADMIN ONLY)
+   With Status Validation
 ====================================================== */
 exports.updateRemedyStatus = async (req, res) => {
   try {
@@ -146,10 +147,19 @@ exports.updateRemedyStatus = async (req, res) => {
       return res.status(404).json({ message: "Remedy not found" });
     }
 
+    const allowedStatuses = ["Pending", "Approved", "Rejected"];
+
+    if (!allowedStatuses.includes(req.body.status)) {
+      return res.status(400).json({
+        message: "Invalid status value",
+      });
+    }
+
     remedy.status = req.body.status;
     await remedy.save();
 
     res.json(remedy);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -158,7 +168,7 @@ exports.updateRemedyStatus = async (req, res) => {
 /* ======================================================
    DELETE REMEDY
    Admin → Delete any
-   Specialist → Delete own only
+   Specialist → Delete own (NOT if Approved)
 ====================================================== */
 exports.deleteRemedy = async (req, res) => {
   try {
@@ -168,17 +178,23 @@ exports.deleteRemedy = async (req, res) => {
       return res.status(404).json({ message: "Remedy not found" });
     }
 
-    // Admin can delete any
+    // ADMIN: delete anything
     if (req.user.role === "admin") {
       await remedy.deleteOne();
       return res.json({ message: "Remedy deleted by admin" });
     }
 
-    // Specialist can delete only own
+    // SPECIALIST: delete own only
     if (
       req.user.role === "specialist" &&
       remedy.createdBy.toString() === req.user._id.toString()
     ) {
+      if (remedy.status === "Approved") {
+        return res.status(403).json({
+          message: "Cannot delete approved remedy. Contact admin.",
+        });
+      }
+
       await remedy.deleteOne();
       return res.json({ message: "Remedy deleted successfully" });
     }

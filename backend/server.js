@@ -30,6 +30,7 @@ const remedyRoutes = require("./routes/remedyRoutes");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const specialistRoutes = require("./routes/specialistRoutes");
+const yogaServiceRoutes = require("./routes/yogaServiceRoutes"); // ✅ NEW
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
@@ -38,6 +39,7 @@ app.use("/api/remedies", remedyRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/specialists", specialistRoutes);
+app.use("/api/yoga-services", yogaServiceRoutes); // ✅ NEW
 
 // ===============================
 // Test Route

@@ -33,9 +33,9 @@ export default function Login() {
 
     // 🔒 Block unapproved specialists
     if (
-      dbUser.role === "specialist" &&
-      dbUser.approvalStatus !== "approved"
-    ) {
+  dbUser.role === "specialist" &&
+  dbUser.verificationStatus !== "approved"
+) {
       setError("Your specialist account is under review by admin 🌿");
       return;
     }

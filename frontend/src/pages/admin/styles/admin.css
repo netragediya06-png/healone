@@ -1,15 +1,332 @@
-.specialist-card {
-  border-radius: 16px;
-  transition: 0.3s ease;
-}
+/* ===========================================
+   HEALONE PREMIUM ADMIN DESIGN
+=========================================== */
 
-.specialist-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+.admin-dashboard {
+  background: linear-gradient(135deg, #f7faf8, #eef3ef);
+  min-height: 100vh;
+  padding: 40px;
+  font-family: "Inter", sans-serif;
 }
 
 .admin-wrapper {
-  background: #f8f9fa;
-  padding: 30px;
+  max-width: 1400px;
+  margin: auto;
+}
+
+/* ================= HEADER ================= */
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.admin-header h2 {
+  font-weight: 700;
+  font-size: 28px;
+  color: #0f3d2e;
+  margin: 0;
+}
+
+.admin-header p {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 5px 0 0 0;
+}
+
+.total-badge {
+  background: #1f6f43;
+  color: white;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 8px 18px rgba(31,111,67,0.2);
+}
+
+/* ================= SEARCH ================= */
+
+.admin-wrapper input {
+  width: 100%;
+  border-radius: 14px;
+  padding: 12px 18px;
+  border: 1px solid #e5e9e7;
+  background: #ffffff;
+  font-size: 14px;
+  transition: all 0.25s ease;
+}
+
+.admin-wrapper input:focus {
+  outline: none;
+  border-color: #1f6f43;
+  box-shadow: 0 0 0 3px rgba(31,111,67,0.12);
+}
+
+/* ================= FILTER TABS ================= */
+
+.filter-tabs {
+  display: flex;
+  gap: 12px;
+  margin: 25px 0 35px 0;
+  flex-wrap: wrap;
+}
+
+.filter-tabs button {
+  border: none;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: #f2f4f3;
+  font-size: 13px;
+  font-weight: 500;
+  color: #444;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.filter-tabs button.active {
+  background: #1f6f43;
+  color: white;
+  box-shadow: 0 6px 16px rgba(31,111,67,0.25);
+}
+
+.filter-tabs button:hover {
+  background: #e7eeea;
+}
+
+/* ================= CARD GRID ================= */
+
+.row {
+  margin-top: 10px;
+}
+
+.row > div {
+  margin-bottom: 30px;
+}
+
+/* ================= SPECIALIST CARD ================= */
+
+.specialist-card {
+  background: #ffffff;
   border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  transition: all 0.25s ease;
+  border: 1px solid #f0f3f1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.specialist-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.07);
+}
+
+/* ================= PROFILE SECTION ================= */
+
+.profile-section {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.profile-img {
+  width: 65px;
+  height: 65px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 2px solid #eef2f0;
+}
+
+/* Default Rectangular Avatar */
+.default-avatar {
+  width: 65px;
+  height: 65px;
+  border-radius: 14px;
+  background: #f1f5f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #1f6f43;
+  font-weight: bold;
+}
+
+.specialist-name {
+  font-weight: 600;
+  margin: 0;
+  color: #0f3d2e;
+}
+
+.specialist-sub {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* ================= STATUS PILL ================= */
+
+.status-pill {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.status-pill.pending {
+  background: #fff4cc;
+  color: #b78a00;
+}
+
+.status-pill.approved {
+  background: #e4f6ec;
+  color: #1f6f43;
+}
+
+.status-pill.rejected {
+  background: #fdeaea;
+  color: #c0392b;
+}
+
+/* ================= CARD ACTIONS ================= */
+
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.view-btn {
+  background: #f4f6f5;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.view-btn:hover {
+  background: #e6ecea;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.approve-btn {
+  background: #e4f6ec;
+  color: #1f6f43;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.approve-btn:hover {
+  background: #cdebdc;
+}
+
+.reject-btn {
+  background: #fdeaea;
+  color: #c0392b;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.reject-btn:hover {
+  background: #f9d4d4;
+}
+
+/* ================= OFFCANVAS ================= */
+
+.offcanvas {
+  border-radius: 20px 0 0 20px;
+}
+
+.offcanvas-header {
+  background: #f7faf8;
+}
+
+.offcanvas-title {
+  font-weight: 600;
+  color: #0f3d2e;
+}
+
+.profile-header {
+  text-align: center;
+}
+
+.profile-header img {
+  width: 90px;
+  height: 90px;
+  border-radius: 16px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.profile-header .default-avatar {
+  width: 90px;
+  height: 90px;
+  font-size: 36px;
+  margin: auto;
+  margin-bottom: 10px;
+}
+
+.details-section p {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+/* ================= EMPTY STATE ================= */
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+}
+
+.empty-state h4 {
+  font-weight: 600;
+  color: #0f3d2e;
+}
+
+.empty-state p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .admin-dashboard {
+    padding: 20px;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .filter-tabs {
+    gap: 8px;
+  }
 }

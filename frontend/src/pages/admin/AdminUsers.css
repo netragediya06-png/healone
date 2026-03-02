@@ -1,0 +1,170 @@
+.users-container {
+  padding: 30px 40px;
+}
+
+/* HEADER */
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.users-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.total-badge {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* CONTROLS */
+.users-controls {
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.search-input {
+  width: 260px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  outline: none;
+  font-size: 14px;
+}
+
+/* FILTER SEGMENT */
+.filter-wrapper {
+  display: flex;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.filter-btn {
+  padding: 7px 14px;
+  font-size: 13px;
+  background: white;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+  color: #64748b;
+}
+
+.filter-btn:not(:last-child) {
+  border-right: 1px solid #e5e7eb;
+}
+
+.filter-btn:hover {
+  background: #f3f4f6;
+}
+
+.filter-btn.selected {
+  background: #15803d;
+  color: white;
+}
+
+/* LIST */
+.users-list {
+  margin-top: 20px;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+}
+
+.user-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.user-item:last-child {
+  border-bottom: none;
+}
+
+.user-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-icon {
+  font-size: 42px;
+  color: #cbd5e1;
+}
+
+.user-left h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.user-left p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.user-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* STATUS */
+.status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status.active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status.blocked {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* ICON BUTTONS */
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  color: #64748b;
+}
+
+.icon-btn:hover {
+  color: #f59e0b;
+}
+
+.icon-btn.delete:hover {
+  color: #ef4444;
+}
+
+/* EMPTY STATE */
+.empty-state {
+  padding: 40px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+}

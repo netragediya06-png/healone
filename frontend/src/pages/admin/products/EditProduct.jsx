@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import productService from "../../../services/productService";
-import axios from "axios";
+import categoryService from "../../../services/categoryService";
 import "./HealOneProduct.css";
 
 function EditProduct() {
 
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const [categories, setCategories] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -21,21 +23,62 @@ function EditProduct() {
 
   const [preview, setPreview] = useState("");
 
-  // Fetch Product
+  // ==========================
+  // FETCH CATEGORIES
+  // ==========================
   useEffect(() => {
-    axios
-      .get(`http://localhost:5000/api/products/${id}`)
-      .then((res) => {
-        setFormData(res.data.product);
-        setPreview(res.data.product.image);
-      })
-      .catch((err) => console.error(err));
+    const fetchCategories = async () => {
+      try {
+        const res = await categoryService.getAllCategories();
+        setCategories(res.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // ==========================
+  // FETCH PRODUCT DATA
+  // ==========================
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await productService.getSingleProduct(id);
+
+        const product = res.data.product;
+
+        setFormData({
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          stock: product.stock,
+          category: product.category?._id || product.category,
+          healthCategory: product.healthCategory,
+          image: product.image
+        });
+
+        setPreview(product.image);
+
+      } catch (error) {
+        console.error("Fetch product error:", error);
+      }
+    };
+
+    fetchProduct();
   }, [id]);
 
+  // ==========================
+  // HANDLE CHANGE
+  // ==========================
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // ==========================
+  // HANDLE IMAGE
+  // ==========================
   const handleImage = (e) => {
     const reader = new FileReader();
     reader.readAsDataURL(e.target.files[0]);
@@ -45,10 +88,18 @@ function EditProduct() {
     };
   };
 
+  // ==========================
+  // HANDLE SUBMIT
+  // ==========================
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await productService.updateProduct(id, formData);
-    navigate("/admin/products");
+
+    try {
+      await productService.updateProduct(id, formData);
+      navigate("/admin/products");
+    } catch (error) {
+      console.error("Update product error:", error);
+    }
   };
 
   return (
@@ -79,15 +130,23 @@ function EditProduct() {
                   />
                 </div>
 
+                {/* CATEGORY DROPDOWN */}
                 <div className="col-md-6">
                   <label className="form-label">Category</label>
-                  <input
+                  <select
                     name="category"
                     value={formData.category}
-                    className="form-control"
+                    className="form-select"
                     onChange={handleChange}
                     required
-                  />
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="col-md-6">
@@ -125,6 +184,7 @@ function EditProduct() {
                   />
                 </div>
 
+                {/* TEMP HEALTH CATEGORY */}
                 <div className="col-md-6">
                   <label className="form-label">Health Category</label>
                   <select
@@ -138,8 +198,10 @@ function EditProduct() {
                     <option value="Stress">Stress</option>
                     <option value="Immunity">Immunity</option>
                     <option value="Digestion">Digestion</option>
-                    <option value="Skin">Skin</option>
-                    <option value="Hair">Hair</option>
+                    <option value="Skin Care">Skin Care</option>
+                    <option value="Hair Care">Hair Care</option>
+                    <option value="Weight Loss">Weight Loss</option>
+                    <option value="Joint Pain">Joint Pain</option>
                   </select>
                 </div>
 

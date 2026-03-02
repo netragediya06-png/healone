@@ -1,163 +1,132 @@
 /* ===============================
-   DASHBOARD LAYOUT
+   GLOBAL DASHBOARD WRAPPER
 ================================ */
 
 .dashboard {
-  width: 100vw;
+  display: flex;
   height: 100vh;
-  overflow: hidden;
+  background: #f3f4f6;
+  font-family: "Inter", sans-serif;
 }
 
 .dashboard-body {
   display: flex;
-  height: 100vh;
+  width: 100%;
 }
 
 /* ===============================
-   SIDEBAR
+   MAIN SECTION
 ================================ */
 
-.sidebar {
-  background: linear-gradient(180deg, #0f5132, #0a2f1f);
-  color: #fff;
-  height: 100vh;
-  transition: width 0.3s ease;
-  overflow: hidden;
-  padding: 16px;
+.main-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f3f4f6;
 }
 
-.sidebar-open {
+/* ===============================
+   HEADER (AdminKit Style)
+================================ */
+
+.admin-header {
+  height: 60px;
+  background: #ffffff;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Search */
+.search-wrapper {
+  position: relative;
+}
+
+.admin-search {
+  padding: 8px 12px 8px 32px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  outline: none;
   width: 240px;
+  background: #f9fafb;
 }
 
-.sidebar-collapsed {
-  width: 72px;
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #6b7280;
 }
 
-/* HEADER */
-.sidebar-header {
+/* Header Right */
+.header-right {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  gap: 20px;
 }
 
-.sidebar-header h4 {
-  font-size: 18px;
-  margin: 0;
+/* Notification */
+.icon-circle {
+  position: relative;
+  cursor: pointer;
 }
 
-/* TOGGLE BUTTON */
-.toggle-btn {
-  background: #145c32;
+.icon-circle i {
+  font-size: 16px;
+  color: #374151;
+}
+
+.notif-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: #ef4444;
   color: white;
-  border: none;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 50%;
+}
+
+/* Profile */
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.admin-profile img {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  cursor: pointer;
 }
 
-/* LIST */
-.sidebar-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sidebar-list-item {
-  margin-bottom: 6px;
-}
-
-.sidebar-list-item a,
-.logout-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px;
-  border-radius: 8px;
-  color: #e5e7eb;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-
-/* ICON SIZE */
-.sidebar i {
-  font-size: 18px;
-  min-width: 22px;
-}
-
-/* TEXT */
-.menu-text {
-  white-space: nowrap;
-  transition: opacity 0.2s ease;
-}
-
-/* COLLAPSED STATE */
-.sidebar-collapsed .menu-text {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.sidebar-collapsed .sidebar-list-item a,
-.sidebar-collapsed .logout-item {
-  justify-content: center;
-}
-
-/* HOVER + ACTIVE */
-.sidebar-list-item a:hover,
-.logout-item:hover {
-  background: #145c32;
-}
-
-.active-link a {
-  background: #145c32;
-  color: #fff;
-}
-
-/* LOGOUT */
-.logout-item {
-  margin-top: 20px;
-  color: #f87171;
-  cursor: pointer;
+.small-arrow {
+  font-size: 10px;
+  color: #6b7280;
 }
 
 /* ===============================
-   MAIN CONTENT
+   MAIN CONTENT AREA
 ================================ */
 
 .main-container {
   flex: 1;
-  padding: 0px;
+  padding: 20px;
   overflow-y: auto;
-  background: #f9fafb;
 }
 
-.admin-content-wrapper {
-  background: white;
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
-}
-/* =============================
-   ADMIN DASHBOARD IMPROVED
-============================= */
-
-/* =============================
-   ADMIN DASHBOARD CLEAN STYLE
-============================= */
+/* ===============================
+   DASHBOARD CONTENT
+================================ */
 
 .admin-dashboard {
-  background: #f1f5f9;
-  min-height: 100vh;
-  padding: 40px;
-}
-
-.admin-wrapper {
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 40px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.05);
+  padding: 10px;
 }
 
 /* Top Section */
@@ -165,46 +134,43 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
+  margin-bottom: 25px;
 }
 
 .dashboard-header h3 {
-  font-weight: 700;
-  margin-bottom: 5px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 20px;
 }
 
 .dashboard-header p {
-  color: #64748b;
+  color: #6b7280;
+  font-size: 13px;
   margin: 0;
 }
 
 /* Summary Boxes */
 .quick-summary {
   display: flex;
-  gap: 20px;
+  gap: 12px;
 }
 
 .summary-box {
-  padding: 18px 28px;
-  border-radius: 16px;
-  min-width: 150px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  min-width: 130px;
   text-align: center;
-  transition: 0.3s;
-}
-
-.summary-box span {
-  font-size: 12px;
-  display: block;
-  margin-bottom: 5px;
+  font-size: 13px;
 }
 
 .summary-box h4 {
+  font-size: 18px;
   margin: 0;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .summary-box.dark {
-  background: #0f172a;
+  background: #111827;
   color: white;
 }
 
@@ -216,38 +182,37 @@
 /* Cards Section */
 .dashboard-cards {
   display: flex;
-  gap: 30px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
 .admin-card {
   flex: 1;
-  min-width: 260px;
+  min-width: 240px;
   background: #ffffff;
-  padding: 30px;
-  border-radius: 18px;
+  padding: 18px;
+  border-radius: 12px;
   border: 1px solid #e5e7eb;
-  transition: 0.3s ease;
-   box-shadow: 0 15px 40px rgba(0,0,0,0.06);
-   border: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
 }
 
 .admin-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
 }
 
 .card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .card-icon {
-  font-size: 18px;
-  padding: 14px;
-  border-radius: 12px;
+  font-size: 14px;
+  padding: 8px;
+  border-radius: 8px;
   color: white;
 }
 
@@ -264,18 +229,19 @@
 }
 
 .admin-card h3 {
-  font-size: 30px;
-  font-weight: 700;
-  margin-bottom: 5px;
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .admin-card p {
-  color: #64748b;
+  color: #6b7280;
+  font-size: 13px;
   margin: 0;
 }
 
 .growth {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 

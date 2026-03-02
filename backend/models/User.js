@@ -52,6 +52,13 @@ const userSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "approved",
     },
+// ========================
+// ACCOUNT STATUS CONTROL (ADMIN)
+// ========================
+isBlocked: {
+  type: Boolean,
+  default: false,
+},
 
     // ========================
     // SPECIALIST PROFESSIONAL DETAILS

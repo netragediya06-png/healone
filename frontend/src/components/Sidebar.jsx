@@ -59,6 +59,25 @@ function Sidebar({ openSidebarToggle, OpenSidebar }) {
             <span className="menu-text">Specialists</span>
           </Link>
         </li>
+         {/* ✅ NEW USERS MENU */}
+  <li className={`sidebar-list-item ${isActive("/admin/users")}`}>
+    <Link to="/admin/users">
+      <i className="fa-solid fa-users"></i>
+      <span className="menu-text">Users</span>
+    </Link>
+  </li>
+  <li className={`sidebar-list-item ${isActive("/admin/remedies")}`}>
+  <Link to="/admin/remedies">
+    <i className="fa-solid fa-leaf"></i>
+    <span className="menu-text">Remedies</span>
+  </Link>
+</li>
+<li className={`sidebar-list-item ${isActive("/admin/yoga-services")}`}>
+  <Link to="/admin/yoga-services">
+    <i className="fa-solid fa-person-running"></i>
+    <span className="menu-text">Yoga Services</span>
+  </Link>
+</li>
 
         {/* Logout */}
         <li className="sidebar-list-item logout-item" onClick={handleLogout}>
