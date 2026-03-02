@@ -10,7 +10,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+const handleLogin = async (e) => {
   e.preventDefault();
   setError("");
 
@@ -25,17 +25,34 @@ export default function Login() {
     const firebaseUser = userCredential.user;
 
     // 2️⃣ Fetch user from MongoDB
-    const res = await axios.get(
-      `http://localhost:5000/api/users/by-email/${firebaseUser.email}`
-    );
-
-    const dbUser = res.data;
+    let dbUser;
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/users/by-email/${firebaseUser.email}`
+      );
+      dbUser = res.data;
+    } catch (err) {
+      // If user not found, create one
+      if (err.response?.status === 404) {
+        const createRes = await axios.post(`http://localhost:5000/api/users`, {
+          name: firebaseUser.displayName || "NoName",
+          email: firebaseUser.email,
+          role: "user", // default role
+          isVerified: true,
+          verificationStatus: "approved",
+          isBlocked: false,
+        });
+        dbUser = createRes.data;
+      } else {
+        throw err;
+      }
+    }
 
     // 🔒 Block unapproved specialists
     if (
-  dbUser.role === "specialist" &&
-  dbUser.verificationStatus !== "approved"
-) {
+      dbUser.role === "specialist" &&
+      dbUser.verificationStatus !== "approved"
+    ) {
       setError("Your specialist account is under review by admin 🌿");
       return;
     }
@@ -48,11 +65,9 @@ export default function Login() {
     // 4️⃣ Role-based redirect
     if (dbUser.role === "admin") {
       navigate("/admin");
-    } 
-    else if (dbUser.role === "specialist") {
+    } else if (dbUser.role === "specialist") {
       navigate("/specialist");
-    } 
-    else {
+    } else {
       navigate("/");
     }
 
