@@ -1,200 +1,154 @@
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebase";
-import { useState } from "react";
-import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+const User = require("../models/User");
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+// ===========================================
+// GET USER BY EMAIL (Auto Create if Not Exist)
+// ===========================================
+const getUserByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    console.log("🔹 Login button clicked");
-    console.log("Email:", email);
+    // 1️⃣ Find user in MongoDB
+    let user = await User.findOne({ email });
 
-    try {
-      // 1️⃣ Firebase Login
-      console.log("🔹 Attempting Firebase login...");
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
+    // 2️⃣ If user does not exist → create default user
+    if (!user) {
+      user = await User.create({
+        fullName: email.split("@")[0], // default name from email
         email,
-        password
-      );
-
-      const firebaseUser = userCredential.user;
-      console.log("✅ Firebase login successful:", firebaseUser.email);
-
-      // 2️⃣ Fetch user from MongoDB
-      let dbUser;
-      try {
-        console.log("🔹 Fetching user from backend...");
-        const res = await axios.get(
-          `http://localhost:5000/api/users/by-email/${firebaseUser.email}`
-        );
-        dbUser = res.data;
-        console.log("✅ User found in DB:", dbUser);
-      } catch (err) {
-        console.warn("⚠️ User not found in DB, creating new user...", err.response?.status);
-        // If user not found, create one
-        if (err.response?.status === 404) {
-          const createRes = await axios.post(`http://localhost:5000/api/users`, {
-            name: firebaseUser.displayName || "NoName",
-            email: firebaseUser.email,
-            role: "user", // default role
-            isVerified: true,
-            verificationStatus: "approved",
-            isBlocked: false,
-          });
-          dbUser = createRes.data;
-          console.log("✅ New user created:", dbUser);
-        } else {
-          throw err;
-        }
-      }
-
-      // 🔒 Block unapproved specialists
-      if (
-        dbUser.role === "specialist" &&
-        dbUser.verificationStatus !== "approved"
-      ) {
-        console.log("⚠️ Specialist account under review");
-        setError("Your specialist account is under review by admin 🌿");
-        return;
-      }
-
-      // 3️⃣ Store in localStorage
-      console.log("🔹 Storing user data in localStorage...");
-      localStorage.setItem("userId", dbUser._id);
-      localStorage.setItem("role", dbUser.role);
-      localStorage.setItem("email", dbUser.email);
-
-      // 4️⃣ Role-based redirect
-      console.log("🔹 Redirecting user based on role:", dbUser.role);
-      if (dbUser.role === "admin") {
-        navigate("/admin");
-      } else if (dbUser.role === "specialist") {
-        navigate("/specialist");
-      } else {
-        navigate("/");
-      }
-
-    } catch (error) {
-      console.error("❌ Login failed:", error);
-      setError(error.response?.data?.message || error.message);
+        password: "firebase-auth", // placeholder, real auth handled by Firebase
+        phone: "0000000000", // placeholder
+        role: "user", // default role
+        isVerified: true,
+        verificationStatus: "approved",
+        isBlocked: false,
+      });
     }
-  };
 
-  return (
-    <div
-      className="d-flex justify-content-center align-items-center"
-      style={{
-        height: "100vh",
-        background: "linear-gradient(135deg, #e8f5e9, #c8e6c9)",
-      }}
-    >
-      <div
-        style={{
-          width: "400px",
-          padding: "40px",
-          borderRadius: "18px",
-          background: "#ffffff",
-          boxShadow: "0 18px 40px rgba(0,0,0,0.15)",
-        }}
-      >
-        {/* 🌿 HealOne Logo Section */}
-        <div className="text-center mb-4">
-          <div
-            style={{
-              width: "55px",
-              height: "55px",
-              margin: "0 auto",
-              borderRadius: "50%",
-              background: "#2e7d32",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              fontSize: "20px",
-              fontWeight: "bold",
-            }}
-          >
-            🌿
-          </div>
+    // 3️⃣ Return user
+    res.status(200).json(user);
 
-          <h4 className="fw-semibold mt-3 mb-1">
-            Welcome to HealOne
-          </h4>
-          <small className="text-muted">
-            Ayurvedic Wellness Ecosystem
-          </small>
-        </div>
+  } catch (error) {
+    console.error("User route error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
-        {error && (
-          <div className="alert alert-danger text-center py-1">
-            {error}
-          </div>
-        )}
+// ===========================================
+// REGISTER USER / SPECIALIST
+// ===========================================
+const registerUser = async (req, res) => {
+  try {
+    const { fullName, email, password, phone, role } = req.body;
 
-        <form onSubmit={handleLogin}>
-          {/* Email */}
-          <div className="mb-3">
-            <input
-              type="email"
-              className="form-control"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                borderRadius: "10px",
-                padding: "10px",
-              }}
-            />
-          </div>
+    // Prevent admin registration
+    if (role === "admin") {
+      return res.status(403).json({
+        message: "Admin registration is not allowed",
+      });
+    }
 
-          {/* Password */}
-          <div className="mb-3">
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                borderRadius: "10px",
-                padding: "10px",
-              }}
-            />
-          </div>
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User already exists",
+      });
+    }
 
-          <button
-            type="submit"
-            className="btn w-100"
-            onClick={() => console.log("Button clicked!")}
-            style={{
-              background: "#2e7d32",
-              color: "white",
-              borderRadius: "10px",
-              padding: "10px",
-              fontWeight: "500",
-            }}
-          >
-            Login
-          </button>
+    // Create new user
+    const user = await User.create({
+      fullName,
+      email,
+      password, // In real app, hash password
+      phone,
+      role: role || "user",
+      isVerified: false,
+      verificationStatus: "pending",
+      isBlocked: false,
+    });
 
-          <div className="text-center mt-3">
-            <small className="text-muted">
-              Don’t have an account?{" "}
-              <Link to="/register">Register</Link>
-            </small>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+    res.status(201).json(user);
+
+  } catch (error) {
+    console.error("Register error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ===========================================
+// GET ALL NORMAL USERS (Admin Only)
+// ===========================================
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({
+      role: { $nin: ["admin", "specialist"] }
+    }).select("-password");
+
+    res.status(200).json(users);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ===========================================
+// BLOCK / UNBLOCK USER (Admin Only)
+// ===========================================
+const blockUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.role === "admin") {
+      return res.status(400).json({ message: "Cannot block admin" });
+    }
+
+    user.isBlocked = !user.isBlocked;
+    await user.save();
+
+    res.status(200).json({
+      message: `User ${user.isBlocked ? "blocked" : "unblocked"} successfully`,
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ===========================================
+// DELETE USER (Admin Only)
+// ===========================================
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.role === "admin") {
+      return res.status(400).json({ message: "Cannot delete admin" });
+    }
+
+    await user.deleteOne();
+
+    res.status(200).json({
+      message: "User deleted successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ===========================================
+// EXPORT ALL CONTROLLERS
+// ===========================================
+module.exports = {
+  getUserByEmail,
+  registerUser,
+  getAllUsers,
+  blockUser,
+  deleteUser,
+};

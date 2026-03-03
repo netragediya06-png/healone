@@ -79,6 +79,7 @@ function Sidebar({ openSidebarToggle, OpenSidebar }) {
   </Link>
 </li>
 
+
         {/* Logout */}
         <li className="sidebar-list-item logout-item" onClick={handleLogout}>
           <i className="fa-solid fa-right-from-bracket"></i>
