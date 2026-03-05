@@ -55,6 +55,7 @@ function App() {
           <Route path="users" element={<AdminUsers />} />
           <Route path="remedies" element={<AdminRemedies />} />
           <Route path="yoga-services" element={<AdminYogaServices />} />
+          {/* <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
         </Route>
 
         {/* ================= SPECIALIST ROUTES ================= */}
