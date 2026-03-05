@@ -60,13 +60,13 @@
 
 .admin-card {
   flex: 1;
-  min-width: 260px;
+  min-width: 260px; 
   background: white;
-  padding: 30px;
+ padding: 30px;
   border-radius: 18px;
   box-shadow: 0 15px 35px rgba(0,0,0,0.05);
   transition: 0.3s ease;
-  border: 1px solid #e2e8f0;
+ border: 1px solid #e2e8f0;
 }
 
 .admin-card:hover {

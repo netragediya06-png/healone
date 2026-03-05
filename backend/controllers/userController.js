@@ -1,6 +1,5 @@
 const User = require("../models/User");
 
-
 // ===========================================
 // GET USER BY EMAIL (Auto Create if Not Exist)
 // ===========================================
@@ -8,19 +7,24 @@ const getUserByEmail = async (req, res) => {
   try {
     const { email } = req.params;
 
+    // 1️⃣ Find user in MongoDB
     let user = await User.findOne({ email });
 
-    // If user does not exist → create default user
+    // 2️⃣ If user does not exist → create default user
     if (!user) {
       user = await User.create({
-        fullName: email.split("@")[0],
+        fullName: email.split("@")[0], // default name from email
         email,
-        password: "firebase-auth", // placeholder
+        password: "firebase-auth", // placeholder, real auth handled by Firebase
         phone: "0000000000", // placeholder
-        role: "user",
+        role: "user", // default role
+        isVerified: true,
+        verificationStatus: "approved",
+        isBlocked: false,
       });
     }
 
+    // 3️⃣ Return user
     res.status(200).json(user);
 
   } catch (error) {
@@ -28,8 +32,6 @@ const getUserByEmail = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 // ===========================================
 // REGISTER USER / SPECIALIST
@@ -45,6 +47,7 @@ const registerUser = async (req, res) => {
       });
     }
 
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -52,12 +55,16 @@ const registerUser = async (req, res) => {
       });
     }
 
+    // Create new user
     const user = await User.create({
       fullName,
       email,
-      password,
+      password, // In real app, hash password
       phone,
       role: role || "user",
+      isVerified: false,
+      verificationStatus: "pending",
+      isBlocked: false,
     });
 
     res.status(201).json(user);
@@ -67,8 +74,6 @@ const registerUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 // ===========================================
 // GET ALL NORMAL USERS (Admin Only)
@@ -86,8 +91,6 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-
-
 // ===========================================
 // BLOCK / UNBLOCK USER (Admin Only)
 // ===========================================
@@ -96,10 +99,7 @@ const blockUser = async (req, res) => {
     const { id } = req.params;
 
     const user = await User.findById(id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     if (user.role === "admin") {
       return res.status(400).json({ message: "Cannot block admin" });
@@ -117,8 +117,6 @@ const blockUser = async (req, res) => {
   }
 };
 
-
-
 // ===========================================
 // DELETE USER (Admin Only)
 // ===========================================
@@ -127,10 +125,7 @@ const deleteUser = async (req, res) => {
     const { id } = req.params;
 
     const user = await User.findById(id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     if (user.role === "admin") {
       return res.status(400).json({ message: "Cannot delete admin" });
@@ -146,8 +141,6 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 // ===========================================
 // EXPORT ALL CONTROLLERS

@@ -11,57 +11,82 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  setError("");
+    e.preventDefault();
+    setError("");
+    console.log("🔹 Login button clicked");
+    console.log("Email:", email);
 
-  try {
-    // 1️⃣ Firebase Login
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
+    try {
+      // 1️⃣ Firebase Login
+      console.log("🔹 Attempting Firebase login...");
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
-    const firebaseUser = userCredential.user;
+      const firebaseUser = userCredential.user;
+      console.log("✅ Firebase login successful:", firebaseUser.email);
 
-    // 2️⃣ Fetch user from MongoDB
-    const res = await axios.get(
-      `http://localhost:5000/api/users/by-email/${firebaseUser.email}`
-    );
+      // 2️⃣ Fetch user from MongoDB
+      let dbUser;
+      try {
+        console.log("🔹 Fetching user from backend...");
+        const res = await axios.get(
+          `http://localhost:5000/api/users/by-email/${firebaseUser.email}`
+        );
+        dbUser = res.data;
+        console.log("✅ User found in DB:", dbUser);
+      } catch (err) {
+        console.warn("⚠️ User not found in DB, creating new user...", err.response?.status);
+        // If user not found, create one
+        if (err.response?.status === 404) {
+          const createRes = await axios.post(`http://localhost:5000/api/users`, {
+            name: firebaseUser.displayName || "NoName",
+            email: firebaseUser.email,
+            role: "user", // default role
+            isVerified: true,
+            verificationStatus: "approved",
+            isBlocked: false,
+          });
+          dbUser = createRes.data;
+          console.log("✅ New user created:", dbUser);
+        } else {
+          throw err;
+        }
+      }
 
-    const dbUser = res.data;
+      // 🔒 Block unapproved specialists
+      if (
+        dbUser.role === "specialist" &&
+        dbUser.verificationStatus !== "approved"
+      ) {
+        console.log("⚠️ Specialist account under review");
+        setError("Your specialist account is under review by admin 🌿");
+        return;
+      }
 
-    // 🔒 Block unapproved specialists
-    if (
-  dbUser.role === "specialist" &&
-  dbUser.verificationStatus !== "approved"
-) {
-      setError("Your specialist account is under review by admin 🌿");
-      return;
+      // 3️⃣ Store in localStorage
+      console.log("🔹 Storing user data in localStorage...");
+      localStorage.setItem("userId", dbUser._id);
+      localStorage.setItem("role", dbUser.role);
+      localStorage.setItem("email", dbUser.email);
+
+      // 4️⃣ Role-based redirect
+      console.log("🔹 Redirecting user based on role:", dbUser.role);
+      if (dbUser.role === "admin") {
+        navigate("/admin");
+      } else if (dbUser.role === "specialist") {
+        navigate("/specialist");
+      } else {
+        navigate("/");
+      }
+
+    } catch (error) {
+      console.error("❌ Login failed:", error);
+      setError(error.response?.data?.message || error.message);
     }
-
-    // 3️⃣ Store in localStorage
-    localStorage.setItem("userId", dbUser._id);
-    localStorage.setItem("role", dbUser.role);
-    localStorage.setItem("email", dbUser.email);
-
-    // 4️⃣ Role-based redirect
-    if (dbUser.role === "admin") {
-      navigate("/admin");
-    } 
-    else if (dbUser.role === "specialist") {
-      navigate("/specialist");
-    } 
-    else {
-      navigate("/");
-    }
-
-  } catch (error) {
-    console.log(error);
-    setError(error.response?.data?.message || error.message);
-  }
-};
-
+  };
 
   return (
     <div
@@ -150,6 +175,7 @@ export default function Login() {
           <button
             type="submit"
             className="btn w-100"
+            onClick={() => console.log("Button clicked!")}
             style={{
               background: "#2e7d32",
               color: "white",

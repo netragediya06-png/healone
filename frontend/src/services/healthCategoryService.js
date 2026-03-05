@@ -1,14 +1,10 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/health-categories";
+const API = "http://localhost:5000/api/healthcategories";
 
-// GET ALL HEALTH CATEGORIES
-const getAllHealthCategories = async () => {
-  return await axios.get(API_URL);
+const getAllHealthCategories = () =>
+  axios.get(API);
+
+export default {
+  getAllHealthCategories
 };
-
-const healthCategoryService = {
-  getAllHealthCategories,
-};
-
-export default healthCategoryService;

@@ -1,0 +1,455 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Modal } from "bootstrap";
+import categoryService from "../../../services/categoryService";
+import "./HealOneProduct.css";
+
+function AdminProductList() {
+
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [search, setSearch] = useState("");
+  const [editId, setEditId] = useState(null);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    stock: "",
+    category: "",
+    healthCategory: "",
+    image: null,
+    status: true
+  });
+
+  const [preview, setPreview] = useState("");
+
+  // ==========================
+  // FETCH PRODUCTS
+  // ==========================
+  const fetchProducts = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/products/admin/all",
+        {
+          headers: {
+            userid: localStorage.getItem("userId")
+          }
+        }
+      );
+
+      console.log("Product API Response:", res.data);
+
+      // Handle both response formats
+      if (Array.isArray(res.data)) {
+        setProducts(res.data);
+      } else if (res.data.products) {
+        setProducts(res.data.products);
+      } else {
+        setProducts([]);
+      }
+
+    } catch (error) {
+      console.error("Fetch product error:", error);
+    }
+  };
+
+  // ==========================
+  // FETCH CATEGORIES
+  // ==========================
+  const fetchCategories = async () => {
+    try {
+      const res = await categoryService.getAllCategories();
+      setCategories(res.data);
+    } catch (error) {
+      console.error("Category fetch error:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  // ==========================
+  // HANDLE INPUT CHANGE
+  // ==========================
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // ==========================
+  // HANDLE IMAGE
+  // ==========================
+  const handleImage = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setFormData({ ...formData, image: file });
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ==========================
+  // HANDLE SUBMIT (CREATE + UPDATE)
+  // ==========================
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const data = new FormData();
+    Object.keys(formData).forEach(key => {
+      data.append(key, formData[key]);
+    });
+
+    try {
+      if (editId) {
+        await axios.put(
+          `http://localhost:5000/api/products/${editId}`,
+          data
+        );
+      } else {
+        await axios.post(
+          "http://localhost:5000/api/products",
+          data
+        );
+      }
+
+      fetchProducts();
+      closeModal();
+
+    } catch (error) {
+      console.error("Submit error:", error);
+    }
+  };
+
+  // ==========================
+  // EDIT
+  // ==========================
+  const handleEdit = (product) => {
+
+    setEditId(product._id);
+
+    setFormData({
+      name: product.name || "",
+      description: product.description || "",
+      price: product.price || "",
+      stock: product.stock || "",
+      category: product.category?._id || product.category || "",
+      healthCategory: product.healthCategory || "",
+      image: null,
+      status: product.status
+    });
+
+    setPreview(product.image || "");
+
+    const modal = new Modal(document.getElementById("productModal"));
+    modal.show();
+  };
+
+  // ==========================
+  // DELETE
+  // ==========================
+  const handleDelete = async (id) => {
+    if (window.confirm("Delete this product?")) {
+      try {
+        await axios.delete(
+          `http://localhost:5000/api/products/${id}`
+        );
+        fetchProducts();
+      } catch (error) {
+        console.error("Delete error:", error);
+      }
+    }
+  };
+
+  // ==========================
+  // TOGGLE STATUS
+  // ==========================
+  const handleToggleStatus = async (id) => {
+    try {
+      await axios.patch(
+        `http://localhost:5000/api/products/toggle/${id}`
+      );
+      fetchProducts();
+    } catch (error) {
+      console.error("Toggle error:", error);
+    }
+  };
+
+  // ==========================
+  // CLOSE MODAL
+  // ==========================
+  const closeModal = () => {
+
+    setEditId(null);
+    setPreview("");
+
+    setFormData({
+      name: "",
+      description: "",
+      price: "",
+      stock: "",
+      category: "",
+      healthCategory: "",
+      image: null,
+      status: true
+    });
+
+    const modalElement = document.getElementById("productModal");
+    const modalInstance = Modal.getInstance(modalElement);
+    if (modalInstance) modalInstance.hide();
+  };
+
+  const filteredProducts = products.filter(p =>
+    p.name?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="container py-4">
+
+      {/* HEADER */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="fw-bold healone-title">HealOne Products</h2>
+          <small className="text-muted">
+            {products.length} Products
+          </small>
+        </div>
+
+        <button
+          className="btn healone-btn"
+          data-bs-toggle="modal"
+          data-bs-target="#productModal"
+          onClick={closeModal}
+        >
+          + Add Product
+        </button>
+      </div>
+
+      {/* SEARCH */}
+      <input
+        type="text"
+        className="form-control mb-4"
+        placeholder="Search product..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {/* PRODUCT GRID */}
+      <div className="row g-4">
+
+        {filteredProducts.length === 0 && (
+          <p className="text-center text-muted">
+            No products found
+          </p>
+        )}
+
+        {filteredProducts.map((p) => (
+          <div className="col-md-4" key={p._id}>
+            <div className="card h-100 text-center">
+
+              <div className="card-body">
+
+                {p.image ? (
+                  <img
+                    src={p.image}
+                    alt=""
+                    className="img-fluid rounded mb-3"
+                    style={{ height: "150px", objectFit: "cover" }}
+                  />
+                ) : (
+                  <div className="text-muted mb-3">
+                    No Image
+                  </div>
+                )}
+
+                <h5>{p.name}</h5>
+                <p className="small text-muted">
+                  {p.healthCategory}
+                </p>
+
+                <p>₹ {p.price}</p>
+                <p>Stock: {p.stock}</p>
+
+                <span className={`badge ${p.status ? "bg-success" : "bg-danger"}`}>
+                  {p.status ? "Active" : "Inactive"}
+                </span>
+
+                <div className="mt-3 d-flex justify-content-center gap-2">
+
+                  <button
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={() => handleEdit(p)}
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={() => handleDelete(p._id)}
+                  >
+                    Delete
+                  </button>
+
+                  <button
+                    className="btn btn-outline-warning btn-sm"
+                    onClick={() => handleToggleStatus(p._id)}
+                  >
+                    Toggle
+                  </button>
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+        ))}
+
+      </div>
+
+      {/* ================= MODAL ================= */}
+      <div className="modal fade" id="productModal">
+        <div className="modal-dialog modal-lg">
+          <div className="modal-content">
+
+            <div className="modal-header">
+              <h5>
+                {editId ? "Edit Product" : "Add Product"}
+              </h5>
+              <button className="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body row g-3">
+
+                <div className="col-md-6">
+                  <label>Name</label>
+                  <input
+                    name="name"
+                    className="form-control"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label>Category</label>
+                  <select
+                    name="category"
+                    className="form-select"
+                    value={formData.category}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select</option>
+                    {categories.map(cat => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-md-6">
+                  <label>Price</label>
+                  <input
+                    name="price"
+                    type="number"
+                    className="form-control"
+                    value={formData.price}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label>Stock</label>
+                  <input
+                    name="stock"
+                    type="number"
+                    className="form-control"
+                    value={formData.stock}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="col-12">
+                  <label>Description</label>
+                  <textarea
+                    name="description"
+                    className="form-control"
+                    value={formData.description}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label>Health Category</label>
+                  <select
+                    name="healthCategory"
+                    className="form-select"
+                    value={formData.healthCategory}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select</option>
+                    <option value="Stress">Stress</option>
+                    <option value="Immunity">Immunity</option>
+                    <option value="Digestion">Digestion</option>
+                    <option value="Skin Care">Skin Care</option>
+                    <option value="Hair Care">Hair Care</option>
+                  </select>
+                </div>
+
+                <div className="col-md-6">
+                  <label>Image</label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    onChange={handleImage}
+                  />
+                </div>
+
+                {preview && (
+                  <div className="col-12 text-center">
+                    <img
+                      src={preview}
+                      className="img-fluid rounded"
+                      style={{ height: "150px" }}
+                      alt="preview"
+                    />
+                  </div>
+                )}
+
+              </div>
+
+              <div className="modal-footer">
+                <button className="btn healone-btn">
+                  {editId ? "Update" : "Save"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Cancel
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+export default AdminProductList;

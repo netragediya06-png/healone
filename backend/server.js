@@ -3,7 +3,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
-
 const app = express();
 
 // ===============================
@@ -31,6 +30,7 @@ const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const specialistRoutes = require("./routes/specialistRoutes");
 const yogaServiceRoutes = require("./routes/yogaServiceRoutes"); // ✅ NEW
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
@@ -40,7 +40,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/specialists", specialistRoutes);
 app.use("/api/yoga-services", yogaServiceRoutes); // ✅ NEW
-
+app.use("/api/dashboard", dashboardRoutes);
 // ===============================
 // Test Route
 // ===============================
