@@ -16,7 +16,7 @@ connectDB();
 app.use(cors());
 
 // Increase body size limit (for images/docs)
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json());
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // ===============================

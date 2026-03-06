@@ -5,7 +5,14 @@ const {
   getApprovedSpecialists,
 } = require("../controllers/specialistController");
 
-// Public route (no protect middleware)
-router.get("/", getApprovedSpecialists);
+
+// ===============================
+// GET APPROVED SPECIALISTS (PUBLIC)
+// ===============================
+router.get(
+  "/",
+  getApprovedSpecialists
+);
+
 
 module.exports = router;

@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
 
-const { protect, adminOnly } = require("../middleware/authMiddleware");
-
 const {
   createProduct,
   getAdminProducts,
@@ -12,11 +10,69 @@ const {
   deleteProduct
 } = require("../controllers/productController");
 
-router.post("/", protect, adminOnly, createProduct);
-router.get("/admin/all", protect, adminOnly, getAdminProducts);
-router.get("/", getActiveProducts);
-router.get("/:id", getSingleProduct);
-router.put("/:id", protect, adminOnly, updateProduct);
-router.delete("/:id", protect, adminOnly, deleteProduct);
+const { protect, authorize } = require("../middleware/authMiddleware");
+
+
+// ==========================
+// ADMIN CREATE PRODUCT
+// ==========================
+router.post(
+  "/",
+  protect,
+  authorize("admin"),
+  createProduct
+);
+
+
+// ==========================
+// ADMIN VIEW ALL PRODUCTS
+// ==========================
+router.get(
+  "/admin/all",
+  protect,
+  authorize("admin"),
+  getAdminProducts
+);
+
+
+// ==========================
+// PUBLIC ACTIVE PRODUCTS
+// ==========================
+router.get(
+  "/",
+  getActiveProducts
+);
+
+
+// ==========================
+// GET SINGLE PRODUCT
+// ==========================
+router.get(
+  "/:id",
+  getSingleProduct
+);
+
+
+// ==========================
+// ADMIN UPDATE PRODUCT
+// ==========================
+router.put(
+  "/:id",
+  protect,
+  authorize("admin"),
+  updateProduct
+);
+
+
+// ==========================
+// ADMIN DELETE PRODUCT
+// ==========================
+router.delete(
+  "/:id",
+  protect,
+  authorize("admin"),
+  deleteProduct
+);
+
 
 module.exports = router;

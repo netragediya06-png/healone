@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import API from "../../services/api";
 import { Pie, Bar, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -28,8 +28,7 @@ function Dashboard() {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/dashboard/stats")
+     API.get("/dashboard/stats")
       .then((res) => {
         console.log("Dashboard Data:", res.data);
         setData(res.data);

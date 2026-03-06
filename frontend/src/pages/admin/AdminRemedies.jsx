@@ -10,7 +10,7 @@ const AdminRemedies = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchRemedies();
@@ -26,7 +26,7 @@ const AdminRemedies = () => {
       }
 
       const res = await axios.get(url, {
-        headers: { userid: userId },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setRemedies(res.data.remedies);
@@ -41,7 +41,7 @@ const AdminRemedies = () => {
     await axios.put(
       `http://localhost:5000/api/remedies/${id}/status`,
       { status },
-      { headers: { userid: userId } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     fetchRemedies();
   };
@@ -49,7 +49,7 @@ const AdminRemedies = () => {
   const deleteRemedy = async (id) => {
     await axios.delete(
       `http://localhost:5000/api/remedies/${id}`,
-      { headers: { userid: userId } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     setSelectedRemedy(null);
     fetchRemedies();
@@ -59,7 +59,7 @@ const AdminRemedies = () => {
     await axios.put(
       `http://localhost:5000/api/remedies/${selectedRemedy._id}`,
       selectedRemedy,
-      { headers: { userid: userId } }
+      { headers: { Authorization: `Bearer ${token}` } }
     );
     setEditMode(false);
     fetchRemedies();
@@ -87,49 +87,49 @@ const AdminRemedies = () => {
       </div>
 
       {/* STAT CARDS */}
-     <div className={styles.statsGrid}>
-  <div
-    onClick={() => setStatusFilter("All")}
-    className={`${styles.statCard} ${
-      statusFilter === "All" ? styles.active : ""
-    }`}
-  >
-    <h4>{stats.total}</h4>
-    <span>Total</span>
-  </div>
+      <div className={styles.statsGrid}>
+        <div
+          onClick={() => setStatusFilter("All")}
+          className={`${styles.statCard} ${
+            statusFilter === "All" ? styles.active : ""
+          }`}
+        >
+          <h4>{stats.total}</h4>
+          <span>Total</span>
+        </div>
 
-  <div
-    onClick={() => setStatusFilter("Pending")}
-    className={`${styles.statCard} ${styles.pending} ${
-      statusFilter === "Pending" ? styles.active : ""
-    }`}
-  >
-    <h4>{stats.pending}</h4>
-    <span>Pending</span>
-  </div>
+        <div
+          onClick={() => setStatusFilter("Pending")}
+          className={`${styles.statCard} ${styles.pending} ${
+            statusFilter === "Pending" ? styles.active : ""
+          }`}
+        >
+          <h4>{stats.pending}</h4>
+          <span>Pending</span>
+        </div>
 
-  <div
-    onClick={() => setStatusFilter("Approved")}
-    className={`${styles.statCard} ${styles.approved} ${
-      statusFilter === "Approved" ? styles.active : ""
-    }`}
-  >
-    <h4>{stats.approved}</h4>
-    <span>Approved</span>
-  </div>
+        <div
+          onClick={() => setStatusFilter("Approved")}
+          className={`${styles.statCard} ${styles.approved} ${
+            statusFilter === "Approved" ? styles.active : ""
+          }`}
+        >
+          <h4>{stats.approved}</h4>
+          <span>Approved</span>
+        </div>
 
-  <div
-    onClick={() => setStatusFilter("Rejected")}
-    className={`${styles.statCard} ${styles.rejected} ${
-      statusFilter === "Rejected" ? styles.active : ""
-    }`}
-  >
-    <h4>{stats.rejected}</h4>
-    <span>Rejected</span>
-  </div>
-</div>
+        <div
+          onClick={() => setStatusFilter("Rejected")}
+          className={`${styles.statCard} ${styles.rejected} ${
+            statusFilter === "Rejected" ? styles.active : ""
+          }`}
+        >
+          <h4>{stats.rejected}</h4>
+          <span>Rejected</span>
+        </div>
+      </div>
 
-      {/* SEARCH + FILTER */}
+      {/* SEARCH */}
       <div className={styles.controlBar}>
         <input
           type="text"
@@ -156,6 +156,7 @@ const AdminRemedies = () => {
                 <th>Category</th>
                 <th>Created By</th>
                 <th>Status</th>
+                <th>Saved</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -166,6 +167,7 @@ const AdminRemedies = () => {
                   <td>{remedy.title}</td>
                   <td>{remedy.healthCategory}</td>
                   <td>{remedy.createdBy?.name}</td>
+
                   <td>
                     <span
                       className={`${styles.status} ${styles[remedy.status]}`}
@@ -173,6 +175,9 @@ const AdminRemedies = () => {
                       {remedy.status}
                     </span>
                   </td>
+
+                  <td>{remedy.savedBy?.length || 0}</td>
+
                   <td className={styles.actions}>
                     <button
                       onClick={() => {
@@ -257,6 +262,17 @@ const AdminRemedies = () => {
                   }
                 />
 
+                <label>Symptoms</label>
+                <textarea
+                  value={selectedRemedy.symptoms?.join(", ") || ""}
+                  onChange={(e) =>
+                    setSelectedRemedy({
+                      ...selectedRemedy,
+                      symptoms: e.target.value.split(","),
+                    })
+                  }
+                />
+
                 <label>Ingredients</label>
                 <textarea
                   value={selectedRemedy.ingredients.join(", ")}
@@ -279,12 +295,41 @@ const AdminRemedies = () => {
                   }
                 />
 
+                <label>Benefits</label>
+                <textarea
+                  value={selectedRemedy.benefits || ""}
+                  onChange={(e) =>
+                    setSelectedRemedy({
+                      ...selectedRemedy,
+                      benefits: e.target.value,
+                    })
+                  }
+                />
+
+                <label>Precautions</label>
+                <textarea
+                  value={selectedRemedy.precautions || ""}
+                  onChange={(e) =>
+                    setSelectedRemedy({
+                      ...selectedRemedy,
+                      precautions: e.target.value,
+                    })
+                  }
+                />
+
                 <button onClick={saveEdit} className={styles.saveBtn}>
                   Save Changes
                 </button>
               </>
             ) : (
               <>
+                <h4>Symptoms</h4>
+                <ul>
+                  {selectedRemedy.symptoms?.map((s, idx) => (
+                    <li key={idx}>{s}</li>
+                  ))}
+                </ul>
+
                 <h4>Ingredients</h4>
                 <ul>
                   {selectedRemedy.ingredients.map((i, idx) => (
@@ -298,6 +343,12 @@ const AdminRemedies = () => {
                     <li key={idx}>{s}</li>
                   ))}
                 </ol>
+
+                <h4>Benefits</h4>
+                <p>{selectedRemedy.benefits}</p>
+
+                <h4>Precautions</h4>
+                <p>{selectedRemedy.precautions}</p>
               </>
             )}
           </div>

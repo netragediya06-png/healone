@@ -1,11 +1,10 @@
 import { Navigate } from "react-router-dom";
 
 function ProtectedRoute({ children }) {
-  const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
-  // If not logged in OR not admin
-  if (!userId || role !== "admin") {
+  if (!token || role !== "admin") {
     return <Navigate to="/login" replace />;
   }
 

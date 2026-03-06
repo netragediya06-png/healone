@@ -9,7 +9,6 @@ exports.createRemedy = async (req, res) => {
   try {
     let statusValue = "Pending";
 
-    // Admin auto approve
     if (req.user.role === "admin") {
       statusValue = "Approved";
     }
@@ -27,17 +26,14 @@ exports.createRemedy = async (req, res) => {
 };
 
 /* ======================================================
-   GET ALL REMEDIES (ADMIN ONLY)
-   With status filter + pagination
+   GET ALL REMEDIES (ADMIN)
 ====================================================== */
 exports.getAllRemedies = async (req, res) => {
   try {
     const { status, page = 1, limit = 10 } = req.query;
 
     const filter = {};
-    if (status) {
-      filter.status = status;
-    }
+    if (status) filter.status = status;
 
     const remedies = await Remedy.find(filter)
       .populate("relatedProducts")
@@ -61,7 +57,7 @@ exports.getAllRemedies = async (req, res) => {
 };
 
 /* ======================================================
-   GET MY REMEDIES (SPECIALIST ONLY)
+   GET MY REMEDIES (SPECIALIST)
 ====================================================== */
 exports.getMyRemedies = async (req, res) => {
   try {
@@ -93,9 +89,25 @@ exports.getApprovedRemedies = async (req, res) => {
 };
 
 /* ======================================================
+   SEARCH REMEDIES BY SYMPTOM
+====================================================== */
+exports.searchRemediesBySymptom = async (req, res) => {
+  try {
+    const { symptom } = req.query;
+
+    const remedies = await Remedy.find({
+      status: "Approved",
+      symptoms: { $regex: symptom, $options: "i" }
+    });
+
+    res.json(remedies);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* ======================================================
    UPDATE REMEDY
-   Admin → Update any
-   Specialist → Update own (status resets to Pending)
 ====================================================== */
 exports.updateRemedy = async (req, res) => {
   try {
@@ -105,7 +117,6 @@ exports.updateRemedy = async (req, res) => {
       return res.status(404).json({ message: "Remedy not found" });
     }
 
-    // ADMIN: Can update anything
     if (req.user.role === "admin") {
       const updated = await Remedy.findByIdAndUpdate(
         req.params.id,
@@ -115,14 +126,13 @@ exports.updateRemedy = async (req, res) => {
       return res.json(updated);
     }
 
-    // SPECIALIST: Only own remedy
     if (
       req.user.role === "specialist" &&
       remedy.createdBy.toString() === req.user._id.toString()
     ) {
       const updated = await Remedy.findByIdAndUpdate(
         req.params.id,
-        { ...req.body, status: "Pending" }, // Re-approval required
+        { ...req.body, status: "Pending" },
         { new: true }
       );
       return res.json(updated);
@@ -136,8 +146,7 @@ exports.updateRemedy = async (req, res) => {
 };
 
 /* ======================================================
-   UPDATE REMEDY STATUS (ADMIN ONLY)
-   With Status Validation
+   UPDATE REMEDY STATUS (ADMIN)
 ====================================================== */
 exports.updateRemedyStatus = async (req, res) => {
   try {
@@ -167,8 +176,6 @@ exports.updateRemedyStatus = async (req, res) => {
 
 /* ======================================================
    DELETE REMEDY
-   Admin → Delete any
-   Specialist → Delete own (NOT if Approved)
 ====================================================== */
 exports.deleteRemedy = async (req, res) => {
   try {
@@ -178,13 +185,11 @@ exports.deleteRemedy = async (req, res) => {
       return res.status(404).json({ message: "Remedy not found" });
     }
 
-    // ADMIN: delete anything
     if (req.user.role === "admin") {
       await remedy.deleteOne();
       return res.json({ message: "Remedy deleted by admin" });
     }
 
-    // SPECIALIST: delete own only
     if (
       req.user.role === "specialist" &&
       remedy.createdBy.toString() === req.user._id.toString()
@@ -200,6 +205,70 @@ exports.deleteRemedy = async (req, res) => {
     }
 
     return res.status(403).json({ message: "Access denied" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* ======================================================
+   SAVE REMEDY ❤️
+====================================================== */
+exports.saveRemedy = async (req, res) => {
+  try {
+    const remedy = await Remedy.findById(req.params.id);
+
+    if (!remedy) {
+      return res.status(404).json({ message: "Remedy not found" });
+    }
+
+    if (!remedy.savedBy.includes(req.user._id)) {
+      remedy.savedBy.push(req.user._id);
+      await remedy.save();
+    }
+
+    res.json({ message: "Remedy saved successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* ======================================================
+   UNSAVE REMEDY ❌
+====================================================== */
+exports.unsaveRemedy = async (req, res) => {
+  try {
+    const remedy = await Remedy.findById(req.params.id);
+
+    if (!remedy) {
+      return res.status(404).json({ message: "Remedy not found" });
+    }
+
+    remedy.savedBy = remedy.savedBy.filter(
+      userId => userId.toString() !== req.user._id.toString()
+    );
+
+    await remedy.save();
+
+    res.json({ message: "Remedy removed from saved list" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* ======================================================
+   GET SAVED REMEDIES (USER)
+====================================================== */
+exports.getSavedRemedies = async (req, res) => {
+  try {
+    const remedies = await Remedy.find({
+      savedBy: req.user._id,
+      status: "Approved"
+    }).sort({ createdAt: -1 });
+
+    res.json(remedies);
 
   } catch (error) {
     res.status(500).json({ message: error.message });

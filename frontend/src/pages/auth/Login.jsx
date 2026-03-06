@@ -1,91 +1,75 @@
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebase";
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Login() {
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
+
     e.preventDefault();
     setError("");
-    console.log("🔹 Login button clicked");
-    console.log("Email:", email);
 
     try {
-      // 1️⃣ Firebase Login
-      console.log("🔹 Attempting Firebase login...");
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
+
+      console.log("🔹 Attempting login...");
+
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        {
+          email,
+          password
+        }
       );
 
-      const firebaseUser = userCredential.user;
-      console.log("✅ Firebase login successful:", firebaseUser.email);
+      const data = res.data;
 
-      // 2️⃣ Fetch user from MongoDB
-      let dbUser;
-      try {
-        console.log("🔹 Fetching user from backend...");
-        const res = await axios.get(
-          `http://localhost:5000/api/users/by-email/${firebaseUser.email}`
-        );
-        dbUser = res.data;
-        console.log("✅ User found in DB:", dbUser);
-      } catch (err) {
-        console.warn("⚠️ User not found in DB, creating new user...", err.response?.status);
-        // If user not found, create one
-        if (err.response?.status === 404) {
-          const createRes = await axios.post(`http://localhost:5000/api/users`, {
-            name: firebaseUser.displayName || "NoName",
-            email: firebaseUser.email,
-            role: "user", // default role
-            isVerified: true,
-            verificationStatus: "approved",
-            isBlocked: false,
-          });
-          dbUser = createRes.data;
-          console.log("✅ New user created:", dbUser);
-        } else {
-          throw err;
-        }
-      }
+      console.log("✅ Login successful:", data);
 
-      // 🔒 Block unapproved specialists
+      // Store JWT token
+      localStorage.setItem("token", data.token);
+
+      // Store user data
+      localStorage.setItem("userId", data.user.id);
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("email", data.user.email);
+      localStorage.setItem("name", data.user.fullName);
+
+      // Block unapproved specialists
       if (
-        dbUser.role === "specialist" &&
-        dbUser.verificationStatus !== "approved"
+        data.user.role === "specialist" &&
+        data.user.verificationStatus !== "approved"
       ) {
-        console.log("⚠️ Specialist account under review");
         setError("Your specialist account is under review by admin 🌿");
         return;
       }
 
-      // 3️⃣ Store in localStorage
-      console.log("🔹 Storing user data in localStorage...");
-      localStorage.setItem("userId", dbUser._id);
-      localStorage.setItem("role", dbUser.role);
-      localStorage.setItem("email", dbUser.email);
-
-      // 4️⃣ Role-based redirect
-      console.log("🔹 Redirecting user based on role:", dbUser.role);
-      if (dbUser.role === "admin") {
+      // Redirect based on role
+      if (data.user.role === "admin") {
         navigate("/admin");
-      } else if (dbUser.role === "specialist") {
+      }
+      else if (data.user.role === "specialist") {
         navigate("/specialist");
-      } else {
+      }
+      else {
         navigate("/");
       }
 
     } catch (error) {
+
       console.error("❌ Login failed:", error);
-      setError(error.response?.data?.message || error.message);
+
+      setError(
+        error.response?.data?.message || "Login failed. Please try again."
+      );
+
     }
+
   };
 
   return (
@@ -105,7 +89,8 @@ export default function Login() {
           boxShadow: "0 18px 40px rgba(0,0,0,0.15)",
         }}
       >
-        {/* 🌿 HealOne Logo Section */}
+
+        {/* Logo */}
         <div className="text-center mb-4">
           <div
             style={{
@@ -128,6 +113,7 @@ export default function Login() {
           <h4 className="fw-semibold mt-3 mb-1">
             Welcome to HealOne
           </h4>
+
           <small className="text-muted">
             Ayurvedic Wellness Ecosystem
           </small>
@@ -140,6 +126,7 @@ export default function Login() {
         )}
 
         <form onSubmit={handleLogin}>
+
           {/* Email */}
           <div className="mb-3">
             <input
@@ -172,10 +159,10 @@ export default function Login() {
             />
           </div>
 
+          {/* Login Button */}
           <button
             type="submit"
             className="btn w-100"
-            onClick={() => console.log("Button clicked!")}
             style={{
               background: "#2e7d32",
               color: "white",
@@ -193,7 +180,9 @@ export default function Login() {
               <Link to="/register">Register</Link>
             </small>
           </div>
+
         </form>
+
       </div>
     </div>
   );

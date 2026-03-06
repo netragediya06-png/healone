@@ -2,44 +2,55 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  getUserByEmail,
   registerUser,
   getAllUsers,
   blockUser,
   deleteUser,
 } = require("../controllers/userController");
 
-const { protect, adminOnly } = require("../middleware/authMiddleware");
-
-
-// ===========================================
-// GET USER BY EMAIL (Auto Create if Not Exist)
-// ===========================================
-router.get("/by-email/:email", getUserByEmail);
+const { protect, authorize } = require("../middleware/authMiddleware");
 
 
 // ===========================================
 // REGISTER USER / SPECIALIST
 // ===========================================
-router.post("/register", registerUser);
+router.post(
+  "/register",
+  registerUser
+);
 
 
 // ===========================================
-// GET ALL USERS (Admin Only)
+// GET ALL USERS (ADMIN ONLY)
 // ===========================================
-router.get("/", protect, adminOnly, getAllUsers);
+router.get(
+  "/",
+  protect,
+  authorize("admin"),
+  getAllUsers
+);
 
 
 // ===========================================
-// BLOCK / UNBLOCK USER (Admin Only)
+// BLOCK / UNBLOCK USER (ADMIN)
 // ===========================================
-router.put("/block/:id", protect, adminOnly, blockUser);
+router.put(
+  "/block/:id",
+  protect,
+  authorize("admin"),
+  blockUser
+);
 
 
 // ===========================================
-// DELETE USER (Admin Only)
+// DELETE USER (ADMIN)
 // ===========================================
-router.delete("/:id", protect, adminOnly, deleteUser);
+router.delete(
+  "/:id",
+  protect,
+  authorize("admin"),
+  deleteUser
+);
 
 
 module.exports = router;

@@ -5,7 +5,15 @@ const remedySchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
+      trim: true,
     },
+
+    // Symptoms for recommendation system
+    symptoms: [
+      {
+        type: String,
+      },
+    ],
 
     ingredients: [
       {
@@ -20,6 +28,14 @@ const remedySchema = new mongoose.Schema(
         required: true,
       },
     ],
+
+    benefits: {
+      type: String,
+    },
+
+    precautions: {
+      type: String,
+    },
 
     healthCategory: {
       type: String,
@@ -47,6 +63,14 @@ const remedySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+
+    // ⭐ Users who saved this remedy
+    savedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );

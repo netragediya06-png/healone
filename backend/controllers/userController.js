@@ -1,85 +1,85 @@
 const User = require("../models/User");
+const bcrypt = require("bcryptjs");
 
-// ===========================================
-// GET USER BY EMAIL (Auto Create if Not Exist)
-// ===========================================
-const getUserByEmail = async (req, res) => {
-  try {
-    const { email } = req.params;
 
-    // 1️⃣ Find user in MongoDB
-    let user = await User.findOne({ email });
-
-    // 2️⃣ If user does not exist → create default user
-    if (!user) {
-      user = await User.create({
-        fullName: email.split("@")[0], // default name from email
-        email,
-        password: "firebase-auth", // placeholder, real auth handled by Firebase
-        phone: "0000000000", // placeholder
-        role: "user", // default role
-        isVerified: true,
-        verificationStatus: "approved",
-        isBlocked: false,
-      });
-    }
-
-    // 3️⃣ Return user
-    res.status(200).json(user);
-
-  } catch (error) {
-    console.error("User route error:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// ===========================================
-// REGISTER USER / SPECIALIST
-// ===========================================
+/* ===========================================
+   REGISTER USER / SPECIALIST
+=========================================== */
 const registerUser = async (req, res) => {
   try {
+
     const { fullName, email, password, phone, role } = req.body;
+
+    // Validate required fields
+    if (!fullName || !email || !password || !phone) {
+      return res.status(400).json({
+        message: "All fields are required"
+      });
+    }
 
     // Prevent admin registration
     if (role === "admin") {
       return res.status(403).json({
-        message: "Admin registration is not allowed",
+        message: "Admin registration is not allowed"
       });
     }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
       return res.status(400).json({
-        message: "User already exists",
+        message: "User already exists"
       });
     }
 
-    // Create new user
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await User.create({
       fullName,
       email,
-      password, // In real app, hash password
+      password: hashedPassword,
       phone,
       role: role || "user",
-      isVerified: false,
-      verificationStatus: "pending",
-      isBlocked: false,
+
+      isVerified: role === "specialist" ? false : true,
+      verificationStatus: role === "specialist" ? "pending" : "approved",
+      isBlocked: false
     });
 
-    res.status(201).json(user);
+    res.status(201).json({
+      message:
+        role === "specialist"
+          ? "Specialist registration submitted for admin approval"
+          : "User registered successfully",
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role
+      }
+    });
 
   } catch (error) {
+
     console.error("Register error:", error);
-    res.status(500).json({ message: error.message });
+
+    res.status(500).json({
+      message: error.message
+    });
+
   }
 };
 
-// ===========================================
-// GET ALL NORMAL USERS (Admin Only)
-// ===========================================
+
+
+/* ===========================================
+   GET ALL NORMAL USERS (ADMIN)
+=========================================== */
 const getAllUsers = async (req, res) => {
   try {
+
     const users = await User.find({
       role: { $nin: ["admin", "specialist"] }
     }).select("-password");
@@ -87,68 +87,104 @@ const getAllUsers = async (req, res) => {
     res.status(200).json(users);
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.error("Get users error:", error);
+
+    res.status(500).json({
+      message: error.message
+    });
+
   }
 };
 
-// ===========================================
-// BLOCK / UNBLOCK USER (Admin Only)
-// ===========================================
+
+
+/* ===========================================
+   BLOCK / UNBLOCK USER (ADMIN)
+=========================================== */
 const blockUser = async (req, res) => {
   try {
-    const { id } = req.params;
 
-    const user = await User.findById(id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
 
     if (user.role === "admin") {
-      return res.status(400).json({ message: "Cannot block admin" });
+      return res.status(400).json({
+        message: "Cannot block admin"
+      });
     }
 
     user.isBlocked = !user.isBlocked;
+
     await user.save();
 
     res.status(200).json({
-      message: `User ${user.isBlocked ? "blocked" : "unblocked"} successfully`,
+      message: `User ${user.isBlocked ? "blocked" : "unblocked"} successfully`
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.error("Block user error:", error);
+
+    res.status(500).json({
+      message: error.message
+    });
+
   }
 };
 
-// ===========================================
-// DELETE USER (Admin Only)
-// ===========================================
+
+
+/* ===========================================
+   DELETE USER (ADMIN)
+=========================================== */
 const deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
 
-    const user = await User.findById(id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
 
     if (user.role === "admin") {
-      return res.status(400).json({ message: "Cannot delete admin" });
+      return res.status(400).json({
+        message: "Cannot delete admin"
+      });
     }
 
     await user.deleteOne();
 
     res.status(200).json({
-      message: "User deleted successfully",
+      message: "User deleted successfully"
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.error("Delete user error:", error);
+
+    res.status(500).json({
+      message: error.message
+    });
+
   }
 };
 
-// ===========================================
-// EXPORT ALL CONTROLLERS
-// ===========================================
+
+
+/* ===========================================
+   EXPORT CONTROLLERS
+=========================================== */
 module.exports = {
-  getUserByEmail,
   registerUser,
   getAllUsers,
   blockUser,
-  deleteUser,
+  deleteUser
 };

@@ -1,12 +1,28 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+/* =========================
+   GENERATE JWT TOKEN
+========================= */
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+};
+
 
 /* =========================
    REGISTER
 ========================= */
-
 exports.register = async (req, res) => {
   try {
+
     const {
       fullName,
       email,
@@ -14,7 +30,6 @@ exports.register = async (req, res) => {
       phone,
       profilePhoto,
       role,
-
       professionalDetails,
       location,
       documents,
@@ -26,26 +41,31 @@ exports.register = async (req, res) => {
       languagesSpoken,
     } = req.body;
 
-    // Check existing user
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "Email already exists" });
+    if (!email || !password || !fullName) {
+      return res.status(400).json({
+        message: "Please provide required fields",
+      });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Email already exists",
+      });
+    }
 
     let newUser = {
       fullName,
       email,
-      password: hashedPassword,
+      password, // ❗ do NOT hash here
       phone,
       profilePhoto,
       role,
     };
 
-    // 🌿 If Specialist
     if (role === "specialist") {
+
       newUser.verificationStatus = "pending";
       newUser.isVerified = false;
 
@@ -60,10 +80,12 @@ exports.register = async (req, res) => {
       newUser.consultationFees = consultationFees;
       newUser.availableTimeSlots = availableTimeSlots;
       newUser.languagesSpoken = languagesSpoken;
+
     } else {
-      // Normal user auto-approved
+
       newUser.verificationStatus = "approved";
       newUser.isVerified = true;
+
     }
 
     const user = await User.create(newUser);
@@ -72,38 +94,65 @@ exports.register = async (req, res) => {
       message:
         role === "specialist"
           ? "Specialist registration submitted. Waiting for admin approval."
-          : "User registered successfully.",
-      user,
+          : "User registered successfully",
+
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+      },
+
+      token: generateToken(user),
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.log("REGISTER ERROR:", error);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
+
   }
 };
+
 
 
 /* =========================
    LOGIN
 ========================= */
-
 exports.login = async (req, res) => {
+
   try {
+
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password required",
+      });
+    }
+
+    // IMPORTANT: include password
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found",
+      });
     }
 
-    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({
+        message: "Invalid credentials",
+      });
     }
 
-    // 🔒 Block unapproved specialists
     if (user.role === "specialist") {
+
       if (user.verificationStatus === "pending") {
         return res.status(403).json({
           message: "Your specialist account is under admin review.",
@@ -115,14 +164,35 @@ exports.login = async (req, res) => {
           message: "Your specialist account request was rejected.",
         });
       }
+
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        message: "Your account has been blocked by admin.",
+      });
     }
 
     res.status(200).json({
       message: "Login successful",
-      user,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        verificationStatus: user.verificationStatus,
+      },
+      token: generateToken(user),
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.log("LOGIN ERROR:", error);
+
+    res.status(500).json({
+      message: "Server Error",
+    });
+
   }
+
 };

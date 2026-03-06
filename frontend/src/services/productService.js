@@ -1,50 +1,31 @@
-import axios from "axios";
-
-const API = "http://localhost:5000/api/products";
+import API from "./api";
 
 // ===============================
 // GET ADMIN PRODUCTS
 // ===============================
 const getAdminProducts = (params) => {
-  return axios.get(`${API}/admin/all`, {
-    params,
-    headers: {
-      userid: localStorage.getItem("userId"),
-    },
-  });
+  return API.get("/products/admin/all", { params });
 };
 
 // ===============================
 // CREATE PRODUCT
 // ===============================
 const createProduct = (data) => {
-  return axios.post(API, data, {
-    headers: {
-      userid: localStorage.getItem("userId"),
-    },
-  });
+  return API.post("/products", data);
 };
 
 // ===============================
 // UPDATE PRODUCT
 // ===============================
 const updateProduct = (id, data) => {
-  return axios.put(`${API}/${id}`, data, {
-    headers: {
-      userid: localStorage.getItem("userId"),
-    },
-  });
+  return API.put(`/products/${id}`, data);
 };
 
 // ===============================
 // DELETE PRODUCT (Soft Delete)
 // ===============================
 const deleteProduct = (id) => {
-  return axios.delete(`${API}/${id}`, {
-    headers: {
-      userid: localStorage.getItem("userId"),
-    },
-  });
+  return API.delete(`/products/${id}`);
 };
 
 export default {

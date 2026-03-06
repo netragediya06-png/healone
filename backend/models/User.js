@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
   {
@@ -22,6 +23,8 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      minlength: 6,
+      select: false, // hide password by default
     },
 
     phone: {
@@ -52,22 +55,23 @@ const userSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "approved",
     },
-// ========================
-// ACCOUNT STATUS CONTROL (ADMIN)
-// ========================
-isBlocked: {
-  type: Boolean,
-  default: false,
-},
+
+    // ========================
+    // ACCOUNT STATUS CONTROL
+    // ========================
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
 
     // ========================
     // SPECIALIST PROFESSIONAL DETAILS
     // ========================
     professionalDetails: {
       specialization: String, // Ayurveda, Yoga, Herbal etc.
-      experience: Number, // in years
-      qualification: String, // Certification / Degree
-      practiceName: String, // Clinic or Brand name
+      experience: Number, // years
+      qualification: String,
+      practiceName: String,
       consultationMode: {
         type: String,
         enum: ["online", "offline", "both"],
@@ -85,15 +89,15 @@ isBlocked: {
     },
 
     // ========================
-    // DOCUMENTS (ADMIN ONLY VIEW)
+    // DOCUMENTS
     // ========================
     documents: {
-      idProof: String, // Cloudinary URL
-      certificationProof: String, // Cloudinary URL
+      idProof: String,
+      certificationProof: String,
     },
 
     // ========================
-    // WELLNESS PROFILE INFO
+    // WELLNESS PROFILE
     // ========================
     bio: String,
     expertiseSummary: String,
@@ -105,5 +109,29 @@ isBlocked: {
   },
   { timestamps: true }
 );
+
+
+// ========================
+// PASSWORD HASHING
+// ========================
+userSchema.pre("save", async function () {
+
+  if (!this.isModified("password")) return;
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+
+});
+
+
+// ========================
+// PASSWORD COMPARE
+// ========================
+userSchema.methods.matchPassword = async function (enteredPassword) {
+
+  return await bcrypt.compare(enteredPassword, this.password);
+
+};
+
 
 module.exports = mongoose.model("User", userSchema);
