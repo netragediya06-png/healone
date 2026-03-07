@@ -31,6 +31,9 @@ const adminRoutes = require("./routes/adminRoutes");
 const specialistRoutes = require("./routes/specialistRoutes");
 const yogaServiceRoutes = require("./routes/yogaServiceRoutes"); // ✅ NEW
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const subCategoryRoutes = require("./routes/subCategoryRoutes");
+const programRoutes = require("./routes/programRoutes");
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
@@ -41,6 +44,10 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/specialists", specialistRoutes);
 app.use("/api/yoga-services", yogaServiceRoutes); // ✅ NEW
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/subcategories", subCategoryRoutes);
+app.use("/api/programs", programRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
+
 // ===============================
 // Test Route
 // ===============================

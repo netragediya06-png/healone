@@ -3,7 +3,7 @@
 ============================= */
 
 .sidebar {
-  background: #103319; /* modern navy */
+  background: #0f3d2c; /* modern navy */
   color: #cbd5e1;
   min-height: 100vh;
   padding: 20px 14px;
@@ -41,9 +41,9 @@
 
 /* Toggle */
 .toggle-btn {
-  background: #1e293b;
+  background: #5dd10fef;
   border: none;
-  color: #94a3b8;
+  color: #ffffff;
   width: 28px;
   height: 28px;
   border-radius: 6px;
@@ -52,8 +52,8 @@
 }
 
 .toggle-btn:hover {
-  background: #334155;
-  color: #ffffff;
+  background: #ffffff;
+  color: #4dd118;
 }
 
 /* =============================
@@ -78,7 +78,7 @@
   padding: 10px 14px;
   font-size: 14px;
   border-radius: 10px;
-  color: #c2cfe2;
+  color: #ffffff;
   text-decoration: none;
   transition: all 0.2s ease;
 }
@@ -91,13 +91,13 @@
 
 /* Hover */
 .sidebar-list-item a:hover {
-  background: #1e293b;
-  color: #ffffff;
+  background: #1ac51a;
+  color: #092b20;
 }
 
 /* Active */
 .active-link a {
-  background: #1e293b;
+  background: #046419;
   color: #ffffff;
   font-weight: 500;
   position: relative;
@@ -112,7 +112,7 @@
   transform: translateY(-50%);
   height: 60%;
   width: 4px;
-  background: #3b82f6;
+  background: #3fb921;
   border-radius: 6px;
 }
 

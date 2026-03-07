@@ -7,32 +7,50 @@ const cloudinary = require("../config/cloudinary");
 // CREATE PRODUCT
 // ===============================
 exports.createProduct = async (req, res) => {
+
   try {
+
     let imageUrl = "";
 
-    if (req.body.image && req.body.image.startsWith("data:")) {
-      const uploadResponse = await cloudinary.uploader.upload(
-        req.body.image,
-        { folder: "healone_products" }
-      );
-      imageUrl = uploadResponse.secure_url;
+    if (req.file) {
+
+      const result = await new Promise((resolve, reject) => {
+
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "healone_products" },
+          (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          }
+        );
+
+        stream.end(req.file.buffer);
+
+      });
+
+      imageUrl = result.secure_url;
+
     }
 
     const stockValue = Number(req.body.stock) || 0;
 
-    const product = new Product({
+    const product = await Product.create({
+
       name: req.body.name,
       description: req.body.description,
       price: Number(req.body.price),
       stock: stockValue,
-      category: req.body.category,          // must be Category ObjectId
-      healthCategory: req.body.healthCategory, // must be HealthCategory ObjectId
-      image: imageUrl,
-      status: stockValue > 0 ? "active" : "inactive",
-      createdBy: req.user._id
-    });
 
-    await product.save();
+      category: req.body.category,
+      subCategory: req.body.subCategory,
+
+      image: imageUrl,
+
+      status: stockValue > 0 ? "active" : "inactive",
+
+      createdBy: req.user._id
+
+    });
 
     res.status(201).json({
       success: true,
@@ -41,9 +59,16 @@ exports.createProduct = async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("CREATE PRODUCT ERROR:", error);
-    res.status(500).json({ success: false, message: error.message });
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
   }
+
 };
 
 
@@ -51,10 +76,12 @@ exports.createProduct = async (req, res) => {
 // GET ALL PRODUCTS (ADMIN)
 // ===============================
 exports.getAdminProducts = async (req, res) => {
+
   try {
+
     const {
       search = "",
-      healthCategory,
+      subCategory,
       status,
       page = 1,
       limit = 10
@@ -66,8 +93,8 @@ exports.getAdminProducts = async (req, res) => {
       query.name = { $regex: search, $options: "i" };
     }
 
-    if (healthCategory) {
-      query.healthCategory = healthCategory; // must be ObjectId
+    if (subCategory) {
+      query.subCategory = subCategory;
     }
 
     if (status) {
@@ -76,7 +103,7 @@ exports.getAdminProducts = async (req, res) => {
 
     const products = await Product.find(query)
       .populate("category", "name")
-      .populate("healthCategory", "name")
+      .populate("subCategory", "name")
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit))
       .sort({ createdAt: -1 });
@@ -92,9 +119,16 @@ exports.getAdminProducts = async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("GET ADMIN PRODUCTS ERROR:", error);
-    res.status(500).json({ success: false, message: error.message });
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
   }
+
 };
 
 
@@ -102,10 +136,12 @@ exports.getAdminProducts = async (req, res) => {
 // GET ACTIVE PRODUCTS (USER)
 // ===============================
 exports.getActiveProducts = async (req, res) => {
+
   try {
+
     const {
       search = "",
-      healthCategory,
+      subCategory,
       page = 1,
       limit = 10
     } = req.query;
@@ -119,13 +155,13 @@ exports.getActiveProducts = async (req, res) => {
       query.name = { $regex: search, $options: "i" };
     }
 
-    if (healthCategory) {
-      query.healthCategory = healthCategory; // ObjectId
+    if (subCategory) {
+      query.subCategory = subCategory;
     }
 
     const products = await Product.find(query)
       .populate("category", "name")
-      .populate("healthCategory", "name")
+      .populate("subCategory", "name")
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit))
       .sort({ createdAt: -1 });
@@ -141,9 +177,30 @@ exports.getActiveProducts = async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("GET ACTIVE PRODUCTS ERROR:", error);
-    res.status(500).json({ success: false, message: error.message });
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
   }
+
+};
+
+const getPublicId = (imageUrl) => {
+
+  if (!imageUrl) return null;
+
+  const parts = imageUrl.split("/");
+
+  const fileName = parts.pop().split(".")[0];
+
+  const folder = parts.pop();
+
+  return `${folder}/${fileName}`;
+
 };
 
 
@@ -151,10 +208,8 @@ exports.getActiveProducts = async (req, res) => {
 // UPDATE PRODUCT
 // ===============================
 exports.updateProduct = async (req, res) => {
+
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ message: "Invalid product ID" });
-    }
 
     let product = await Product.findById(req.params.id);
 
@@ -162,64 +217,144 @@ exports.updateProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    if (req.body.image && req.body.image.startsWith("data:")) {
-      const uploadResponse = await cloudinary.uploader.upload(
-        req.body.image,
-        { folder: "healone_products" }
-      );
-      req.body.image = uploadResponse.secure_url;
-    }
+    let imageUrl = product.image;
 
-    const updatedStock = Number(req.body.stock);
+    // upload new image
+    if (req.file) {
 
-    if (updatedStock <= 0) {
-      req.body.status = "inactive";
+      // delete old image
+      if (product.image) {
+
+        const publicId = getPublicId(product.image);
+
+        await cloudinary.uploader.destroy(publicId);
+
+      }
+
+      const result = await new Promise((resolve, reject) => {
+
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "healone_products" },
+          (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          }
+        );
+
+        stream.end(req.file.buffer);
+
+      });
+
+      imageUrl = result.secure_url;
+
     }
 
     product = await Product.findByIdAndUpdate(
       req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    )
-      .populate("category", "name")
-      .populate("healthCategory", "name");
+      {
+        ...req.body,
+        image: imageUrl
+      },
+      { new: true }
+    );
 
     res.json({
       success: true,
-      message: "Product updated successfully",
       product
     });
 
   } catch (error) {
+
     console.error("UPDATE PRODUCT ERROR:", error);
-    res.status(500).json({ success: false, message: error.message });
+
+    res.status(500).json({
+      message: error.message
+    });
+
   }
+
 };
 
+// ===============================
+// TOGGLE PRODUCT STATUS
+// ===============================
+exports.toggleProductStatus = async (req, res) => {
 
-// ===============================
-// DELETE PRODUCT (SOFT DELETE)
-// ===============================
-exports.deleteProduct = async (req, res) => {
   try {
+
     const product = await Product.findById(req.params.id);
 
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({
+        message: "Product not found"
+      });
     }
 
-    product.status = "inactive";
+    product.status =
+      product.status === "active"
+        ? "inactive"
+        : "active";
+
     await product.save();
 
     res.json({
       success: true,
-      message: "Product deactivated successfully"
+      message: "Product status updated",
+      product
     });
 
   } catch (error) {
-    console.error("DELETE PRODUCT ERROR:", error);
-    res.status(500).json({ success: false, message: error.message });
+
+    console.error("TOGGLE PRODUCT ERROR:", error);
+
+    res.status(500).json({
+      message: error.message
+    });
+
   }
+
+};
+// ===============================
+// DELETE PRODUCT (SOFT DELETE)
+// ===============================
+exports.deleteProduct = async (req, res) => {
+
+  try {
+
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found"
+      });
+    }
+
+    // delete image from cloudinary
+    if (product.image) {
+
+      const publicId = getPublicId(product.image);
+
+      await cloudinary.uploader.destroy(publicId);
+
+    }
+
+    await product.deleteOne();
+
+    res.json({
+      success: true,
+      message: "Product deleted successfully"
+    });
+
+  } catch (error) {
+
+    console.error("DELETE PRODUCT ERROR:", error);
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+
 };
 
 
@@ -227,13 +362,17 @@ exports.deleteProduct = async (req, res) => {
 // GET SINGLE PRODUCT
 // ===============================
 exports.getSingleProduct = async (req, res) => {
+
   try {
+
     const product = await Product.findById(req.params.id)
       .populate("category", "name")
-      .populate("healthCategory", "name");
+      .populate("subCategory", "name");
 
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({
+        message: "Product not found"
+      });
     }
 
     res.json({
@@ -242,7 +381,14 @@ exports.getSingleProduct = async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("GET SINGLE PRODUCT ERROR:", error);
-    res.status(500).json({ success: false, message: error.message });
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
   }
+
 };

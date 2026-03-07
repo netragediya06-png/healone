@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../middleware/upload");
 
 const {
   createProduct,
@@ -7,7 +8,8 @@ const {
   getActiveProducts,
   getSingleProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  toggleProductStatus
 } = require("../controllers/productController");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
@@ -20,6 +22,7 @@ router.post(
   "/",
   protect,
   authorize("admin"),
+  upload.single("image"),
   createProduct
 );
 
@@ -74,5 +77,11 @@ router.delete(
   deleteProduct
 );
 
+router.put(
+  "/toggle/:id",
+  protect,
+  authorize("admin"),
+  toggleProductStatus
+);
 
 module.exports = router;

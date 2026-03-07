@@ -1,45 +1,69 @@
 import { useEffect, useState } from "react";
 import { Modal } from "bootstrap";
 import categoryService from "../../services/categoryService";
+import subCategoryService from "../../services/subCategoryService";
 import "./HealOne.css";
 
-function Categories() {
+function SubCategories() {
 
+  const [subCategories, setSubCategories] = useState([]);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
+    category: "",
     image: null,
-    status: true,
+    status: true
   });
 
   const [editId, setEditId] = useState(null);
 
   useEffect(() => {
+    fetchSubCategories();
     fetchCategories();
   }, []);
+
+  // ===============================
+  // FETCH SUBCATEGORIES
+  // ===============================
+  const fetchSubCategories = async () => {
+
+    try {
+
+      const res = await subCategoryService.getAllSubCategories();
+
+      setSubCategories(res.data);
+
+    } catch (error) {
+
+      console.error("SubCategory fetch error:", error);
+
+    }
+
+  };
 
   // ===============================
   // FETCH CATEGORIES
   // ===============================
   const fetchCategories = async () => {
+
     try {
 
-      const res = await categoryService.getCategoriesWithSubCount();
+      const res = await categoryService.getAllCategories();
 
       setCategories(res.data);
 
     } catch (error) {
 
-      console.error("Fetch Categories Error:", error);
+      console.error("Category fetch error:", error);
 
     }
+
   };
 
   // ===============================
-  // SUBMIT FORM
+  // HANDLE SUBMIT
   // ===============================
   const handleSubmit = async (e) => {
 
@@ -50,7 +74,7 @@ function Categories() {
       const data = new FormData();
 
       data.append("name", formData.name);
-      data.append("description", formData.description);
+      data.append("category", formData.category);
       data.append("status", formData.status);
 
       if (formData.image) {
@@ -59,60 +83,60 @@ function Categories() {
 
       if (editId) {
 
-        await categoryService.updateCategory(editId, data);
+        await subCategoryService.updateSubCategory(editId, data);
 
       } else {
 
-        await categoryService.createCategory(data);
+        await subCategoryService.createSubCategory(data);
 
       }
 
-      fetchCategories();
+      fetchSubCategories();
       closeModal();
 
     } catch (error) {
 
-      console.error("Save Category Error:", error);
+      console.error("Save error:", error);
 
     }
 
   };
 
   // ===============================
-  // EDIT CATEGORY
+  // EDIT
   // ===============================
-  const handleEdit = (cat) => {
+  const handleEdit = (sub) => {
 
-    setEditId(cat._id);
+    setEditId(sub._id);
 
     setFormData({
-      name: cat.name,
-      description: cat.description,
+      name: sub.name,
+      category: sub.category._id,
       image: null,
-      status: cat.status,
+      status: sub.status
     });
 
-    const modal = new Modal(document.getElementById("categoryModal"));
+    const modal = new Modal(document.getElementById("subCategoryModal"));
     modal.show();
 
   };
 
   // ===============================
-  // DELETE CATEGORY
+  // DELETE
   // ===============================
   const handleDelete = async (id) => {
 
-    if (!window.confirm("Delete this category?")) return;
+    if (!window.confirm("Delete this subcategory?")) return;
 
     try {
 
-      await categoryService.deleteCategory(id);
+      await subCategoryService.deleteSubCategory(id);
 
-      fetchCategories();
+      fetchSubCategories();
 
     } catch (error) {
 
-      console.error("Delete Error:", error);
+      console.error("Delete error:", error);
 
     }
 
@@ -127,12 +151,12 @@ function Categories() {
 
     setFormData({
       name: "",
-      description: "",
+      category: "",
       image: null,
-      status: true,
+      status: true
     });
 
-    const modalElement = document.getElementById("categoryModal");
+    const modalElement = document.getElementById("subCategoryModal");
 
     const modalInstance = Modal.getInstance(modalElement);
 
@@ -143,11 +167,12 @@ function Categories() {
   // ===============================
   // SEARCH FILTER
   // ===============================
-  const filteredCategories = categories.filter((cat) =>
-    cat.name.toLowerCase().includes(search.toLowerCase())
+  const filteredSubCategories = subCategories.filter((sub) =>
+    sub.name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
+
     <div className="container py-4">
 
       {/* HEADER */}
@@ -155,21 +180,21 @@ function Categories() {
 
         <div>
           <h2 className="fw-bold mb-0 healone-title">
-            HealOne Categories
+            HealOne SubCategories
           </h2>
 
           <small className="text-muted">
-            Manage product categories
+            Manage product subcategories
           </small>
         </div>
 
         <button
           className="btn healone-btn px-4"
           data-bs-toggle="modal"
-          data-bs-target="#categoryModal"
+          data-bs-target="#subCategoryModal"
           onClick={() => closeModal()}
         >
-          Add Category
+          Add SubCategory
         </button>
 
       </div>
@@ -180,67 +205,58 @@ function Categories() {
         <input
           type="text"
           className="form-control healone-search"
-          placeholder="Search categories..."
+          placeholder="Search subcategories..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
       </div>
 
-      {/* CATEGORY CARDS */}
+      {/* CARDS */}
       <div className="row g-4">
 
-        {filteredCategories.map((cat) => (
+        {filteredSubCategories.map((sub) => (
 
-          <div className="col-md-4" key={cat._id}>
+          <div className="col-md-4" key={sub._id}>
 
             <div className="card healone-card h-100 text-center">
 
               <div className="card-body">
 
-                {cat.image ? (
-
+                {sub.image ? (
                   <img
-                    src={cat.image}
-                    alt="category"
+                    src={sub.image}
+                    alt="subcategory"
                     className="rounded-circle mb-3 healone-img"
                   />
-
                 ) : (
-
                   <div className="healone-placeholder mb-3">
                     <i className="bi bi-image"></i>
                   </div>
-
                 )}
 
-                <h5 className="fw-semibold">{cat.name}</h5>
+                <h5 className="fw-semibold">{sub.name}</h5>
 
                 <p className="text-muted small">
-                  {cat.description}
+                  Category: {sub.category?.name}
                 </p>
 
-                {/* NEW FEATURE */}
-                <p className="small text-primary fw-semibold">
-                  {cat.subCategoryCount || 0} SubCategories
-                </p>
-
-                <span className={`badge mb-3 ${cat.status ? "bg-success" : "bg-danger"}`}>
-                  {cat.status ? "Active" : "Inactive"}
+                <span className={`badge mb-3 ${sub.status ? "bg-success" : "bg-danger"}`}>
+                  {sub.status ? "Active" : "Inactive"}
                 </span>
 
                 <div className="d-flex justify-content-center gap-2">
 
                   <button
                     className="btn btn-outline-primary btn-sm"
-                    onClick={() => handleEdit(cat)}
+                    onClick={() => handleEdit(sub)}
                   >
                     Edit
                   </button>
 
                   <button
                     className="btn btn-outline-danger btn-sm"
-                    onClick={() => handleDelete(cat._id)}
+                    onClick={() => handleDelete(sub._id)}
                   >
                     Delete
                   </button>
@@ -258,7 +274,7 @@ function Categories() {
       </div>
 
       {/* MODAL */}
-      <div className="modal fade" id="categoryModal" tabIndex="-1">
+      <div className="modal fade" id="subCategoryModal" tabIndex="-1">
 
         <div className="modal-dialog">
 
@@ -267,7 +283,7 @@ function Categories() {
             <div className="modal-header">
 
               <h5 className="modal-title">
-                {editId ? "Edit Category" : "Add Category"}
+                {editId ? "Edit SubCategory" : "Add SubCategory"}
               </h5>
 
               <button
@@ -283,7 +299,8 @@ function Categories() {
               <div className="modal-body">
 
                 <div className="mb-3">
-                  <label className="form-label">Category Name</label>
+
+                  <label className="form-label">SubCategory Name</label>
 
                   <input
                     type="text"
@@ -294,19 +311,32 @@ function Categories() {
                     }
                     required
                   />
+
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">Description</label>
 
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={formData.description}
+                  <label className="form-label">Category</label>
+
+                  <select
+                    className="form-select"
+                    value={formData.category}
                     onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
+                      setFormData({ ...formData, category: e.target.value })
                     }
-                  />
+                    required
+                  >
+
+                    <option value="">Select Category</option>
+
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
+
+                  </select>
+
                 </div>
 
                 <div className="mb-3">
@@ -333,7 +363,7 @@ function Categories() {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        status: e.target.value === "true",
+                        status: e.target.value === "true"
                       })
                     }
                   >
@@ -370,8 +400,9 @@ function Categories() {
       </div>
 
     </div>
+
   );
 
 }
 
-export default Categories;
+export default SubCategories;

@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./components/DashboardLayout.jsx";
 import Dashboard from "./pages/admin/Dashboard.jsx";
 import Categories from "./pages/admin/Categories.jsx";
+import SubCategories from "./pages/admin/AdminSubCategories.jsx";
 import AdminProductList from "./pages/admin/products/AdminProductList";
 import AddProduct from "./pages/admin/products/AddProduct";
 import EditProduct from "./pages/admin/products/EditProduct";
@@ -16,6 +17,9 @@ import ManageSpecialists from "./pages/admin/ManageSpecialists";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminRemedies from "./pages/admin/AdminRemedies";
 import AdminYogaServices from "./pages/admin/AdminYogaServices";
+import AdminProgramList from "./pages/admin/programs/AdminProgramList";
+import AdminProgramDetail from "./pages/admin/programs/AdminProgramDetail";
+import AdminSubscriptions from "./pages/admin/programs/AdminSubscriptions";
 
 /* ---------------- SPECIALIST ---------------- */
 import SpecialistRoute from "./pages/specialist/SpecialistRoute";
@@ -48,6 +52,7 @@ function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="categories" element={<Categories />} />
+          <Route path="subcategories" element={<SubCategories />} />
           <Route path="products" element={<AdminProductList />} />
           <Route path="products/add" element={<AddProduct />} />
           <Route path="products/edit/:id" element={<EditProduct />} />
@@ -55,6 +60,10 @@ function App() {
           <Route path="users" element={<AdminUsers />} />
           <Route path="remedies" element={<AdminRemedies />} />
           <Route path="yoga-services" element={<AdminYogaServices />} />
+            {/* Wellness Programs */}
+  <Route path="programs" element={<AdminProgramList />} />
+  <Route path="programs/:id" element={<AdminProgramDetail />} />
+  <Route path="subscriptions" element={<AdminSubscriptions />} />
           {/* <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
         </Route>
 

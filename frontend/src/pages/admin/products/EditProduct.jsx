@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import productService from "../../../services/productService";
 import categoryService from "../../../services/categoryService";
+import subCategoryService from "../../../services/subCategoryService";
 import "./HealOneProduct.css";
 
 function EditProduct() {
@@ -10,6 +11,7 @@ function EditProduct() {
   const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -17,7 +19,7 @@ function EditProduct() {
     price: "",
     stock: "",
     category: "",
-    healthCategory: "",
+    subCategory: "",
     image: ""
   });
 
@@ -27,24 +29,31 @@ function EditProduct() {
   // FETCH CATEGORIES
   // ==========================
   useEffect(() => {
+
     const fetchCategories = async () => {
       try {
+
         const res = await categoryService.getAllCategories();
         setCategories(res.data);
+
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error("Category fetch error:", error);
       }
     };
 
     fetchCategories();
+
   }, []);
 
   // ==========================
-  // FETCH PRODUCT DATA
+  // FETCH PRODUCT
   // ==========================
   useEffect(() => {
+
     const fetchProduct = async () => {
+
       try {
+
         const res = await productService.getSingleProduct(id);
 
         const product = res.data.product;
@@ -55,51 +64,110 @@ function EditProduct() {
           price: product.price,
           stock: product.stock,
           category: product.category?._id || product.category,
-          healthCategory: product.healthCategory,
+          subCategory: product.subCategory?._id || product.subCategory,
           image: product.image
         });
 
         setPreview(product.image);
 
+        // load subcategories
+        if (product.category?._id) {
+          loadSubCategories(product.category._id);
+        }
+
       } catch (error) {
         console.error("Fetch product error:", error);
       }
+
     };
 
     fetchProduct();
+
   }, [id]);
+
+  // ==========================
+  // LOAD SUBCATEGORIES
+  // ==========================
+  const loadSubCategories = async (categoryId) => {
+
+    try {
+
+      const res = await subCategoryService.getSubCategoriesByCategory(categoryId);
+
+      setSubCategories(res.data);
+
+    } catch (error) {
+
+      console.error("Subcategory fetch error:", error);
+
+    }
+
+  };
 
   // ==========================
   // HANDLE CHANGE
   // ==========================
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+
+    const { name, value } = e.target;
+
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+
+    // if category changes → reload subcategories
+    if (name === "category") {
+
+      setFormData((prev) => ({
+        ...prev,
+        category: value,
+        subCategory: ""
+      }));
+
+      loadSubCategories(value);
+
+    }
+
   };
 
   // ==========================
   // HANDLE IMAGE
   // ==========================
   const handleImage = (e) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(e.target.files[0]);
-    reader.onloadend = () => {
-      setFormData({ ...formData, image: reader.result });
-      setPreview(reader.result);
-    };
+
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    setFormData({
+      ...formData,
+      image: file
+    });
+
+    setPreview(URL.createObjectURL(file));
+
   };
 
   // ==========================
-  // HANDLE SUBMIT
+  // SUBMIT
   // ==========================
   const handleSubmit = async (e) => {
+
     e.preventDefault();
 
     try {
+
       await productService.updateProduct(id, formData);
+
       navigate("/admin/products");
+
     } catch (error) {
+
       console.error("Update product error:", error);
+
     }
+
   };
 
   return (
@@ -114,11 +182,12 @@ function EditProduct() {
         <form onSubmit={handleSubmit}>
           <div className="row g-4">
 
-            {/* LEFT SIDE FORM */}
+            {/* LEFT SIDE */}
             <div className="col-md-8">
 
               <div className="row g-3">
 
+                {/* NAME */}
                 <div className="col-md-6">
                   <label className="form-label">Product Name</label>
                   <input
@@ -130,9 +199,10 @@ function EditProduct() {
                   />
                 </div>
 
-                {/* CATEGORY DROPDOWN */}
+                {/* CATEGORY */}
                 <div className="col-md-6">
                   <label className="form-label">Category</label>
+
                   <select
                     name="category"
                     value={formData.category}
@@ -141,16 +211,42 @@ function EditProduct() {
                     required
                   >
                     <option value="">Select Category</option>
+
                     {categories.map((cat) => (
                       <option key={cat._id} value={cat._id}>
                         {cat.name}
                       </option>
                     ))}
+
                   </select>
                 </div>
 
+                {/* SUBCATEGORY */}
+                <div className="col-md-6">
+                  <label className="form-label">Sub Category</label>
+
+                  <select
+                    name="subCategory"
+                    value={formData.subCategory}
+                    className="form-select"
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Sub Category</option>
+
+                    {subCategories.map((sub) => (
+                      <option key={sub._id} value={sub._id}>
+                        {sub.name}
+                      </option>
+                    ))}
+
+                  </select>
+                </div>
+
+                {/* PRICE */}
                 <div className="col-md-6">
                   <label className="form-label">Price (₹)</label>
+
                   <input
                     name="price"
                     type="number"
@@ -161,8 +257,10 @@ function EditProduct() {
                   />
                 </div>
 
+                {/* STOCK */}
                 <div className="col-md-6">
                   <label className="form-label">Stock</label>
+
                   <input
                     name="stock"
                     type="number"
@@ -172,8 +270,10 @@ function EditProduct() {
                   />
                 </div>
 
+                {/* DESCRIPTION */}
                 <div className="col-12">
                   <label className="form-label">Description</label>
+
                   <textarea
                     name="description"
                     rows="3"
@@ -184,29 +284,10 @@ function EditProduct() {
                   />
                 </div>
 
-                {/* TEMP HEALTH CATEGORY */}
-                <div className="col-md-6">
-                  <label className="form-label">Health Category</label>
-                  <select
-                    name="healthCategory"
-                    value={formData.healthCategory}
-                    className="form-select"
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Select</option>
-                    <option value="Stress">Stress</option>
-                    <option value="Immunity">Immunity</option>
-                    <option value="Digestion">Digestion</option>
-                    <option value="Skin Care">Skin Care</option>
-                    <option value="Hair Care">Hair Care</option>
-                    <option value="Weight Loss">Weight Loss</option>
-                    <option value="Joint Pain">Joint Pain</option>
-                  </select>
-                </div>
-
+                {/* IMAGE */}
                 <div className="col-md-6">
                   <label className="form-label">Change Image</label>
+
                   <input
                     type="file"
                     className="form-control"
@@ -218,21 +299,25 @@ function EditProduct() {
 
             </div>
 
-            {/* RIGHT SIDE IMAGE PREVIEW */}
+            {/* IMAGE PREVIEW */}
             <div className="col-md-4 text-center">
 
               <div className="healone-image-preview-card p-3">
 
                 {preview ? (
+
                   <img
                     src={preview}
                     alt="preview"
                     className="img-fluid rounded"
                   />
+
                 ) : (
+
                   <div className="healone-image-placeholder">
                     <i className="bi bi-image"></i>
                   </div>
+
                 )}
 
                 <p className="text-muted small mt-2">

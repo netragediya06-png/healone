@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import API from "../../services/api";
 import { FaUserCircle, FaTrash, FaBan } from "react-icons/fa";
 import "./AdminUsers.css";
 
@@ -10,42 +10,64 @@ const AdminUsers = () => {
 
   const adminId = localStorage.getItem("userId");
 
+  /* ======================
+     FETCH USERS
+  ====================== */
+
   const fetchUsers = async () => {
     try {
-      const { data } = await axios.get(
-        "http://localhost:5000/api/users",
-        { headers: { userid: adminId } }
-      );
+      const { data } = await API.get("/users", {
+        headers: { userid: adminId },
+      });
+
       setUsers(data);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching users:", error);
     }
   };
 
+  /* ======================
+     BLOCK USER
+  ====================== */
+
   const handleBlock = async (id) => {
-    await axios.put(
-      `http://localhost:5000/api/users/block/${id}`,
-      {},
-      { headers: { userid: adminId } }
-    );
-    fetchUsers();
+    try {
+      await API.put(`/users/block/${id}`, {}, {
+        headers: { userid: adminId },
+      });
+
+      fetchUsers();
+    } catch (error) {
+      console.error("Error blocking user:", error);
+    }
   };
+
+  /* ======================
+     DELETE USER
+  ====================== */
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this user?")) return;
 
-    await axios.delete(
-      `http://localhost:5000/api/users/${id}`,
-      { headers: { userid: adminId } }
-    );
-    fetchUsers();
+    try {
+      await API.delete(`/users/${id}`, {
+        headers: { userid: adminId },
+      });
+
+      fetchUsers();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
   };
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // 🔎 Search + Filter Logic
+  /* ======================
+     SEARCH + FILTER LOGIC
+  ====================== */
+
   const filteredUsers = users
     .filter((user) =>
       user.fullName.toLowerCase().includes(search.toLowerCase())
@@ -56,23 +78,30 @@ const AdminUsers = () => {
       return true;
     });
 
-  // 🔢 Counts
+  /* ======================
+     COUNTS
+  ====================== */
+
   const activeCount = users.filter((u) => !u.isBlocked).length;
   const blockedCount = users.filter((u) => u.isBlocked).length;
 
   return (
     <div className="users-container">
-      
+
       {/* HEADER */}
+
       <div className="users-header">
         <h2>Users</h2>
+
         <span className="total-badge">
           {users.length} Total Users
         </span>
       </div>
 
       {/* SEARCH + FILTER */}
+
       <div className="users-controls">
+
         <input
           type="text"
           placeholder="Search users..."
@@ -82,6 +111,7 @@ const AdminUsers = () => {
         />
 
         <div className="filter-wrapper">
+
           <button
             className={`filter-btn ${filter === "all" ? "selected" : ""}`}
             onClick={() => setFilter("all")}
@@ -102,19 +132,25 @@ const AdminUsers = () => {
           >
             Blocked ({blockedCount})
           </button>
+
         </div>
       </div>
 
       {/* USER LIST */}
+
       <div className="users-list">
+
         {filteredUsers.length === 0 ? (
           <div className="empty-state">
             No users found.
           </div>
         ) : (
           filteredUsers.map((user) => (
+
             <div className="user-item" key={user._id}>
+
               <div className="user-left">
+
                 {user.profileImage ? (
                   <img
                     src={user.profileImage}
@@ -129,9 +165,11 @@ const AdminUsers = () => {
                   <h4>{user.fullName}</h4>
                   <p>{user.email}</p>
                 </div>
+
               </div>
 
               <div className="user-right">
+
                 <span
                   className={`status ${
                     user.isBlocked ? "blocked" : "active"
@@ -153,11 +191,16 @@ const AdminUsers = () => {
                 >
                   <FaTrash />
                 </button>
+
               </div>
+
             </div>
+
           ))
         )}
+
       </div>
+
     </div>
   );
 };

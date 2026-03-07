@@ -193,7 +193,8 @@
 }
 
 .actions .edit,
-.actions .toggle {
+.actions .toggle,
+.actions .delete {
   flex: 1;
   font-size: 12px;
   padding: 7px;
@@ -204,18 +205,28 @@
   text-align: center;
 }
 
+/* EDIT BUTTON */
 .actions .edit {
   color: #1976d2;
 }
 
+/* TOGGLE BUTTON */
 .actions .toggle {
   color: #c62828;
 }
 
+/* DELETE BUTTON */
+.actions .delete {
+  color: #e53935;
+}
+
+/* HOVER EFFECT */
 .actions .edit:hover,
-.actions .toggle:hover {
+.actions .toggle:hover,
+.actions .delete:hover {
   background: #f4f6f5;
 }
+
 
 /* ============================= */
 /* RESPONSIVE BREAKPOINTS */
