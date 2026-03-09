@@ -20,6 +20,7 @@ import AdminYogaServices from "./pages/admin/AdminYogaServices";
 import AdminProgramList from "./pages/admin/programs/AdminProgramList";
 import AdminProgramDetail from "./pages/admin/programs/AdminProgramDetail";
 import AdminSubscriptions from "./pages/admin/programs/AdminSubscriptions";
+import AdminOrders from "./pages/admin/AdminOrders";
 
 /* ---------------- SPECIALIST ---------------- */
 import SpecialistRoute from "./pages/specialist/SpecialistRoute";
@@ -64,6 +65,7 @@ function App() {
   <Route path="programs" element={<AdminProgramList />} />
   <Route path="programs/:id" element={<AdminProgramDetail />} />
   <Route path="subscriptions" element={<AdminSubscriptions />} />
+  <Route path="/admin/orders" element={<AdminOrders />} />
           {/* <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
         </Route>
 

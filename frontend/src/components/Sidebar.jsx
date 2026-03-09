@@ -93,12 +93,18 @@ function Sidebar({ openSidebarToggle, OpenSidebar }) {
     <span className="menu-text">Subscriptions</span>
   </Link>
 </li>
-<li className={`sidebar-list-item ${isActive("/admin/yoga-services")}`}>
+<li className={`sidebar-list-item ${isActive("/admin/orders")}`}>
+  <Link to="/admin/orders">
+    <i className="fa-solid fa-box"></i>
+    <span className="menu-text">Manage Orders</span>
+  </Link>
+</li>
+{/* <li className={`sidebar-list-item ${isActive("/admin/yoga-services")}`}>
   <Link to="/admin/yoga-services">
     <i className="fa-solid fa-person-running"></i>
     <span className="menu-text">Yoga Services</span>
   </Link>
-</li>
+</li> */}
 
 
         {/* Logout */}

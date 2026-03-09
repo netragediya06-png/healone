@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import API from "../../services/api";
-import { FaUserCircle, FaTrash, FaBan } from "react-icons/fa";
+import { FaUserCircle, FaTrash, FaBan, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
 import "./AdminUsers.css";
 
 const AdminUsers = () => {
+
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -15,15 +16,19 @@ const AdminUsers = () => {
   ====================== */
 
   const fetchUsers = async () => {
+
     try {
+
       const { data } = await API.get("/users", {
-        headers: { userid: adminId },
+        headers: { userid: adminId }
       });
 
       setUsers(data);
+
     } catch (error) {
       console.error("Error fetching users:", error);
     }
+
   };
 
   /* ======================
@@ -31,15 +36,19 @@ const AdminUsers = () => {
   ====================== */
 
   const handleBlock = async (id) => {
+
     try {
+
       await API.put(`/users/block/${id}`, {}, {
-        headers: { userid: adminId },
+        headers: { userid: adminId }
       });
 
       fetchUsers();
+
     } catch (error) {
       console.error("Error blocking user:", error);
     }
+
   };
 
   /* ======================
@@ -47,17 +56,21 @@ const AdminUsers = () => {
   ====================== */
 
   const handleDelete = async (id) => {
+
     if (!window.confirm("Delete this user?")) return;
 
     try {
+
       await API.delete(`/users/${id}`, {
-        headers: { userid: adminId },
+        headers: { userid: adminId }
       });
 
       fetchUsers();
+
     } catch (error) {
       console.error("Error deleting user:", error);
     }
+
   };
 
   useEffect(() => {
@@ -65,7 +78,7 @@ const AdminUsers = () => {
   }, []);
 
   /* ======================
-     SEARCH + FILTER LOGIC
+     SEARCH + FILTER
   ====================== */
 
   const filteredUsers = users
@@ -73,9 +86,11 @@ const AdminUsers = () => {
       user.fullName.toLowerCase().includes(search.toLowerCase())
     )
     .filter((user) => {
+
       if (filter === "active") return !user.isBlocked;
       if (filter === "blocked") return user.isBlocked;
       return true;
+
     });
 
   /* ======================
@@ -86,16 +101,19 @@ const AdminUsers = () => {
   const blockedCount = users.filter((u) => u.isBlocked).length;
 
   return (
+
     <div className="users-container">
 
       {/* HEADER */}
 
       <div className="users-header">
+
         <h2>Users</h2>
 
         <span className="total-badge">
           {users.length} Total Users
         </span>
+
       </div>
 
       {/* SEARCH + FILTER */}
@@ -134,6 +152,7 @@ const AdminUsers = () => {
           </button>
 
         </div>
+
       </div>
 
       {/* USER LIST */}
@@ -141,68 +160,109 @@ const AdminUsers = () => {
       <div className="users-list">
 
         {filteredUsers.length === 0 ? (
+
           <div className="empty-state">
             No users found.
           </div>
+
         ) : (
-          filteredUsers.map((user) => (
 
-            <div className="user-item" key={user._id}>
+          filteredUsers.map((user) => {
 
-              <div className="user-left">
+            const age = user.dateOfBirth
+              ? new Date().getFullYear() - new Date(user.dateOfBirth).getFullYear()
+              : null;
 
-                {user.profileImage ? (
-                  <img
-                    src={user.profileImage}
-                    alt="profile"
-                    className="avatar"
-                  />
-                ) : (
-                  <FaUserCircle className="avatar-icon" />
-                )}
+            return (
 
-                <div>
-                  <h4>{user.fullName}</h4>
-                  <p>{user.email}</p>
+              <div className="user-item" key={user._id}>
+
+                {/* LEFT SIDE */}
+
+                <div className="user-left">
+
+                  {user.profilePhoto ? (
+                    <img
+                      src={user.profilePhoto}
+                      alt="profile"
+                      className="avatar"
+                    />
+                  ) : (
+                    <FaUserCircle className="avatar-icon" />
+                  )}
+
+                  <div className="user-info">
+
+                    <h4>{user.fullName}</h4>
+
+                    <p className="email">
+                      {user.email}
+                    </p>
+
+                    {user.phone && (
+                      <p className="meta">
+                        <FaPhone /> {user.phone}
+                      </p>
+                    )}
+
+                    {(user.gender || age) && (
+                      <p className="meta">
+                        {user.gender || ""} {age ? `| ${age} yrs` : ""}
+                      </p>
+                    )}
+
+                    {user.location?.city && (
+                      <p className="meta">
+                        <FaMapMarkerAlt /> {user.location.city}, {user.location.state}
+                      </p>
+                    )}
+
+                  </div>
+
+                </div>
+
+                {/* RIGHT SIDE */}
+
+                <div className="user-right">
+
+                  <span
+                    className={`status ${
+                      user.isBlocked ? "blocked" : "active"
+                    }`}
+                  >
+                    {user.isBlocked ? "Blocked" : "Active"}
+                  </span>
+
+                  <button
+                    className="icon-btn"
+                    onClick={() => handleBlock(user._id)}
+                  >
+                    <FaBan />
+                  </button>
+
+                  <button
+                    className="icon-btn delete"
+                    onClick={() => handleDelete(user._id)}
+                  >
+                    <FaTrash />
+                  </button>
+
                 </div>
 
               </div>
 
-              <div className="user-right">
+            );
 
-                <span
-                  className={`status ${
-                    user.isBlocked ? "blocked" : "active"
-                  }`}
-                >
-                  {user.isBlocked ? "Blocked" : "Active"}
-                </span>
+          })
 
-                <button
-                  className="icon-btn"
-                  onClick={() => handleBlock(user._id)}
-                >
-                  <FaBan />
-                </button>
-
-                <button
-                  className="icon-btn delete"
-                  onClick={() => handleDelete(user._id)}
-                >
-                  <FaTrash />
-                </button>
-
-              </div>
-
-            </div>
-
-          ))
-        )}
+        )}  
 
       </div>
 
     </div>
+
   );
+
 };
 
 export default AdminUsers;

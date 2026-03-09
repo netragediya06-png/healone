@@ -10,7 +10,8 @@ const {
   getSingleProgram,
   updateProgram,
   deleteProgram,
-  approveProgram
+  approveProgram,
+  rejectProgram
 } = require("../controllers/programController");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
@@ -52,5 +53,11 @@ router.put(
   protect,
   authorize("admin"),
   approveProgram
+);
+router.put(
+  "/reject/:id",
+  protect,
+  authorize("admin"),
+  rejectProgram
 );
 module.exports = router;

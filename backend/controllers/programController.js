@@ -138,3 +138,40 @@ exports.approveProgram = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+/* ===========================================
+   REJECT PROGRAM (ADMIN)
+=========================================== */
+
+exports.rejectProgram = async (req, res) => {
+  try {
+
+    const programId = req.params.id;
+
+    const program = await WellnessProgram.findById(programId);
+
+    if (!program) {
+      return res.status(404).json({
+        message: "Program not found"
+      });
+    }
+
+    program.approvalStatus = "rejected";
+
+    await program.save();
+
+    res.status(200).json({
+      message: "Program rejected successfully",
+      program
+    });
+
+  } catch (error) {
+
+    console.log("REJECT PROGRAM ERROR:", error);
+
+    res.status(500).json({
+      message: "Server error while rejecting program"
+    });
+
+  }
+};

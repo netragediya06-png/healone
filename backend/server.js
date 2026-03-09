@@ -34,6 +34,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const subCategoryRoutes = require("./routes/subCategoryRoutes");
 const programRoutes = require("./routes/programRoutes");
 const subscriptionRoutes = require("./routes/subscriptionRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
@@ -47,6 +48,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/subcategories", subCategoryRoutes);
 app.use("/api/programs", programRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/orders", orderRoutes);
 
 // ===============================
 // Test Route

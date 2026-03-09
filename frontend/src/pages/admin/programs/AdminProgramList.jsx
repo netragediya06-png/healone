@@ -21,7 +21,7 @@ function AdminProgramList() {
   const fetchPrograms = async () => {
     try {
       const res = await getAdminPrograms();
-      setPrograms(res.data);
+      setPrograms(res.data || []);
     } catch (error) {
       console.log(error);
     }
@@ -64,11 +64,12 @@ function AdminProgramList() {
 
   const filteredPrograms = programs.filter((program) => {
 
-    const matchesSearch =
-      program.title.toLowerCase().includes(search.toLowerCase());
+    const title = program?.title?.toLowerCase() || "";
+
+    const matchesSearch = title.includes(search.toLowerCase());
 
     const matchesTab =
-      activeTab === "all" || program.approvalStatus === activeTab;
+      activeTab === "all" || program?.approvalStatus === activeTab;
 
     return matchesSearch && matchesTab;
   });
@@ -147,30 +148,29 @@ function AdminProgramList() {
         {filteredPrograms.map((program) => (
 
           <div
-  key={program._id}
-  
-  className={`${styles.card} ${
-    program.approvalStatus === "pending"
-      ? styles.cardPending
-      : program.approvalStatus === "approved"
-      ? styles.cardApproved
-      : styles.cardRejected
-  }`}
->
+            key={program._id}
 
+            className={`${styles.card} ${
+              program.approvalStatus === "pending"
+                ? styles.cardPending
+                : program.approvalStatus === "approved"
+                ? styles.cardApproved
+                : styles.cardRejected
+            }`}
+          >
 
             <img
-              src={program.image}
-              alt={program.title}
+              src={program.image || "https://via.placeholder.com/300x200"}
+              alt={program.title || "Program"}
               className={styles.image}
             />
 
             <h3 className={styles.title}>
-              {program.title}
+              {program.title || "Untitled Program"}
             </h3>
 
             <p className={styles.category}>
-              {program.category?.name}
+              {program.category?.name || "No Category"}
             </p>
 
             <p className={styles.specialist}>
@@ -178,8 +178,13 @@ function AdminProgramList() {
             </p>
 
             <div className={styles.metaRow}>
-              <span>Duration: {program.durationDays} Days</span>
-              <span className={styles.price}>₹ {program.price}</span>
+              <span>
+                Duration: {program.durationDays || 0} Days
+              </span>
+
+              <span className={styles.price}>
+                ₹ {program.price || 0}
+              </span>
             </div>
 
             <span className={`${styles.status} ${styles[program.approvalStatus]}`}>

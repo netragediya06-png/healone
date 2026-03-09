@@ -5,10 +5,21 @@ const bcrypt = require("bcryptjs");
 /* ===========================================
    REGISTER USER / SPECIALIST
 =========================================== */
+/* ===========================================
+   REGISTER USER / SPECIALIST
+=========================================== */
 const registerUser = async (req, res) => {
   try {
 
-    const { fullName, email, password, phone, role } = req.body;
+    const {
+      fullName,
+      email,
+      password,
+      phone,
+      gender,
+      dateOfBirth,
+      role
+    } = req.body;
 
     // Validate required fields
     if (!fullName || !email || !password || !phone) {
@@ -36,11 +47,28 @@ const registerUser = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    /* =========================
+       PROFILE PHOTO
+    ========================= */
+
+    let profilePhoto = "";
+
+    if (req.file) {
+      // if image uploaded
+      profilePhoto = req.file.path;
+    } else {
+      // auto avatar if no image
+      profilePhoto = `https://ui-avatars.com/api/?name=${fullName}&background=16a34a&color=fff`;
+    }
+
     const user = await User.create({
       fullName,
       email,
       password: hashedPassword,
       phone,
+      gender,
+      dateOfBirth,
+      profilePhoto,
       role: role || "user",
 
       isVerified: role === "specialist" ? false : true,
@@ -53,10 +81,12 @@ const registerUser = async (req, res) => {
         role === "specialist"
           ? "Specialist registration submitted for admin approval"
           : "User registered successfully",
+
       user: {
         _id: user._id,
         fullName: user.fullName,
         email: user.email,
+        profilePhoto: user.profilePhoto,
         role: user.role
       }
     });

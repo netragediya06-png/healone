@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import "../auth/Register.css";
 
+import Stepper from "../../components/RegisterSteps/Stepper";
+
 import StepRole from "../../components/RegisterSteps/StepRole";
 import StepBasic from "../../components/RegisterSteps/StepBasic";
 import StepProfessional from "../../components/RegisterSteps/StepProfessional";
@@ -11,14 +13,19 @@ import StepProfile from "../../components/RegisterSteps/StepProfile";
 import StepReview from "../../components/RegisterSteps/StepReview";
 
 const Register = () => {
+
   const [step, setStep] = useState(0);
   const [role, setRole] = useState("");
 
   const [formData, setFormData] = useState({
+
     fullName: "",
     email: "",
     password: "",
+    confirmPassword: "",
     phone: "",
+    gender: "",
+    dateOfBirth: "",
     profilePhoto: "",
 
     professionalDetails: {
@@ -30,8 +37,10 @@ const Register = () => {
     },
 
     location: {
+      country: "",
       state: "",
       city: "",
+      area: "",
       address: "",
       pincode: "",
     },
@@ -49,7 +58,12 @@ const Register = () => {
     languagesSpoken: "",
   });
 
+  /* =========================
+     HANDLE INPUT CHANGE
+  ========================= */
+
   const handleChange = (e, section = null) => {
+
     const { name, value } = e.target;
 
     if (section) {
@@ -66,33 +80,86 @@ const Register = () => {
         [name]: value,
       }));
     }
+
   };
 
-  const handleSubmit = async () => {
-    try {
-      const payload = { ...formData, role };
+  /* =========================
+     REGISTER SUBMIT
+  ========================= */
 
-      if (role === "user") {
-        delete payload.professionalDetails;
-        delete payload.documents;
-        delete payload.bio;
-        delete payload.expertiseSummary;
-        delete payload.treatmentApproach;
-        delete payload.consultationFees;
-        delete payload.availableTimeSlots;
-        delete payload.languagesSpoken;
-      }
+/* =========================
+   REGISTER SUBMIT
+========================= */
 
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        payload
+const handleSubmit = async () => {
+
+  try {
+
+    const form = new FormData();
+
+    form.append("fullName", formData.fullName);
+    form.append("email", formData.email);
+    form.append("password", formData.password);
+    form.append("phone", formData.phone);
+    form.append("gender", formData.gender);
+    form.append("dateOfBirth", formData.dateOfBirth);
+    form.append("role", role);
+
+    if (formData.profilePhoto) {
+      form.append("profilePhoto", formData.profilePhoto);
+    }
+
+    /* Specialist fields */
+
+    if (role === "specialist") {
+
+      form.append(
+        "professionalDetails",
+        JSON.stringify(formData.professionalDetails)
       );
 
-      alert(res.data.message);
-    } catch (error) {
-      alert(error.response?.data?.message || "Registration failed");
+      form.append(
+        "location",
+        JSON.stringify(formData.location)
+      );
+
+      form.append(
+        "documents",
+        JSON.stringify(formData.documents)
+      );
+
+      form.append("bio", formData.bio);
+      form.append("expertiseSummary", formData.expertiseSummary);
+      form.append("treatmentApproach", formData.treatmentApproach);
+      form.append("consultationFees", formData.consultationFees);
+      form.append("availableTimeSlots", formData.availableTimeSlots);
+      form.append("languagesSpoken", formData.languagesSpoken);
+
     }
-  };
+
+    const res = await axios.post(
+      "http://localhost:5000/api/auth/register",
+      form,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      }
+    );
+
+    alert(res.data.message);
+
+  } catch (error) {
+
+    alert(error.response?.data?.message || "Registration failed");
+
+  }
+
+};
+
+  /* =========================
+     STEP FLOWS
+  ========================= */
 
   const specialistSteps = [
     StepRole,
@@ -107,66 +174,65 @@ const Register = () => {
   const userSteps = [
     StepRole,
     StepBasic,
+    StepLocation,
     StepReview,
   ];
 
   const steps = role === "specialist" ? specialistSteps : userSteps;
   const CurrentStep = steps[step];
 
+  /* =========================
+     STEPPER LABELS
+  ========================= */
+
+  const stepLabels =
+    role === "specialist"
+      ? [
+          "Role",
+          "Basic Info",
+          "Professional",
+          "Location",
+          "Documents",
+          "Profile",
+          "Review",
+        ]
+      : [
+          "Role",
+          "Basic Info",
+          "Location",
+          "Review",
+        ];
+
+  /* =========================
+     NAVIGATION
+  ========================= */
+
   const nextStep = () => {
-    if (step < steps.length - 1) {
+    if (step < steps.length - 1)
       setStep((prev) => prev + 1);
-    }
   };
 
   const prevStep = () => {
-    if (step > 0) {
+    if (step > 0)
       setStep((prev) => prev - 1);
-    }
   };
 
-return (
-  <div className="register-wrapper">
-{/* LEFT PANEL */}
-<div className="register-left">
-<div className="brand-content">
+  /* =========================
+     UI
+  ========================= */
 
-  <div className="brand-logo">
-    <div className="logo-placeholder">🌿</div>
-    <h1 className="brand-title">HealOne</h1>
-  </div>
+  return (
 
-  <h2 className="brand-headline">
-    Where Nature Meets Wellness
-  </h2>
+    <div className="register-page">
 
-  <p className="brand-description">
-    Discover holistic products and trusted specialists.
-  </p>
+      {/* STEPPER */}
+      <Stepper
+        steps={stepLabels}
+        currentStep={step}
+      />
 
-  <div className="brand-tags">
-    Ayurveda • Yoga • Therapy • Natural Remedies
-  </div>
-
-</div>
-</div>
-
-    {/* RIGHT PANEL */}
-    <div className="register-right">
-      <div className="form-container">
-
-        <div className="step-indicator">
-          <div
-            className="step-progress-line"
-            style={{
-              width: `${((step + 1) / steps.length) * 100}%`,
-            }}
-          ></div>
-        </div>
-
-        <div className="step-counter">
-          Step {step + 1} of {steps.length}
-        </div>
+      {/* FORM CARD */}
+      <div className="register-card">
 
         <CurrentStep
           role={role}
@@ -179,10 +245,15 @@ return (
         />
 
       </div>
+
+      {/* LOGIN */}
+      <div className="login-link">
+        Already have an account? <a href="/login">Login</a>
+      </div>
+
     </div>
 
-  </div>
-);
+  );
 };
 
 export default Register;

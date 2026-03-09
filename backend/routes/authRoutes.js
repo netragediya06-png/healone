@@ -1,28 +1,26 @@
 const express = require("express");
 const router = express.Router();
 
-const {
-  register,
-  login
-} = require("../controllers/authController");
+const authController = require("../controllers/authController");
+const upload = require("../middleware/upload");
 
+/* =========================
+   REGISTER USER / SPECIALIST
+========================= */
 
-// ============================
-// REGISTER USER / SPECIALIST
-// ============================
 router.post(
   "/register",
-  register
+  upload.single("profilePhoto"), // upload image
+  authController.register
 );
 
+/* =========================
+   LOGIN USER
+========================= */
 
-// ============================
-// LOGIN USER
-// ============================
 router.post(
   "/login",
-  login
+  authController.login
 );
-
 
 module.exports = router;

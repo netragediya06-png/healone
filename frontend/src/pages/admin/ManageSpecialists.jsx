@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import API from "../../services/api";
 import "./styles/admin.css";
 
 export default function ManageSpecialists() {
+
   const [specialists, setSpecialists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSpecialist, setSelectedSpecialist] = useState(null);
 
-  // NEW STATES
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("pending");
 
@@ -17,42 +17,69 @@ export default function ManageSpecialists() {
     fetchSpecialists();
   }, []);
 
-  // IMPORTANT: Fetch ALL specialists (not only pending)
+  /* =========================
+     FETCH SPECIALISTS
+  ========================= */
+
   const fetchSpecialists = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/admin/specialists",
-        {
-          headers: { userid: userId },
-        }
-      );
+      const res = await API.get("/admin/specialists", {
+        headers: { userid: userId },
+      });
+
       setSpecialists(res.data);
       setLoading(false);
+
     } catch (error) {
-      console.log(error);
+      console.log("Fetch specialists error:", error);
       setLoading(false);
     }
   };
 
+  /* =========================
+     APPROVE SPECIALIST
+  ========================= */
+
   const handleApprove = async (id) => {
-    await axios.put(
-      `http://localhost:5000/api/admin/specialists/${id}/approve`,
-      {},
-      { headers: { userid: userId } }
-    );
-    fetchSpecialists();
+    try {
+
+      await API.put(
+        `/admin/specialists/${id}/approve`,
+        {},
+        { headers: { userid: userId } }
+      );
+
+      fetchSpecialists();
+
+    } catch (error) {
+      console.log("Approve error:", error);
+    }
   };
+
+  /* =========================
+     REJECT SPECIALIST
+  ========================= */
 
   const handleReject = async (id) => {
-    await axios.put(
-      `http://localhost:5000/api/admin/specialists/${id}/reject`,
-      {},
-      { headers: { userid: userId } }
-    );
-    fetchSpecialists();
+    try {
+
+      await API.put(
+        `/admin/specialists/${id}/reject`,
+        {},
+        { headers: { userid: userId } }
+      );
+
+      fetchSpecialists();
+
+    } catch (error) {
+      console.log("Reject error:", error);
+    }
   };
 
-  // SEARCH + FILTER LOGIC
+  /* =========================
+     SEARCH + FILTER
+  ========================= */
+
   const filteredSpecialists = specialists
     .filter((sp) =>
       sp.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -74,6 +101,7 @@ export default function ManageSpecialists() {
       <div className="admin-wrapper">
 
         {/* HEADER */}
+
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h2>Specialist Management</h2>
           <span className="badge bg-primary px-3 py-2">
@@ -81,7 +109,8 @@ export default function ManageSpecialists() {
           </span>
         </div>
 
-        {/* SEARCH BAR */}
+        {/* SEARCH */}
+
         <div className="mb-3">
           <input
             type="text"
@@ -92,20 +121,22 @@ export default function ManageSpecialists() {
           />
         </div>
 
-        {/* FILTER BUTTONS */}
-       <div className="filter-tabs">
-  {["all","pending","approved","rejected"].map(status => (
-    <button
-      key={status}
-      className={filterStatus === status ? "active" : ""}
-      onClick={() => setFilterStatus(status)}
-    >
-      {status}
-    </button>
-  ))}
-</div>
+        {/* FILTER */}
+
+        <div className="filter-tabs">
+          {["all", "pending", "approved", "rejected"].map((status) => (
+            <button
+              key={status}
+              className={filterStatus === status ? "active" : ""}
+              onClick={() => setFilterStatus(status)}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
 
         {/* CONTENT */}
+
         {loading ? (
           <p>Loading...</p>
         ) : filteredSpecialists.length === 0 ? (
@@ -114,13 +145,19 @@ export default function ManageSpecialists() {
           </div>
         ) : (
           <div className="row">
+
             {filteredSpecialists.map((sp) => (
+
               <div className="col-md-6 col-lg-4 mb-4" key={sp._id}>
+
                 <div className="card shadow-sm h-100 border-0 specialist-card">
+
                   <div className="card-body">
 
-                    {/* Profile Section */}
+                    {/* PROFILE */}
+
                     <div className="d-flex align-items-center mb-3">
+
                       <img
                         src={
                           sp.profilePhoto ||
@@ -132,19 +169,22 @@ export default function ManageSpecialists() {
                         height="60"
                         style={{ objectFit: "cover" }}
                       />
+
                       <div>
                         <h5 className="mb-0">{sp.fullName}</h5>
                         <small className="text-muted">
                           {sp.professionalDetails?.specialization}
                         </small>
                       </div>
+
                     </div>
 
                     <p className="mb-2 text-muted">
                       {sp.location?.city}, {sp.location?.state}
                     </p>
 
-                    {/* STATUS BADGE */}
+                    {/* STATUS */}
+
                     <span
                       className={`badge mb-3 ${
                         sp.verificationStatus === "approved"
@@ -157,50 +197,59 @@ export default function ManageSpecialists() {
                       {sp.verificationStatus}
                     </span>
 
-                    {/* Action Buttons */}
-                   <div className="card-actions">
+                    {/* ACTIONS */}
 
-  <button
-    className="view-btn"
-    data-bs-toggle="offcanvas"
-    data-bs-target="#specialistDetails"
-    onClick={() => setSelectedSpecialist(sp)}
-  >
-    View
-  </button>
+                    <div className="card-actions">
 
-  <div className="approval-actions">
-    <button
-      className="approve-btn"
-      onClick={() => handleApprove(sp._id)}
-    >
-      ✓
-    </button>
+                      <button
+                        className="view-btn"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#specialistDetails"
+                        onClick={() => setSelectedSpecialist(sp)}
+                      >
+                        View
+                      </button>
 
-    <button
-      className="reject-btn"
-      onClick={() => handleReject(sp._id)}
-    >
-      ✕
-    </button>
-  </div>
+                      <div className="approval-actions">
 
-</div>
+                        <button
+                          className="approve-btn"
+                          onClick={() => handleApprove(sp._id)}
+                        >
+                          ✓
+                        </button>
+
+                        <button
+                          className="reject-btn"
+                          onClick={() => handleReject(sp._id)}
+                        >
+                          ✕
+                        </button>
+
+                      </div>
+
+                    </div>
 
                   </div>
                 </div>
+
               </div>
+
             ))}
+
           </div>
         )}
+
       </div>
 
-      {/* ================= OFFCANVAS PANEL ================= */}
+      {/* ================= OFFCANVAS ================= */}
+
       <div
         className="offcanvas offcanvas-end"
         tabIndex="-1"
         id="specialistDetails"
       >
+
         <div className="offcanvas-header border-bottom">
           <h5 className="offcanvas-title">Specialist Profile</h5>
           <button
@@ -211,10 +260,12 @@ export default function ManageSpecialists() {
         </div>
 
         <div className="offcanvas-body">
+
           {selectedSpecialist && (
+
             <>
-              {/* Profile Header */}
               <div className="text-center mb-4">
+
                 <img
                   src={
                     selectedSpecialist.profilePhoto ||
@@ -226,14 +277,19 @@ export default function ManageSpecialists() {
                   style={{ objectFit: "cover" }}
                   alt="profile"
                 />
+
                 <h5>{selectedSpecialist.fullName}</h5>
+
                 <span className="badge bg-secondary">
                   {selectedSpecialist.professionalDetails?.specialization}
                 </span>
+
               </div>
 
-              {/* Tabs */}
+              {/* TABS */}
+
               <ul className="nav nav-tabs mb-3">
+
                 <li className="nav-item">
                   <button
                     className="nav-link active"
@@ -243,6 +299,7 @@ export default function ManageSpecialists() {
                     Info
                   </button>
                 </li>
+
                 <li className="nav-item">
                   <button
                     className="nav-link"
@@ -252,6 +309,7 @@ export default function ManageSpecialists() {
                     Professional
                   </button>
                 </li>
+
                 <li className="nav-item">
                   <button
                     className="nav-link"
@@ -261,33 +319,34 @@ export default function ManageSpecialists() {
                     Documents
                   </button>
                 </li>
+
               </ul>
 
               <div className="tab-content">
+
                 <div className="tab-pane fade show active" id="infoTab">
+
                   <p><strong>Email:</strong> {selectedSpecialist.email}</p>
                   <p><strong>Phone:</strong> {selectedSpecialist.phone}</p>
                   <p><strong>City:</strong> {selectedSpecialist.location?.city}</p>
                   <p><strong>State:</strong> {selectedSpecialist.location?.state}</p>
-                  <p><strong>Full Address:</strong> {selectedSpecialist.location?.address}</p>
+                  <p><strong>Address:</strong> {selectedSpecialist.location?.address}</p>
                   <p><strong>Pincode:</strong> {selectedSpecialist.location?.pincode}</p>
-                  <p><strong>Languages:</strong> {selectedSpecialist.languagesSpoken?.join(", ")}</p>
-                  <p><strong>Available Slots:</strong> {selectedSpecialist.availableTimeSlots}</p>
+
                 </div>
 
                 <div className="tab-pane fade" id="professionalTab">
+
                   <p><strong>Experience:</strong> {selectedSpecialist.professionalDetails?.experience} years</p>
                   <p><strong>Qualification:</strong> {selectedSpecialist.professionalDetails?.qualification}</p>
                   <p><strong>Practice Name:</strong> {selectedSpecialist.professionalDetails?.practiceName}</p>
                   <p><strong>Consultation Mode:</strong> {selectedSpecialist.professionalDetails?.consultationMode}</p>
                   <p><strong>Consultation Fees:</strong> ₹{selectedSpecialist.consultationFees}</p>
-                  <hr />
-                  <p><strong>Bio:</strong> {selectedSpecialist.bio}</p>
-                  <p><strong>Expertise Summary:</strong> {selectedSpecialist.expertiseSummary}</p>
-                  <p><strong>Treatment Approach:</strong> {selectedSpecialist.treatmentApproach}</p>
+
                 </div>
 
                 <div className="tab-pane fade" id="documentsTab">
+
                   {selectedSpecialist.documents?.idProof ? (
                     <a
                       href={selectedSpecialist.documents.idProof}
@@ -313,32 +372,17 @@ export default function ManageSpecialists() {
                   ) : (
                     <p>No Certificate Uploaded</p>
                   )}
+
                 </div>
+
               </div>
 
-              <hr />
-
-              <div className="d-flex justify-content-between mt-3">
-                <button
-                  className="btn btn-success"
-                  data-bs-dismiss="offcanvas"
-                  onClick={() => handleApprove(selectedSpecialist._id)}
-                >
-                  Approve
-                </button>
-
-                <button
-                  className="btn btn-danger"
-                  data-bs-dismiss="offcanvas"
-                  onClick={() => handleReject(selectedSpecialist._id)}
-                >
-                  Reject
-                </button>
-              </div>
             </>
           )}
+
         </div>
       </div>
+
     </div>
   );
 }

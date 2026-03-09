@@ -17,14 +17,14 @@ const StepRole = ({ role, setRole, nextStep }) => {
           className={`role-card ${role === "user" ? "active" : ""}`}
           onClick={() => setRole("user")}
         >
-          <div className="role-circle">
+          <div className="role-icon">
             <FaUser />
           </div>
 
-          <h4>Wellness User</h4>
-          <p>
-            Discover health products, remedies and expert advice.
-          </p>
+          <div className="role-text">
+            <h4>Wellness User</h4>
+            <p>Discover health products and natural remedies.</p>
+          </div>
         </div>
 
         {/* SPECIALIST */}
@@ -32,14 +32,14 @@ const StepRole = ({ role, setRole, nextStep }) => {
           className={`role-card ${role === "specialist" ? "active" : ""}`}
           onClick={() => setRole("specialist")}
         >
-          <div className="role-circle">
+          <div className="role-icon">
             <FaUserMd />
           </div>
 
-          <h4>Wellness Specialist</h4>
-          <p>
-            Provide consultation, remedies and holistic guidance.
-          </p>
+          <div className="role-text">
+            <h4>Wellness Specialist</h4>
+            <p>Provide consultation and holistic guidance.</p>
+          </div>
         </div>
 
       </div>

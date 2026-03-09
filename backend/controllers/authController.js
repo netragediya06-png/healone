@@ -9,7 +9,7 @@ const generateToken = (user) => {
   return jwt.sign(
     {
       id: user._id,
-      role: user.role,
+      role: user.role
     },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
@@ -28,7 +28,8 @@ exports.register = async (req, res) => {
       email,
       password,
       phone,
-      profilePhoto,
+      gender,
+      dateOfBirth,
       role,
       professionalDetails,
       location,
@@ -41,28 +42,43 @@ exports.register = async (req, res) => {
       languagesSpoken,
     } = req.body;
 
-    if (!email || !password || !fullName) {
+    /* PROFILE PHOTO */
+    const profilePhoto = req.body.profilePhoto || "";
+
+    /* VALIDATION */
+
+    if (!fullName || !email || !password) {
       return res.status(400).json({
-        message: "Please provide required fields",
+        message: "Full name, email and password are required"
       });
     }
+
+    /* CHECK EXISTING USER */
 
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(400).json({
-        message: "Email already exists",
+        message: "Email already exists"
       });
     }
+
+    /* CREATE USER OBJECT */
 
     let newUser = {
       fullName,
       email,
-      password, // ❗ do NOT hash here
+      password,
       phone,
+      gender,
+      dateOfBirth,
       profilePhoto,
-      role,
+      role: role || "user"
     };
+
+    /* =========================
+       SPECIALIST REGISTRATION
+    ========================= */
 
     if (role === "specialist") {
 
@@ -81,16 +97,27 @@ exports.register = async (req, res) => {
       newUser.availableTimeSlots = availableTimeSlots;
       newUser.languagesSpoken = languagesSpoken;
 
-    } else {
+    }
+
+    /* =========================
+       NORMAL USER
+    ========================= */
+
+    else {
 
       newUser.verificationStatus = "approved";
       newUser.isVerified = true;
 
     }
 
+    /* SAVE USER */
+
     const user = await User.create(newUser);
 
+    /* RESPONSE */
+
     res.status(201).json({
+
       message:
         role === "specialist"
           ? "Specialist registration submitted. Waiting for admin approval."
@@ -100,28 +127,29 @@ exports.register = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        role: user.role,
+        role: user.role
       },
 
-      token: generateToken(user),
+      token: generateToken(user)
+
     });
 
   } catch (error) {
 
-    console.log("REGISTER ERROR:", error);
+    console.error("REGISTER ERROR:", error);
 
     res.status(500).json({
-      message: "Server Error",
+      message: "Server error"
     });
 
   }
 };
 
 
-
 /* =========================
    LOGIN
 ========================= */
+
 exports.login = async (req, res) => {
 
   try {
@@ -130,69 +158,92 @@ exports.login = async (req, res) => {
 
     if (!email || !password) {
       return res.status(400).json({
-        message: "Email and password required",
+        message: "Email and password required"
       });
     }
 
-    // IMPORTANT: include password
+    /* FIND USER */
+
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
       return res.status(404).json({
-        message: "User not found",
+        message: "User not found"
       });
     }
+
+    /* CHECK PASSWORD */
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(400).json({
-        message: "Invalid credentials",
+        message: "Invalid credentials"
       });
     }
+
+    /* CHECK BLOCK */
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        message: "Your account is blocked by admin"
+      });
+    }
+
+    /* CHECK SPECIALIST STATUS */
 
     if (user.role === "specialist") {
 
       if (user.verificationStatus === "pending") {
         return res.status(403).json({
-          message: "Your specialist account is under admin review.",
+          message: "Your specialist account is under admin review"
         });
       }
 
       if (user.verificationStatus === "rejected") {
         return res.status(403).json({
-          message: "Your specialist account request was rejected.",
+          message: "Your specialist request was rejected"
         });
       }
 
     }
 
-    if (user.isBlocked) {
-      return res.status(403).json({
-        message: "Your account has been blocked by admin.",
-      });
-    }
+    /* LOGIN SUCCESS */
 
     res.status(200).json({
+
       message: "Login successful",
+
       user: {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
         role: user.role,
-        verificationStatus: user.verificationStatus,
+        verificationStatus: user.verificationStatus
       },
-      token: generateToken(user),
+
+      token: generateToken(user)
+
     });
 
   } catch (error) {
 
-    console.log("LOGIN ERROR:", error);
+    console.error("LOGIN ERROR:", error);
 
     res.status(500).json({
-      message: "Server Error",
+      message: "Server error"
     });
 
   }
 
 };
+
+
+/* =========================
+   EXPORT
+========================= */
+
+module.exports = {
+  register: exports.register,
+  login: exports.login
+};  

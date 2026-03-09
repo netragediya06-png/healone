@@ -9,6 +9,7 @@ const {
 } = require("../controllers/userController");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
+const upload = require("../middleware/upload"); // multer upload middleware
 
 
 // ===========================================
@@ -16,6 +17,7 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 // ===========================================
 router.post(
   "/register",
+  upload.single("profilePhoto"), // accept image
   registerUser
 );
 
