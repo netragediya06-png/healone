@@ -21,14 +21,19 @@ const {
   specialistApprovedOnly,
 } = require("../middleware/authMiddleware");
 
+const upload = require("../middleware/upload");
+
 
 /* ======================================================
-   CREATE REMEDY - SPECIALIST (APPROVED ONLY)
+   CREATE REMEDY - SPECIALIST
+   Only approved specialists can create remedies
 ====================================================== */
+
 router.post(
   "/specialist",
   protect,
   specialistApprovedOnly,
+  upload.single("image"),
   createRemedy
 );
 
@@ -36,10 +41,12 @@ router.post(
 /* ======================================================
    CREATE REMEDY - ADMIN (AUTO APPROVED)
 ====================================================== */
+
 router.post(
   "/admin",
   protect,
   authorize("admin"),
+  upload.single("image"),
   createRemedy
 );
 
@@ -47,6 +54,7 @@ router.post(
 /* ======================================================
    GET ALL REMEDIES (ADMIN ONLY)
 ====================================================== */
+
 router.get(
   "/",
   protect,
@@ -58,6 +66,7 @@ router.get(
 /* ======================================================
    GET MY REMEDIES (SPECIALIST)
 ====================================================== */
+
 router.get(
   "/my",
   protect,
@@ -69,24 +78,21 @@ router.get(
 /* ======================================================
    GET APPROVED REMEDIES (PUBLIC)
 ====================================================== */
-router.get(
-  "/approved",
-  getApprovedRemedies
-);
+
+router.get("/approved", getApprovedRemedies);
 
 
 /* ======================================================
    SEARCH REMEDIES BY SYMPTOM
 ====================================================== */
-router.get(
-  "/search",
-  searchRemediesBySymptom
-);
+
+router.get("/search", searchRemediesBySymptom);
 
 
 /* ======================================================
-   SAVE REMEDY
+   SAVE REMEDY (USER)
 ====================================================== */
+
 router.post(
   "/save/:id",
   protect,
@@ -98,6 +104,7 @@ router.post(
 /* ======================================================
    UNSAVE REMEDY
 ====================================================== */
+
 router.delete(
   "/save/:id",
   protect,
@@ -109,6 +116,7 @@ router.delete(
 /* ======================================================
    GET SAVED REMEDIES
 ====================================================== */
+
 router.get(
   "/saved",
   protect,
@@ -120,17 +128,20 @@ router.get(
 /* ======================================================
    UPDATE REMEDY
 ====================================================== */
+
 router.put(
   "/:id",
   protect,
   authorize("admin", "specialist"),
+  upload.single("image"),
   updateRemedy
 );
 
 
 /* ======================================================
-   UPDATE STATUS (ADMIN ONLY)
+   UPDATE REMEDY STATUS (ADMIN ONLY)
 ====================================================== */
+
 router.put(
   "/:id/status",
   protect,
@@ -142,12 +153,12 @@ router.put(
 /* ======================================================
    DELETE REMEDY
 ====================================================== */
+
 router.delete(
   "/:id",
   protect,
   authorize("admin", "specialist"),
   deleteRemedy
 );
-
 
 module.exports = router;
