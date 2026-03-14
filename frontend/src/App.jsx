@@ -27,22 +27,24 @@ import SpecialistRoute from "./pages/specialist/SpecialistRoute";
 import SpecialistDashboardLayout from "./pages/specialist/layout/SpecialistDashboardLayout";
 import SpecialistDashboard from "./pages/specialist/dashboard/SpecialistDashboard";
 import MyRemedies from "./pages/specialist/remedies/MyRemedies";
-import AddRemedy from "./pages/specialist/remedies/AddRemedy";
-import EditRemedy from "./pages/specialist/remedies/EditRemedy";
-// import MyYoga from "./pages/specialist/yoga/MyYoga";
-// import MyPrograms from "./pages/specialist/programs/MyPrograms";
-
+import MyWellnessProgram from "./pages/specialist/wellness-program/MyWellnessProgram.jsx";
+import MyYogaServices from "./pages/specialist/yoga/MyYogaServices";
 function App() {
+
   return (
+
     <BrowserRouter>
+
       <Routes>
 
         {/* ================= PUBLIC AUTH ROUTES ================= */}
+
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
         {/* ================= ADMIN ROUTES ================= */}
+
         <Route
           path="/admin"
           element={
@@ -51,25 +53,42 @@ function App() {
             </ProtectedRoute>
           }
         >
+
           <Route index element={<Dashboard />} />
+
           <Route path="categories" element={<Categories />} />
+
           <Route path="subcategories" element={<SubCategories />} />
+
           <Route path="products" element={<AdminProductList />} />
+
           <Route path="products/add" element={<AddProduct />} />
+
           <Route path="products/edit/:id" element={<EditProduct />} />
+
           <Route path="specialists" element={<ManageSpecialists />} />
+
           <Route path="users" element={<AdminUsers />} />
+
           <Route path="remedies" element={<AdminRemedies />} />
+
           <Route path="yoga-services" element={<AdminYogaServices />} />
-            {/* Wellness Programs */}
-  <Route path="programs" element={<AdminProgramList />} />
-  <Route path="programs/:id" element={<AdminProgramDetail />} />
-  <Route path="subscriptions" element={<AdminSubscriptions />} />
-  <Route path="/admin/orders" element={<AdminOrders />} />
-          {/* <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
+
+          {/* Wellness Programs */}
+
+          <Route path="programs" element={<AdminProgramList />} />
+
+          <Route path="programs/:id" element={<AdminProgramDetail />} />
+
+          <Route path="subscriptions" element={<AdminSubscriptions />} />
+
+          <Route path="orders" element={<AdminOrders />} />
+
         </Route>
 
+
         {/* ================= SPECIALIST ROUTES ================= */}
+
         <Route
           path="/specialist"
           element={
@@ -78,17 +97,28 @@ function App() {
             </SpecialistRoute>
           }
         >
+
+          {/* Dashboard */}
+
           <Route index element={<SpecialistDashboard />} />
+
+          {/* Remedies */}
+
           <Route path="remedies" element={<MyRemedies />} />
-          <Route path="add-remedy" element={<AddRemedy />} />
-          <Route path="edit-remedy/:id" element={<EditRemedy />} />
-          {/* <Route path="yoga" element={<MyYoga />} />
-          <Route path="programs" element={<MyPrograms />} /> */}
+
+          {/* Wellness Programs */}
+
+          <Route path="programs" element={<MyWellnessProgram />} />
+
+<Route path="yoga-services" element={<MyYogaServices />} />
         </Route>
 
       </Routes>
+
     </BrowserRouter>
+
   );
+
 }
 
 export default App;
