@@ -29,16 +29,68 @@ import SpecialistDashboard from "./pages/specialist/dashboard/SpecialistDashboar
 import MyRemedies from "./pages/specialist/remedies/MyRemedies";
 import AddRemedy from "./pages/specialist/remedies/AddRemedy";
 import EditRemedy from "./pages/specialist/remedies/EditRemedy";
-// import MyYoga from "./pages/specialist/yoga/MyYoga";
-// import MyPrograms from "./pages/specialist/programs/MyPrograms";
+
+/* ---------------- USER (Lovable UI) ---------------- */
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import CartDrawer from "./components/CartDrawer";
+
+/* USER PAGES */
+import Index from "./pages/user/Index";
+import Products from "./pages/user/Products";
+import ProductDetail from "./pages/user/ProductDetail";
+import About from "./pages/user/About";
+import Contact from "./pages/user/Contact";
+import FAQ from "./pages/user/FAQ";
+import Privacy from "./pages/user/Privacy";
+import Blog from "./pages/user/Blog";
+import Remedies from "./pages/user/Remedies";
+import Yoga from "./pages/user/Yoga";
+import Programs from "./pages/user/Programs";
+import Specialists from "./pages/user/Specialists";
+import Checkout from "./pages/user/Checkout";
+import DoshaQuiz from "./pages/user/DoshaQuiz";
+import NotFound from "./pages/user/NotFound";
+
+/* ---------------- USER LAYOUT ---------------- */
+import { Outlet } from "react-router-dom";
+
+function UserLayout() {
+  return (
+    <>
+      <Navbar />
+      <CartDrawer />
+      <Outlet />
+      <Footer />
+    </>
+  );
+}
 
 function App() {
   return (
     <BrowserRouter>
+
       <Routes>
 
-        {/* ================= PUBLIC AUTH ROUTES ================= */}
-        <Route path="/" element={<Login />} />
+        {/* ================= USER ROUTES ================= */}
+        <Route element={<UserLayout />}>
+          <Route path="/" element={<Index />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/remedies" element={<Remedies />} />
+          <Route path="/yoga" element={<Yoga />} />
+          <Route path="/programs" element={<Programs />} />
+          <Route path="/specialists" element={<Specialists />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/dosha-quiz" element={<DoshaQuiz />} />
+        </Route>
+
+        {/* ================= AUTH ROUTES ================= */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
@@ -61,12 +113,10 @@ function App() {
           <Route path="users" element={<AdminUsers />} />
           <Route path="remedies" element={<AdminRemedies />} />
           <Route path="yoga-services" element={<AdminYogaServices />} />
-            {/* Wellness Programs */}
-  <Route path="programs" element={<AdminProgramList />} />
-  <Route path="programs/:id" element={<AdminProgramDetail />} />
-  <Route path="subscriptions" element={<AdminSubscriptions />} />
-  <Route path="/admin/orders" element={<AdminOrders />} />
-          {/* <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
+          <Route path="programs" element={<AdminProgramList />} />
+          <Route path="programs/:id" element={<AdminProgramDetail />} />
+          <Route path="subscriptions" element={<AdminSubscriptions />} />
+          <Route path="orders" element={<AdminOrders />} />
         </Route>
 
         {/* ================= SPECIALIST ROUTES ================= */}
@@ -82,11 +132,13 @@ function App() {
           <Route path="remedies" element={<MyRemedies />} />
           <Route path="add-remedy" element={<AddRemedy />} />
           <Route path="edit-remedy/:id" element={<EditRemedy />} />
-          {/* <Route path="yoga" element={<MyYoga />} />
-          <Route path="programs" element={<MyPrograms />} /> */}
         </Route>
 
+        {/* ================= 404 ================= */}
+        <Route path="*" element={<NotFound />} />
+
       </Routes>
+
     </BrowserRouter>
   );
 }

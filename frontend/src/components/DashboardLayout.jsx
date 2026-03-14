@@ -2,6 +2,10 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 // import "../pages/admin/Dashboaed.css";
+// import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import '../style/bootstrap-admin.css';
+
 import "../App.css";
 
 function DashboardLayout() {

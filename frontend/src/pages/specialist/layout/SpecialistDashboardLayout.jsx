@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import SpecialistSidebar from "./SpecialistSidebar";
 import "./dashboard.css";
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import '../../../style/bootstrap-admin.css';
 
 function SpecialistDashboardLayout() {
   const [openSidebarToggle, setOpenSidebarToggle] = useState(true);
