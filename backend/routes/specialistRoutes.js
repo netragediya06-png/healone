@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const Remedy = require("../models/Remedy");
-const Yoga = require("../models/YogaService");
+const Yoga = require("../models/yoga");
 const Program = require("../models/Program");
 
 router.get("/dashboard", async (req, res) => {

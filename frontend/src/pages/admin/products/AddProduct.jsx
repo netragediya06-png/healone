@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import productService from "../../../services/productService";
 import categoryService from "../../../services/categoryService";
 import subCategoryService from "../../../services/subCategoryService";
-import "./HealOneProduct.css";
 
 function AddProduct() {
 
@@ -11,6 +10,7 @@ function AddProduct() {
 
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+  const [preview, setPreview] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -19,7 +19,7 @@ function AddProduct() {
     stock: "",
     category: "",
     subCategory: "",
-    image: ""
+    image: null
   });
 
   // ==========================
@@ -71,12 +71,11 @@ function AddProduct() {
 
     const { name, value } = e.target;
 
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: value
-    });
+    }));
 
-    // when category changes load subcategories
     if (name === "category") {
 
       fetchSubCategories(value);
@@ -94,12 +93,20 @@ function AddProduct() {
   // ==========================
   // HANDLE IMAGE
   // ==========================
-const handleImage = (e) => {
-  setFormData({
-    ...formData,
-    image: e.target.files[0]
-  });
-};
+  const handleImage = (e) => {
+
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    setFormData(prev => ({
+      ...prev,
+      image: file
+    }));
+
+    setPreview(URL.createObjectURL(file));
+
+  };
 
   // ==========================
   // HANDLE SUBMIT
@@ -109,20 +116,32 @@ const handleImage = (e) => {
     e.preventDefault();
 
     try {
+
+      if (
+        !formData.name ||
+        !formData.description ||
+        !formData.price ||
+        !formData.category ||
+        !formData.subCategory
+      ) {
+        alert("Please fill all required fields");
+        return;
+      }
+
       const data = new FormData();
 
-    data.append("name", formData.name);
-    data.append("description", formData.description);
-    data.append("price", formData.price);
-    data.append("stock", formData.stock);
-    data.append("category", formData.category);
-    data.append("subCategory", formData.subCategory);
-    data.append("image", formData.image);
+      data.append("name", formData.name);
+      data.append("description", formData.description);
+      data.append("price", Number(formData.price));
+      data.append("stock", Number(formData.stock) || 0);
+      data.append("category", formData.category);
+      data.append("subCategory", formData.subCategory);
 
-    await productService.createProduct(data);
+      if (formData.image) {
+        data.append("image", formData.image);
+      }
 
-
-    
+      await productService.createProduct(data);
 
       navigate("/admin/products");
 
@@ -130,165 +149,198 @@ const handleImage = (e) => {
 
       console.error("Create product error:", error);
 
+      alert("Failed to create product");
+
     }
 
   };
 
   return (
 
-    <div className="container py-4">
+    <div className="p-6">
 
-      <div className="healone-form-card p-4">
+      <div className="max-w-4xl mx-auto bg-white shadow-md rounded-xl p-8">
 
-        <h3 className="fw-bold mb-4 healone-title">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">
           Add New Product
-        </h3>
+        </h2>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-          <div className="row g-3">
+          {/* PRODUCT NAME */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Name
+            </label>
 
-            {/* PRODUCT NAME */}
-            <div className="col-md-6">
-
-              <label>Name</label>
-
-              <input
-                name="name"
-                className="form-control"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-
-            </div>
+            <input
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+            />
+          </div>
 
 
-            {/* CATEGORY */}
-            <div className="col-md-6">
+          {/* CATEGORY */}
+          <div>
 
-              <label>Category</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
 
-              <select
-                name="category"
-                className="form-select"
-                value={formData.category}
-                onChange={handleChange}
-                required
-              >
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+            >
 
-                <option value="">Select Category</option>
+              <option value="">Select Category</option>
 
-                {categories.map((cat) => (
+              {categories.map((cat) => (
 
-                  <option key={cat._id} value={cat._id}>
-                    {cat.name}
-                  </option>
+                <option key={cat._id} value={cat._id}>
+                  {cat.name}
+                </option>
 
-                ))}
+              ))}
 
-              </select>
-
-            </div>
-
-
-            {/* SUBCATEGORY */}
-            <div className="col-md-6">
-
-              <label>SubCategory</label>
-
-              <select
-                name="subCategory"
-                className="form-select"
-                value={formData.subCategory}
-                onChange={handleChange}
-                required
-              >
-
-                <option value="">Select SubCategory</option>
-
-                {subCategories.map((sub) => (
-
-                  <option key={sub._id} value={sub._id}>
-                    {sub.name}
-                  </option>
-
-                ))}
-
-              </select>
-
-            </div>
-
-
-            {/* PRICE */}
-            <div className="col-md-6">
-
-              <label>Price</label>
-
-              <input
-                name="price"
-                type="number"
-                className="form-control"
-                value={formData.price}
-                onChange={handleChange}
-                required
-              />
-
-            </div>
-
-
-            {/* STOCK */}
-            <div className="col-md-6">
-
-              <label>Stock</label>
-
-              <input
-                name="stock"
-                type="number"
-                className="form-control"
-                value={formData.stock}
-                onChange={handleChange}
-              />
-
-            </div>
-
-
-            {/* DESCRIPTION */}
-            <div className="col-12">
-
-              <label>Description</label>
-
-              <textarea
-                name="description"
-                className="form-control"
-                rows="3"
-                value={formData.description}
-                onChange={handleChange}
-                required
-              />
-
-            </div>
-
-
-            {/* IMAGE */}
-            <div className="col-md-6">
-
-              <label>Product Image</label>
-
-              <input
-                type="file"
-                className="form-control"
-                onChange={handleImage}
-                required
-              />
-
-            </div>
+            </select>
 
           </div>
 
-          <button className="btn healone-btn mt-4">
-            Save Product
-          </button>
+
+          {/* SUBCATEGORY */}
+          <div>
+
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              SubCategory
+            </label>
+
+            <select
+              name="subCategory"
+              value={formData.subCategory}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+            >
+
+              <option value="">Select SubCategory</option>
+
+              {subCategories.map((sub) => (
+
+                <option key={sub._id} value={sub._id}>
+                  {sub.name}
+                </option>
+
+              ))}
+
+            </select>
+
+          </div>
+
+
+          {/* PRICE */}
+          <div>
+
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Price
+            </label>
+
+            <input
+              name="price"
+              type="number"
+              value={formData.price}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+            />
+
+          </div>
+
+
+          {/* STOCK */}
+          <div>
+
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Stock
+            </label>
+
+            <input
+              name="stock"
+              type="number"
+              value={formData.stock}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+            />
+
+          </div>
+
+
+          {/* IMAGE */}
+          <div>
+
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Product Image
+            </label>
+
+            <input
+              type="file"
+              onChange={handleImage}
+              required
+              className="w-full border rounded-lg px-3 py-2"
+            />
+
+          </div>
+
+
+          {/* IMAGE PREVIEW */}
+          {preview && (
+            <div className="md:col-span-2">
+
+              <img
+                src={preview}
+                alt="preview"
+                className="h-40 rounded-lg object-cover"
+              />
+
+            </div>
+          )}
+
+
+          {/* DESCRIPTION */}
+          <div className="md:col-span-2">
+
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+
+            <textarea
+              name="description"
+              rows="3"
+              value={formData.description}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+            />
+
+          </div>
+
+
+          {/* BUTTON */}
+          <div className="md:col-span-2">
+
+            <button
+              type="submit"
+              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+            >
+              Save Product
+            </button>
+
+          </div>
 
         </form>
 

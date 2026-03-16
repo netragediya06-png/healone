@@ -1,63 +1,138 @@
 const express = require("express");
 const router = express.Router();
 
-const upload = require("../middleware/upload");
-
 const {
   createProgram,
-  getAdminPrograms,
+  getAllPrograms,
   getApprovedPrograms,
-  getSingleProgram,
+  getMyPrograms,
+  getProgram,
   updateProgram,
+  updateProgramStatus,
   deleteProgram,
-  approveProgram,
-  rejectProgram
+  enrollProgram
 } = require("../controllers/programController");
 
-const { protect, authorize } = require("../middleware/authMiddleware");
-router.post(
-  "/",
+const {
   protect,
-  authorize("specialist"),
+  adminOnly,
+  specialistOnly
+} = require("../middleware/authMiddleware");
+
+const upload = require("../middleware/upload");
+
+
+/* ======================================================
+   CREATE PROGRAM (SPECIALIST)
+   POST /api/program/create
+====================================================== */
+
+router.post(
+  "/create",
+  protect,
+  specialistOnly,
   upload.single("image"),
   createProgram
 );
+
+
+/* ======================================================
+   GET ALL PROGRAMS (ADMIN)
+   GET /api/program/admin/all
+====================================================== */
+
 router.get(
   "/admin/all",
   protect,
-  authorize("admin"),
-  getAdminPrograms
+  adminOnly,
+  getAllPrograms
 );
+
+
+/* ======================================================
+   GET APPROVED PROGRAMS (PUBLIC / USER)
+   GET /api/program/approved
+====================================================== */
+
 router.get(
-  "/",
+  "/approved",
   getApprovedPrograms
 );
+
+
+/* ======================================================
+   GET MY PROGRAMS (SPECIALIST)
+   GET /api/program/my-programs
+====================================================== */
+
 router.get(
-  "/:id",
-  getSingleProgram
-);
-router.put(
-  "/:id",
+  "/my-programs",
   protect,
-  authorize("specialist"),
+  specialistOnly,
+  getMyPrograms
+);
+
+
+/* ======================================================
+   UPDATE PROGRAM (SPECIALIST)
+   PUT /api/program/update/:id
+====================================================== */
+
+router.put(
+  "/update/:id",
+  protect,
+  specialistOnly,
+  upload.single("image"),
   updateProgram
 );
-router.delete(
-  "/:id",
+
+
+/* ======================================================
+   ADMIN UPDATE PROGRAM STATUS
+   PUT /api/program/status/:id
+====================================================== */
+
+router.put(
+  "/status/:id",
   protect,
-  authorize("admin"),
+  adminOnly,
+  updateProgramStatus
+);
+
+
+/* ======================================================
+   DELETE PROGRAM
+   DELETE /api/program/delete/:id
+====================================================== */
+
+router.delete(
+  "/delete/:id",
+  protect,
   deleteProgram
 );
-router.put(
-  "/approve/:id",
+
+
+/* ======================================================
+   USER ENROLL PROGRAM
+   POST /api/program/enroll/:id
+====================================================== */
+
+router.post(
+  "/enroll/:id",
   protect,
-  authorize("admin"),
-  approveProgram
+  enrollProgram
 );
-router.put(
-  "/reject/:id",
-  protect,
-  authorize("admin"),
-  rejectProgram
+
+
+/* ======================================================
+   GET SINGLE PROGRAM
+   MUST BE LAST ROUTE
+====================================================== */
+
+router.get(
+  "/:id",
+  getProgram
 );
+
+
 module.exports = router;

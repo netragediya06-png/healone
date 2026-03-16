@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { Modal } from "bootstrap";
 import categoryService from "../../services/categoryService";
-import "./HealOne.css";
 
 function Categories() {
 
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -21,34 +20,21 @@ function Categories() {
     fetchCategories();
   }, []);
 
-  // ===============================
-  // FETCH CATEGORIES
-  // ===============================
   const fetchCategories = async () => {
     try {
-
       const res = await categoryService.getCategoriesWithSubCount();
-
       setCategories(res.data);
-
     } catch (error) {
-
       console.error("Fetch Categories Error:", error);
-
     }
   };
 
-  // ===============================
-  // SUBMIT FORM
-  // ===============================
   const handleSubmit = async (e) => {
-
     e.preventDefault();
 
     try {
 
       const data = new FormData();
-
       data.append("name", formData.name);
       data.append("description", formData.description);
       data.append("status", formData.status);
@@ -58,29 +44,19 @@ function Categories() {
       }
 
       if (editId) {
-
         await categoryService.updateCategory(editId, data);
-
       } else {
-
         await categoryService.createCategory(data);
-
       }
 
       fetchCategories();
       closeModal();
 
     } catch (error) {
-
       console.error("Save Category Error:", error);
-
     }
-
   };
 
-  // ===============================
-  // EDIT CATEGORY
-  // ===============================
   const handleEdit = (cat) => {
 
     setEditId(cat._id);
@@ -92,35 +68,21 @@ function Categories() {
       status: cat.status,
     });
 
-    const modal = new Modal(document.getElementById("categoryModal"));
-    modal.show();
-
+    setShowModal(true);
   };
 
-  // ===============================
-  // DELETE CATEGORY
-  // ===============================
   const handleDelete = async (id) => {
 
     if (!window.confirm("Delete this category?")) return;
 
     try {
-
       await categoryService.deleteCategory(id);
-
       fetchCategories();
-
     } catch (error) {
-
       console.error("Delete Error:", error);
-
     }
-
   };
 
-  // ===============================
-  // CLOSE MODAL
-  // ===============================
   const closeModal = () => {
 
     setEditId(null);
@@ -132,42 +94,33 @@ function Categories() {
       status: true,
     });
 
-    const modalElement = document.getElementById("categoryModal");
-
-    const modalInstance = Modal.getInstance(modalElement);
-
-    if (modalInstance) modalInstance.hide();
-
+    setShowModal(false);
   };
 
-  // ===============================
-  // SEARCH FILTER
-  // ===============================
-  const filteredCategories = categories.filter((cat) =>
+  const filteredCategories = (categories || []).filter((cat) =>
     cat.name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div className="container py-4">
+    <div className="p-6 bg-gray-50 min-h-screen">
 
       {/* HEADER */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
+
+      <div className="flex justify-between items-center mb-6">
 
         <div>
-          <h2 className="fw-bold mb-0 healone-title">
+          <h2 className="text-2xl font-bold text-gray-800">
             HealOne Categories
           </h2>
 
-          <small className="text-muted">
+          <p className="text-gray-500 text-sm">
             Manage product categories
-          </small>
+          </p>
         </div>
 
         <button
-          className="btn healone-btn px-4"
-          data-bs-toggle="modal"
-          data-bs-target="#categoryModal"
-          onClick={() => closeModal()}
+          onClick={() => setShowModal(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
         >
           Add Category
         </button>
@@ -175,79 +128,75 @@ function Categories() {
       </div>
 
       {/* SEARCH */}
-      <div className="mb-4">
 
-        <input
-          type="text"
-          className="form-control healone-search"
-          placeholder="Search categories..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <input
+        type="text"
+        placeholder="Search categories..."
+        className="w-full mb-6 p-3 border rounded-md"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
-      </div>
+      {/* CATEGORY GRID */}
 
-      {/* CATEGORY CARDS */}
-      <div className="row g-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
         {filteredCategories.map((cat) => (
 
-          <div className="col-md-4" key={cat._id}>
+          <div
+            key={cat._id}
+            className="bg-white rounded-xl shadow p-6 text-center"
+          >
 
-            <div className="card healone-card h-100 text-center">
+            {/* IMAGE */}
 
-              <div className="card-body">
-
-                {cat.image ? (
-
-                  <img
-                    src={cat.image}
-                    alt="category"
-                    className="rounded-circle mb-3 healone-img"
-                  />
-
-                ) : (
-
-                  <div className="healone-placeholder mb-3">
-                    <i className="bi bi-image"></i>
-                  </div>
-
-                )}
-
-                <h5 className="fw-semibold">{cat.name}</h5>
-
-                <p className="text-muted small">
-                  {cat.description}
-                </p>
-
-                {/* NEW FEATURE */}
-                <p className="small text-primary fw-semibold">
-                  {cat.subCategoryCount || 0} SubCategories
-                </p>
-
-                <span className={`badge mb-3 ${cat.status ? "bg-success" : "bg-danger"}`}>
-                  {cat.status ? "Active" : "Inactive"}
-                </span>
-
-                <div className="d-flex justify-content-center gap-2">
-
-                  <button
-                    className="btn btn-outline-primary btn-sm"
-                    onClick={() => handleEdit(cat)}
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    className="btn btn-outline-danger btn-sm"
-                    onClick={() => handleDelete(cat._id)}
-                  >
-                    Delete
-                  </button>
-
-                </div>
-
+            {cat.image ? (
+              <img
+                src={cat.image}
+                alt="category"
+                className="w-20 h-20 mx-auto rounded-full object-cover mb-3"
+              />
+            ) : (
+              <div className="w-20 h-20 mx-auto rounded-full bg-gray-200 flex items-center justify-center mb-3">
+                🖼
               </div>
+            )}
+
+            <h5 className="font-semibold text-lg">{cat.name}</h5>
+
+            <p className="text-gray-500 text-sm">
+              {cat.description}
+            </p>
+
+            <p className="text-blue-600 text-sm font-medium">
+              {cat.subCategoryCount || 0} SubCategories
+            </p>
+
+            <span
+              className={`inline-block px-3 py-1 text-xs rounded-full mt-2 ${
+                cat.status
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {cat.status ? "Active" : "Inactive"}
+            </span>
+
+            <div className="flex justify-center gap-2 mt-4">
+
+              <button
+                onClick={() => handleEdit(cat)}
+                className="border border-blue-500 text-blue-500 px-3 py-1 rounded"
+              >
+                Edit
+              </button>
+
+              <button
+                onClick={() => handleDelete(cat._id)}
+                className="border border-red-500 text-red-500 px-3 py-1 rounded"
+              >
+                Delete
+              </button>
 
             </div>
 
@@ -258,105 +207,77 @@ function Categories() {
       </div>
 
       {/* MODAL */}
-      <div className="modal fade" id="categoryModal" tabIndex="-1">
 
-        <div className="modal-dialog">
+      {showModal && (
 
-          <div className="modal-content healone-modal">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
 
-            <div className="modal-header">
+          <div className="bg-white rounded-lg shadow-lg w-[400px] p-6">
 
-              <h5 className="modal-title">
-                {editId ? "Edit Category" : "Add Category"}
-              </h5>
+            <h3 className="text-lg font-semibold mb-4">
+              {editId ? "Edit Category" : "Add Category"}
+            </h3>
 
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-              ></button>
+            <form onSubmit={handleSubmit} className="space-y-4">
 
-            </div>
+              <input
+                type="text"
+                placeholder="Category Name"
+                className="w-full p-2 border rounded"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                required
+              />
 
-            <form onSubmit={handleSubmit}>
+              <input
+                type="text"
+                placeholder="Description"
+                className="w-full p-2 border rounded"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+              />
 
-              <div className="modal-body">
+              <input
+                type="file"
+                className="w-full"
+                onChange={(e) =>
+                  setFormData({ ...formData, image: e.target.files[0] })
+                }
+              />
 
-                <div className="mb-3">
-                  <label className="form-label">Category Name</label>
+              <select
+                className="w-full p-2 border rounded"
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    status: e.target.value === "true",
+                  })
+                }
+              >
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
 
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Description</label>
-
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="mb-3">
-
-                  <label className="form-label">Upload Image</label>
-
-                  <input
-                    type="file"
-                    className="form-control"
-                    onChange={(e) =>
-                      setFormData({ ...formData, image: e.target.files[0] })
-                    }
-                  />
-
-                </div>
-
-                <div className="mb-3">
-
-                  <label className="form-label">Status</label>
-
-                  <select
-                    className="form-select"
-                    value={formData.status}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        status: e.target.value === "true",
-                      })
-                    }
-                  >
-                    <option value="true">Active</option>
-                    <option value="false">Inactive</option>
-                  </select>
-
-                </div>
-
-              </div>
-
-              <div className="modal-footer">
-
-                <button className="btn healone-btn">
-                  {editId ? "Update" : "Save"}
-                </button>
+              <div className="flex justify-end gap-3">
 
                 <button
                   type="button"
-                  className="btn btn-secondary"
-                  data-bs-dismiss="modal"
+                  onClick={closeModal}
+                  className="px-4 py-2 border rounded"
                 >
                   Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                >
+                  {editId ? "Update" : "Save"}
                 </button>
 
               </div>
@@ -367,11 +288,10 @@ function Categories() {
 
         </div>
 
-      </div>
+      )}
 
     </div>
   );
-
 }
 
 export default Categories;

@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import productService from "../../../services/productService";
-import "./HealOneProduct.css";
 
 function AdminProductList() {
 
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  const limit = 8;
 
   // ===============================
   // FETCH PRODUCTS
@@ -16,7 +18,9 @@ function AdminProductList() {
     try {
 
       const res = await productService.getAdminProducts({
-        search
+        search,
+        page,
+        limit
       });
 
       setProducts(res.data.products);
@@ -29,26 +33,40 @@ function AdminProductList() {
 
   };
 
+  // ===============================
+  // AUTO SEARCH
+  // ===============================
   useEffect(() => {
 
-    fetchProducts();
+    const delay = setTimeout(() => {
 
-  }, []);
-const handleToggle = async (id) => {
+      fetchProducts();
 
-  try {
+    }, 400);
 
-    await productService.toggleProductStatus(id);
+    return () => clearTimeout(delay);
 
-    fetchProducts();
+  }, [search, page]);
 
-  } catch (error) {
+  // ===============================
+  // TOGGLE STATUS
+  // ===============================
+  const handleToggle = async (id) => {
 
-    console.error("Toggle error:", error);
+    try {
 
-  }
+      await productService.toggleProductStatus(id);
 
-};
+      fetchProducts();
+
+    } catch (error) {
+
+      console.error("Toggle error:", error);
+
+    }
+
+  };
+
   // ===============================
   // DELETE PRODUCT
   // ===============================
@@ -72,37 +90,36 @@ const handleToggle = async (id) => {
 
   return (
 
-    <div className="admin-products-container">
+    <div className="p-6">
 
       {/* TOP BAR */}
-      <div className="top-bar">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
 
-        <div className="left">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">
+            Products
+          </h2>
 
-          <h4>Products</h4>
-
-          <span>{products.length} products</span>
-
+          <p className="text-sm text-gray-500">
+            {products.length} products
+          </p>
         </div>
 
-        <div className="right">
+        <div className="flex gap-3">
 
           <input
             type="text"
             placeholder="Search products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
           />
-
-          <button onClick={fetchProducts}>
-            Filter
-          </button>
 
           <Link
             to="/admin/products/add"
-            className="add-btn"
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
           >
-            + Add
+            + Add Product
           </Link>
 
         </div>
@@ -110,29 +127,32 @@ const handleToggle = async (id) => {
       </div>
 
 
-      {/* GRID */}
-      <div className="product-grid">
+      {/* PRODUCT GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
         {products.map((p) => (
 
           <div
-            className="product-card"
             key={p._id}
+            className={`bg-white rounded-xl shadow hover:shadow-md transition p-4 flex flex-col
+            ${p.stock > 0 && p.stock < 5 ? "border border-red-200" : ""}
+            `}
           >
 
             {/* IMAGE */}
-            <div className="product-image">
+            <div className="w-full h-40 rounded-lg overflow-hidden bg-gray-100 mb-3">
 
               {p.image ? (
 
                 <img
                   src={p.image}
                   alt={p.name}
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                 />
 
               ) : (
 
-                <div className="no-image">
+                <div className="flex items-center justify-center h-full text-gray-400">
                   No Image
                 </div>
 
@@ -141,23 +161,26 @@ const handleToggle = async (id) => {
             </div>
 
 
-            {/* CONTENT */}
-            <div className="product-content">
+            {/* PRODUCT INFO */}
+            <div className="flex-1">
 
-              <h6>{p.name}</h6>
+              <h3 className="font-semibold text-gray-800">
+                {p.name}
+              </h3>
 
-              <small>
+              <p className="text-xs text-gray-500 mb-2">
                 {p.category?.name} / {p.subCategory?.name}
-              </small>
+              </p>
 
 
-              <div className="price-stock">
+              {/* PRICE + STOCK */}
+              <div className="flex justify-between text-sm mb-2">
 
-                <span className="price">
+                <span className="font-semibold text-green-600">
                   ₹ {p.price}
                 </span>
 
-                <span className="stock">
+                <span className="text-gray-500">
                   Stock: {p.stock}
                 </span>
 
@@ -165,20 +188,24 @@ const handleToggle = async (id) => {
 
 
               {/* BADGES */}
-              <div className="badges">
+              <div className="flex gap-2 mb-3">
 
-                <span className={`status ${p.status}`}>
+                <span className={`px-2 py-0.5 text-xs rounded-full
+                  ${p.status === "active"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-200 text-gray-600"}
+                `}>
                   {p.status}
                 </span>
 
                 {p.stock === 0 && (
-                  <span className="warning">
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-600">
                     Out of Stock
                   </span>
                 )}
 
                 {p.stock > 0 && p.stock < 5 && (
-                  <span className="warning">
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-700">
                     Low Stock
                   </span>
                 )}
@@ -187,38 +214,71 @@ const handleToggle = async (id) => {
 
 
               {/* ACTIONS */}
-              <div className="actions">
+              <div className="flex items-center justify-between">
 
-  <Link
-    to={`/admin/products/edit/${p._id}`}
-    className="edit"
-  >
-    Edit
-  </Link>
+                <Link
+                  to={`/admin/products/edit/${p._id}`}
+                  className="text-xs border border-blue-500 text-blue-500 px-3 py-1 rounded hover:bg-blue-50"
+                >
+                  Edit
+                </Link>
 
-  <button
-    className="toggle"
-    onClick={() => handleToggle(p._id)}
-  >
-    {p.status === "active"
-      ? "Deactivate"
-      : "Activate"}
-  </button>
+                {/* STATUS SWITCH */}
+                <label className="relative inline-flex items-center cursor-pointer">
 
-  <button
-    className="delete"
-    onClick={() => handleDelete(p._id)}
-  >
-    Delete
-  </button>
+                  <input
+                    type="checkbox"
+                    checked={p.status === "active"}
+                    onChange={() => handleToggle(p._id)}
+                    className="sr-only peer"
+                  />
 
-</div>
+                  <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500
+                  after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                  after:bg-white after:border after:rounded-full after:h-4 after:w-4
+                  after:transition-all peer-checked:after:translate-x-full"></div>
+
+                </label>
+
+                <button
+                  onClick={() => handleDelete(p._id)}
+                  className="text-xs border border-red-500 text-red-500 px-3 py-1 rounded hover:bg-red-50"
+                >
+                  Delete
+                </button>
+
+              </div>
 
             </div>
 
           </div>
 
         ))}
+
+      </div>
+
+
+      {/* PAGINATION */}
+      <div className="flex justify-center mt-8 gap-4">
+
+        <button
+          onClick={() => setPage(page - 1)}
+          disabled={page === 1}
+          className="px-4 py-2 border rounded hover:bg-gray-100 disabled:opacity-40"
+        >
+          Previous
+        </button>
+
+        <span className="px-4 py-2 text-sm">
+          Page {page}
+        </span>
+
+        <button
+          onClick={() => setPage(page + 1)}
+          className="px-4 py-2 border rounded hover:bg-gray-100"
+        >
+          Next
+        </button>
 
       </div>
 

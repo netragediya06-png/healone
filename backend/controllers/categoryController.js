@@ -2,10 +2,39 @@ const Category = require("../models/Category");
 const SubCategory = require("../models/SubCategory");
 const cloudinary = require("../config/cloudinary");
 
+/* =====================================
+   CLOUDINARY IMAGE UPLOAD HELPER
+===================================== */
 
-// ===============================
-// CREATE CATEGORY
-// ===============================
+const uploadImage = (fileBuffer, folder) => {
+
+  return new Promise((resolve, reject) => {
+
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        quality: "auto",
+        fetch_format: "auto"
+      },
+      (error, result) => {
+
+        if (error) return reject(error);
+        resolve(result.secure_url);
+
+      }
+    );
+
+    stream.end(fileBuffer);
+
+  });
+
+};
+
+
+/* =====================================
+   CREATE CATEGORY
+===================================== */
+
 exports.createCategory = async (req, res) => {
 
   try {
@@ -13,30 +42,16 @@ exports.createCategory = async (req, res) => {
     let imageUrl = "";
 
     if (req.file) {
-
-      const result = await new Promise((resolve, reject) => {
-
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: "healone_categories" },
-          (error, result) => {
-            if (result) resolve(result);
-            else reject(error);
-          }
-        );
-
-        stream.end(req.file.buffer);
-
-      });
-
-      imageUrl = result.secure_url;
-
+      imageUrl = await uploadImage(req.file.buffer, "healone_categories");
     }
 
     const category = await Category.create({
+
       name: req.body.name,
       description: req.body.description,
-      status: req.body.status === "true",
+      status: req.body.status === "true" || req.body.status === true,
       image: imageUrl
+
     });
 
     res.status(201).json(category);
@@ -54,15 +69,16 @@ exports.createCategory = async (req, res) => {
 };
 
 
-// ===============================
-// GET ALL CATEGORIES
-// ===============================
+/* =====================================
+   GET ALL CATEGORIES
+===================================== */
+
 exports.getCategories = async (req, res) => {
 
   try {
 
     const categories = await Category.aggregate([
-        {
+      {
         $lookup: {
           from: "subcategories",
           localField: "_id",
@@ -76,14 +92,10 @@ exports.getCategories = async (req, res) => {
         }
       },
       {
-        $addFields: {
-          subCategoryCount: { $size: "$subCategories" }
-        }
-      },
-      {
         $sort: { createdAt: -1 }
       }
     ]);
+
     res.json(categories);
 
   } catch (error) {
@@ -99,9 +111,10 @@ exports.getCategories = async (req, res) => {
 };
 
 
-// ===============================
-// GET CATEGORY WITH SUBCATEGORY COUNT
-// ===============================
+/* =====================================
+   GET CATEGORY WITH SUBCOUNT
+===================================== */
+
 exports.getCategoriesWithSubCount = async (req, res) => {
 
   try {
@@ -142,46 +155,43 @@ exports.getCategoriesWithSubCount = async (req, res) => {
 };
 
 
-// ===============================
-// UPDATE CATEGORY
-// ===============================
+/* =====================================
+   UPDATE CATEGORY
+===================================== */
+
 exports.updateCategory = async (req, res) => {
 
   try {
 
-    let updateData = {
-      name: req.body.name,
-      description: req.body.description,
-      status: req.body.status === "true"
-    };
+    const category = await Category.findById(req.params.id);
+
+    if (!category) {
+      return res.status(404).json({
+        message: "Category not found"
+      });
+    }
+
+    let imageUrl = category.image;
+
+    /* Upload new image if provided */
 
     if (req.file) {
 
-      const result = await new Promise((resolve, reject) => {
-
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: "healone_categories" },
-          (error, result) => {
-            if (result) resolve(result);
-            else reject(error);
-          }
-        );
-
-        stream.end(req.file.buffer);
-
-      });
-
-      updateData.image = result.secure_url;
+      imageUrl = await uploadImage(
+        req.file.buffer,
+        "healone_categories"
+      );
 
     }
 
-    const category = await Category.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    );
+    category.name = req.body.name || category.name;
+    category.description = req.body.description || category.description;
+    category.status = req.body.status === "true" || req.body.status === true;
+    category.image = imageUrl;
 
-    res.json(category);
+    const updatedCategory = await category.save();
+
+    res.json(updatedCategory);
 
   } catch (error) {
 
@@ -196,14 +206,23 @@ exports.updateCategory = async (req, res) => {
 };
 
 
-// ===============================
-// DELETE CATEGORY
-// ===============================
+/* =====================================
+   DELETE CATEGORY
+===================================== */
+
 exports.deleteCategory = async (req, res) => {
 
   try {
 
-    await Category.findByIdAndDelete(req.params.id);
+    const category = await Category.findById(req.params.id);
+
+    if (!category) {
+      return res.status(404).json({
+        message: "Category not found"
+      });
+    }
+
+    await category.deleteOne();
 
     res.json({
       message: "Category deleted successfully"
@@ -213,7 +232,7 @@ exports.deleteCategory = async (req, res) => {
 
     console.error("DELETE CATEGORY ERROR:", error);
 
-    res.status(400).json({
+    res.status(500).json({
       message: error.message
     });
 

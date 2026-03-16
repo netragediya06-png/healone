@@ -110,7 +110,72 @@ router.get("/category/:categoryId", async (req, res) => {
 
 });
 
+// ==========================
+// UPDATE SUBCATEGORY
+// ==========================
+router.put(
+  "/:id",
+  protect,
+  authorize("admin"),
+  upload.single("image"),
+  async (req, res) => {
 
+    try {
+
+      const subCategory = await SubCategory.findById(req.params.id);
+
+      if (!subCategory) {
+        return res.status(404).json({
+          message: "SubCategory not found"
+        });
+      }
+
+      let imageUrl = subCategory.image;
+
+      // upload new image if provided
+      if (req.file) {
+
+        const result = await new Promise((resolve, reject) => {
+
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "healone_subcategories" },
+            (error, result) => {
+              if (result) resolve(result);
+              else reject(error);
+            }
+          );
+
+          stream.end(req.file.buffer);
+
+        });
+
+        imageUrl = result.secure_url;
+
+      }
+
+      const updatedSubCategory = await SubCategory.findByIdAndUpdate(
+        req.params.id,
+        {
+          name: req.body.name,
+          category: req.body.category,
+          status: req.body.status,
+          image: imageUrl
+        },
+        { new: true }
+      );
+
+      res.json(updatedSubCategory);
+
+    } catch (error) {
+
+      res.status(500).json({
+        message: error.message
+      });
+
+    }
+
+  }
+);
 // ==========================
 // DELETE SUBCATEGORY
 // ==========================

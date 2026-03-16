@@ -1,43 +1,76 @@
 import API from "./api";
 
-// ==============================
-// GET ALL APPROVED PROGRAMS
-// ==============================
-export const getPrograms = () => API.get("/programs");
 
 // ==============================
-// GET SINGLE PROGRAM
+// GET ALL APPROVED PROGRAMS (USER)
 // ==============================
-export const getProgram = (id) => API.get(`/programs/${id}`);
+export const getPrograms = () =>
+  API.get("/programs/approved");
+
 
 // ==============================
-// ADMIN - GET ALL PROGRAMS
+// GET ALL PROGRAMS (ADMIN)
 // ==============================
-export const getAdminPrograms = () => API.get("/programs/admin/all");
+export const getAdminPrograms = () =>
+  API.get("/programs/admin/all");
+
 
 // ==============================
-// SPECIALIST - CREATE PROGRAM
+// GET MY PROGRAMS (SPECIALIST)
+// ==============================
+export const getMyPrograms = () =>
+  API.get("/programs/my-programs");
+
+
+// ==============================
+// CREATE PROGRAM (SPECIALIST)
 // ==============================
 export const createProgram = (data) =>
-  API.post("/programs", data);
+  API.post("/programs/create", data);
+
 
 // ==============================
 // UPDATE PROGRAM
 // ==============================
 export const updateProgram = (id, data) =>
-  API.put(`/programs/${id}`, data);
+  API.put(`/programs/update/${id}`, data);
+
 
 // ==============================
 // DELETE PROGRAM
 // ==============================
 export const deleteProgram = (id) =>
-  API.delete(`/programs/${id}`);
+  API.delete(`/programs/delete/${id}`);
+
 
 // ==============================
-// APPROVE PROGRAM
+// ADMIN APPROVE PROGRAM
 // ==============================
 export const approveProgram = (id) =>
-  API.put(`/programs/approve/${id}`);
-/* REJECT PROGRAM */
-export const rejectProgram = (id) =>
-  API.put(`/programs/reject/${id}`);
+  API.put(`/programs/status/${id}`, {
+    status: "approved"
+  });
+
+
+// ==============================
+// GET SINGLE PROGRAM
+// ==============================
+export const getProgram = (id) =>
+  API.get(`/programs/${id}`);
+
+
+// ==============================
+// ADMIN REJECT PROGRAM
+// ==============================
+export const rejectProgram = (id, feedback) =>
+  API.put(`/programs/status/${id}`, {
+    status: "rejected",
+    adminFeedback: feedback
+  });
+
+
+// ==============================
+// USER ENROLL PROGRAM
+// ==============================
+export const enrollProgram = (id) =>
+  API.post(`/programs/enroll/${id}`);

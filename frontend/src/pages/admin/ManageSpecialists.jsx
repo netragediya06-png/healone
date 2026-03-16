@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import API from "../../services/api";
-import "./styles/admin.css";
 
 export default function ManageSpecialists() {
 
@@ -23,6 +22,7 @@ export default function ManageSpecialists() {
 
   const fetchSpecialists = async () => {
     try {
+
       const res = await API.get("/admin/specialists", {
         headers: { userid: userId },
       });
@@ -37,7 +37,7 @@ export default function ManageSpecialists() {
   };
 
   /* =========================
-     APPROVE SPECIALIST
+     APPROVE
   ========================= */
 
   const handleApprove = async (id) => {
@@ -57,7 +57,7 @@ export default function ManageSpecialists() {
   };
 
   /* =========================
-     REJECT SPECIALIST
+     REJECT
   ========================= */
 
   const handleReject = async (id) => {
@@ -77,7 +77,7 @@ export default function ManageSpecialists() {
   };
 
   /* =========================
-     SEARCH + FILTER
+     FILTER
   ========================= */
 
   const filteredSpecialists = specialists
@@ -97,292 +97,238 @@ export default function ManageSpecialists() {
     );
 
   return (
-    <div className="admin-dashboard">
-      <div className="admin-wrapper">
 
-        {/* HEADER */}
+    <div className="p-6">
 
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2>Specialist Management</h2>
-          <span className="badge bg-primary px-3 py-2">
-            Total: {specialists.length}
-          </span>
-        </div>
+      {/* HEADER */}
 
-        {/* SEARCH */}
+      <div className="flex justify-between items-center mb-6">
 
-        <div className="mb-3">
-          <input
-            type="text"
-            placeholder="Search by name, specialization, or city..."
-            className="form-control"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <h2 className="text-2xl font-bold text-gray-800">
+          Specialist Management
+        </h2>
 
-        {/* FILTER */}
-
-        <div className="filter-tabs">
-          {["all", "pending", "approved", "rejected"].map((status) => (
-            <button
-              key={status}
-              className={filterStatus === status ? "active" : ""}
-              onClick={() => setFilterStatus(status)}
-            >
-              {status}
-            </button>
-          ))}
-        </div>
-
-        {/* CONTENT */}
-
-        {loading ? (
-          <p>Loading...</p>
-        ) : filteredSpecialists.length === 0 ? (
-          <div className="alert alert-warning">
-            No specialists found.
-          </div>
-        ) : (
-          <div className="row">
-
-            {filteredSpecialists.map((sp) => (
-
-              <div className="col-md-6 col-lg-4 mb-4" key={sp._id}>
-
-                <div className="card shadow-sm h-100 border-0 specialist-card">
-
-                  <div className="card-body">
-
-                    {/* PROFILE */}
-
-                    <div className="d-flex align-items-center mb-3">
-
-                      <img
-                        src={
-                          sp.profilePhoto ||
-                          "https://via.placeholder.com/60"
-                        }
-                        alt="profile"
-                        className="rounded-circle me-3"
-                        width="60"
-                        height="60"
-                        style={{ objectFit: "cover" }}
-                      />
-
-                      <div>
-                        <h5 className="mb-0">{sp.fullName}</h5>
-                        <small className="text-muted">
-                          {sp.professionalDetails?.specialization}
-                        </small>
-                      </div>
-
-                    </div>
-
-                    <p className="mb-2 text-muted">
-                      {sp.location?.city}, {sp.location?.state}
-                    </p>
-
-                    {/* STATUS */}
-
-                    <span
-                      className={`badge mb-3 ${
-                        sp.verificationStatus === "approved"
-                          ? "bg-success"
-                          : sp.verificationStatus === "rejected"
-                          ? "bg-danger"
-                          : "bg-warning text-dark"
-                      }`}
-                    >
-                      {sp.verificationStatus}
-                    </span>
-
-                    {/* ACTIONS */}
-
-                    <div className="card-actions">
-
-                      <button
-                        className="view-btn"
-                        data-bs-toggle="offcanvas"
-                        data-bs-target="#specialistDetails"
-                        onClick={() => setSelectedSpecialist(sp)}
-                      >
-                        View
-                      </button>
-
-                      <div className="approval-actions">
-
-                        <button
-                          className="approve-btn"
-                          onClick={() => handleApprove(sp._id)}
-                        >
-                          ✓
-                        </button>
-
-                        <button
-                          className="reject-btn"
-                          onClick={() => handleReject(sp._id)}
-                        >
-                          ✕
-                        </button>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-                </div>
-
-              </div>
-
-            ))}
-
-          </div>
-        )}
+        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+          Total: {specialists.length}
+        </span>
 
       </div>
 
-      {/* ================= OFFCANVAS ================= */}
+      {/* SEARCH */}
 
-      <div
-        className="offcanvas offcanvas-end"
-        tabIndex="-1"
-        id="specialistDetails"
-      >
+      <input
+        type="text"
+        placeholder="Search by name, specialization or city..."
+        className="w-full border rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-green-500"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
 
-        <div className="offcanvas-header border-bottom">
-          <h5 className="offcanvas-title">Specialist Profile</h5>
+      {/* FILTER TABS */}
+
+      <div className="flex gap-2 mb-6">
+
+        {["all", "pending", "approved", "rejected"].map((status) => (
+
           <button
-            type="button"
-            className="btn-close"
-            data-bs-dismiss="offcanvas"
-          ></button>
+            key={status}
+            onClick={() => setFilterStatus(status)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium
+              ${
+                filterStatus === status
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-100 hover:bg-gray-200"
+              }
+            `}
+          >
+            {status}
+          </button>
+
+        ))}
+
+      </div>
+
+      {/* CONTENT */}
+
+      {loading ? (
+
+        <p>Loading...</p>
+
+      ) : filteredSpecialists.length === 0 ? (
+
+        <div className="bg-yellow-100 text-yellow-800 p-4 rounded-lg">
+          No specialists found.
         </div>
 
-        <div className="offcanvas-body">
+      ) : (
 
-          {selectedSpecialist && (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-            <>
-              <div className="text-center mb-4">
+          {filteredSpecialists.map((sp) => (
+
+            <div
+              key={sp._id}
+              className="bg-white rounded-xl shadow p-5 hover:shadow-lg transition"
+            >
+
+              {/* PROFILE */}
+
+              <div className="flex items-center mb-4">
 
                 <img
                   src={
-                    selectedSpecialist.profilePhoto ||
-                    "https://via.placeholder.com/100"
+                    sp.profilePhoto ||
+                    "https://via.placeholder.com/60"
                   }
-                  className="rounded-circle mb-2"
-                  width="100"
-                  height="100"
-                  style={{ objectFit: "cover" }}
                   alt="profile"
+                  className="w-14 h-14 rounded-full object-cover mr-3"
                 />
 
-                <h5>{selectedSpecialist.fullName}</h5>
+                <div>
+                  <h4 className="font-semibold text-gray-800">
+                    {sp.fullName}
+                  </h4>
 
-                <span className="badge bg-secondary">
-                  {selectedSpecialist.professionalDetails?.specialization}
-                </span>
+                  <p className="text-sm text-gray-500">
+                    {sp.professionalDetails?.specialization}
+                  </p>
+                </div>
 
               </div>
 
-              {/* TABS */}
+              <p className="text-sm text-gray-500 mb-3">
+                {sp.location?.city}, {sp.location?.state}
+              </p>
 
-              <ul className="nav nav-tabs mb-3">
+              {/* STATUS */}
 
-                <li className="nav-item">
+              <span
+                className={`px-3 py-1 text-xs rounded-full
+                  ${
+                    sp.verificationStatus === "approved"
+                      ? "bg-green-100 text-green-700"
+                      : sp.verificationStatus === "rejected"
+                      ? "bg-red-100 text-red-600"
+                      : "bg-yellow-100 text-yellow-700"
+                  }
+                `}
+              >
+                {sp.verificationStatus}
+              </span>
+
+              {/* ACTIONS */}
+
+              <div className="flex justify-between items-center mt-4">
+
+                <button
+                  onClick={() => setSelectedSpecialist(sp)}
+                  className="text-blue-600 text-sm font-medium hover:underline"
+                >
+                  View
+                </button>
+
+                <div className="flex gap-2">
+
                   <button
-                    className="nav-link active"
-                    data-bs-toggle="tab"
-                    data-bs-target="#infoTab"
+                    onClick={() => handleApprove(sp._id)}
+                    className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600"
                   >
-                    Info
+                    ✓
                   </button>
-                </li>
 
-                <li className="nav-item">
                   <button
-                    className="nav-link"
-                    data-bs-toggle="tab"
-                    data-bs-target="#professionalTab"
+                    onClick={() => handleReject(sp._id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600"
                   >
-                    Professional
+                    ✕
                   </button>
-                </li>
-
-                <li className="nav-item">
-                  <button
-                    className="nav-link"
-                    data-bs-toggle="tab"
-                    data-bs-target="#documentsTab"
-                  >
-                    Documents
-                  </button>
-                </li>
-
-              </ul>
-
-              <div className="tab-content">
-
-                <div className="tab-pane fade show active" id="infoTab">
-
-                  <p><strong>Email:</strong> {selectedSpecialist.email}</p>
-                  <p><strong>Phone:</strong> {selectedSpecialist.phone}</p>
-                  <p><strong>City:</strong> {selectedSpecialist.location?.city}</p>
-                  <p><strong>State:</strong> {selectedSpecialist.location?.state}</p>
-                  <p><strong>Address:</strong> {selectedSpecialist.location?.address}</p>
-                  <p><strong>Pincode:</strong> {selectedSpecialist.location?.pincode}</p>
-
-                </div>
-
-                <div className="tab-pane fade" id="professionalTab">
-
-                  <p><strong>Experience:</strong> {selectedSpecialist.professionalDetails?.experience} years</p>
-                  <p><strong>Qualification:</strong> {selectedSpecialist.professionalDetails?.qualification}</p>
-                  <p><strong>Practice Name:</strong> {selectedSpecialist.professionalDetails?.practiceName}</p>
-                  <p><strong>Consultation Mode:</strong> {selectedSpecialist.professionalDetails?.consultationMode}</p>
-                  <p><strong>Consultation Fees:</strong> ₹{selectedSpecialist.consultationFees}</p>
-
-                </div>
-
-                <div className="tab-pane fade" id="documentsTab">
-
-                  {selectedSpecialist.documents?.idProof ? (
-                    <a
-                      href={selectedSpecialist.documents.idProof}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn-outline-secondary btn-sm me-2"
-                    >
-                      View ID Proof
-                    </a>
-                  ) : (
-                    <p>No ID Proof Uploaded</p>
-                  )}
-
-                  {selectedSpecialist.documents?.certificationProof ? (
-                    <a
-                      href={selectedSpecialist.documents.certificationProof}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn-outline-secondary btn-sm"
-                    >
-                      View Certificate
-                    </a>
-                  ) : (
-                    <p>No Certificate Uploaded</p>
-                  )}
 
                 </div>
 
               </div>
 
-            </>
-          )}
+            </div>
+
+          ))}
 
         </div>
-      </div>
+
+      )}
+
+      {/* SIDE PANEL */}
+
+      {selectedSpecialist && (
+
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-end">
+
+          <div className="bg-white w-full max-w-md h-full p-6 overflow-y-auto">
+
+            <div className="flex justify-between items-center mb-4">
+
+              <h3 className="text-lg font-semibold">
+                Specialist Profile
+              </h3>
+
+              <button
+                onClick={() => setSelectedSpecialist(null)}
+                className="text-gray-500 hover:text-black"
+              >
+                ✕
+              </button>
+
+            </div>
+
+            {/* PROFILE */}
+
+            <div className="text-center mb-6">
+
+              <img
+                src={
+                  selectedSpecialist.profilePhoto ||
+                  "https://via.placeholder.com/100"
+                }
+                className="w-24 h-24 rounded-full mx-auto object-cover mb-3"
+                alt="profile"
+              />
+
+              <h4 className="font-semibold">
+                {selectedSpecialist.fullName}
+              </h4>
+
+              <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">
+                {selectedSpecialist.professionalDetails?.specialization}
+              </span>
+
+            </div>
+
+            {/* INFO */}
+
+            <div className="space-y-2 text-sm">
+
+              <p><strong>Email:</strong> {selectedSpecialist.email}</p>
+              <p><strong>Phone:</strong> {selectedSpecialist.phone}</p>
+              <p><strong>City:</strong> {selectedSpecialist.location?.city}</p>
+              <p><strong>State:</strong> {selectedSpecialist.location?.state}</p>
+              <p><strong>Address:</strong> {selectedSpecialist.location?.address}</p>
+              <p><strong>Pincode:</strong> {selectedSpecialist.location?.pincode}</p>
+
+              <hr className="my-3" />
+
+              <p><strong>Experience:</strong> {selectedSpecialist.professionalDetails?.experience} years</p>
+              <p><strong>Qualification:</strong> {selectedSpecialist.professionalDetails?.qualification}</p>
+              <p><strong>Practice:</strong> {selectedSpecialist.professionalDetails?.practiceName}</p>
+              <p><strong>Consultation:</strong> {selectedSpecialist.professionalDetails?.consultationMode}</p>
+              <p><strong>Fees:</strong> ₹{selectedSpecialist.consultationFees}</p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
 
     </div>
+
   );
 }

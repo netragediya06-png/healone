@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import productService from "../../../services/productService";
 import categoryService from "../../../services/categoryService";
 import subCategoryService from "../../../services/subCategoryService";
-import "./HealOneProduct.css";
 
 function EditProduct() {
 
@@ -32,10 +31,8 @@ function EditProduct() {
 
     const fetchCategories = async () => {
       try {
-
         const res = await categoryService.getAllCategories();
         setCategories(res.data);
-
       } catch (error) {
         console.error("Category fetch error:", error);
       }
@@ -55,7 +52,6 @@ function EditProduct() {
       try {
 
         const res = await productService.getSingleProduct(id);
-
         const product = res.data.product;
 
         setFormData({
@@ -70,7 +66,6 @@ function EditProduct() {
 
         setPreview(product.image);
 
-        // load subcategories
         if (product.category?._id) {
           loadSubCategories(product.category._id);
         }
@@ -93,7 +88,6 @@ function EditProduct() {
     try {
 
       const res = await subCategoryService.getSubCategoriesByCategory(categoryId);
-
       setSubCategories(res.data);
 
     } catch (error) {
@@ -116,7 +110,6 @@ function EditProduct() {
       [name]: value
     });
 
-    // if category changes → reload subcategories
     if (name === "category") {
 
       setFormData((prev) => ({
@@ -137,7 +130,6 @@ function EditProduct() {
   const handleImage = (e) => {
 
     const file = e.target.files[0];
-
     if (!file) return;
 
     setFormData({
@@ -171,156 +163,178 @@ function EditProduct() {
   };
 
   return (
-    <div className="container py-4">
 
-      <div className="healone-form-card p-4">
+    <div className="p-6">
 
-        <h3 className="fw-bold mb-4 healone-title">
+      <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-xl p-8">
+
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
           Edit Product
-        </h3>
+        </h2>
 
         <form onSubmit={handleSubmit}>
-          <div className="row g-4">
 
-            {/* LEFT SIDE */}
-            <div className="col-md-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-              <div className="row g-3">
+            {/* LEFT FORM */}
+            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
 
-                {/* NAME */}
-                <div className="col-md-6">
-                  <label className="form-label">Product Name</label>
-                  <input
-                    name="name"
-                    value={formData.name}
-                    className="form-control"
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+              {/* NAME */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Name
+                </label>
 
-                {/* CATEGORY */}
-                <div className="col-md-6">
-                  <label className="form-label">Category</label>
+                <input
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                />
+              </div>
 
-                  <select
-                    name="category"
-                    value={formData.category}
-                    className="form-select"
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Select Category</option>
+              {/* CATEGORY */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
 
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat._id}>
-                        {cat.name}
-                      </option>
-                    ))}
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                >
 
-                  </select>
-                </div>
+                  <option value="">Select Category</option>
 
-                {/* SUBCATEGORY */}
-                <div className="col-md-6">
-                  <label className="form-label">Sub Category</label>
+                  {categories.map((cat) => (
 
-                  <select
-                    name="subCategory"
-                    value={formData.subCategory}
-                    className="form-select"
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Select Sub Category</option>
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
 
-                    {subCategories.map((sub) => (
-                      <option key={sub._id} value={sub._id}>
-                        {sub.name}
-                      </option>
-                    ))}
+                  ))}
 
-                  </select>
-                </div>
+                </select>
+              </div>
 
-                {/* PRICE */}
-                <div className="col-md-6">
-                  <label className="form-label">Price (₹)</label>
+              {/* SUBCATEGORY */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sub Category
+                </label>
 
-                  <input
-                    name="price"
-                    type="number"
-                    value={formData.price}
-                    className="form-control"
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+                <select
+                  name="subCategory"
+                  value={formData.subCategory}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                >
 
-                {/* STOCK */}
-                <div className="col-md-6">
-                  <label className="form-label">Stock</label>
+                  <option value="">Select Sub Category</option>
 
-                  <input
-                    name="stock"
-                    type="number"
-                    value={formData.stock}
-                    className="form-control"
-                    onChange={handleChange}
-                  />
-                </div>
+                  {subCategories.map((sub) => (
 
-                {/* DESCRIPTION */}
-                <div className="col-12">
-                  <label className="form-label">Description</label>
+                    <option key={sub._id} value={sub._id}>
+                      {sub.name}
+                    </option>
 
-                  <textarea
-                    name="description"
-                    rows="3"
-                    value={formData.description}
-                    className="form-control"
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+                  ))}
 
-                {/* IMAGE */}
-                <div className="col-md-6">
-                  <label className="form-label">Change Image</label>
+                </select>
+              </div>
 
-                  <input
-                    type="file"
-                    className="form-control"
-                    onChange={handleImage}
-                  />
-                </div>
+              {/* PRICE */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price (₹)
+                </label>
 
+                <input
+                  name="price"
+                  type="number"
+                  value={formData.price}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                />
+              </div>
+
+              {/* STOCK */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Stock
+                </label>
+
+                <input
+                  name="stock"
+                  type="number"
+                  value={formData.stock}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                />
+              </div>
+
+              {/* DESCRIPTION */}
+              <div className="md:col-span-2">
+
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+
+                <textarea
+                  name="description"
+                  rows="3"
+                  value={formData.description}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                />
+
+              </div>
+
+              {/* IMAGE */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Change Image
+                </label>
+
+                <input
+                  type="file"
+                  onChange={handleImage}
+                  className="w-full border rounded-lg px-3 py-2"
+                />
               </div>
 
             </div>
 
-            {/* IMAGE PREVIEW */}
-            <div className="col-md-4 text-center">
 
-              <div className="healone-image-preview-card p-3">
+            {/* IMAGE PREVIEW */}
+            <div className="flex flex-col items-center">
+
+              <div className="w-full bg-gray-100 rounded-xl p-4 flex flex-col items-center">
 
                 {preview ? (
 
                   <img
                     src={preview}
                     alt="preview"
-                    className="img-fluid rounded"
+                    className="rounded-lg object-cover w-full h-64"
                   />
 
                 ) : (
 
-                  <div className="healone-image-placeholder">
-                    <i className="bi bi-image"></i>
+                  <div className="h-64 w-full flex items-center justify-center text-gray-400">
+                    No Image
                   </div>
 
                 )}
 
-                <p className="text-muted small mt-2">
+                <p className="text-sm text-gray-500 mt-3">
                   Product Image Preview
                 </p>
 
@@ -330,7 +344,11 @@ function EditProduct() {
 
           </div>
 
-          <button className="btn healone-btn mt-4">
+          {/* BUTTON */}
+          <button
+            type="submit"
+            className="mt-6 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+          >
             Update Product
           </button>
 
@@ -339,7 +357,9 @@ function EditProduct() {
       </div>
 
     </div>
+
   );
+
 }
 
 export default EditProduct;

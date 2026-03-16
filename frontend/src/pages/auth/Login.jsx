@@ -17,26 +17,18 @@ export default function Login() {
 
     try {
 
-      console.log("🔹 Attempting login...");
-
       const res = await axios.post(
         "http://localhost:5000/api/auth/login",
-        {
-          email,
-          password
-        }
+        { email, password }
       );
 
       const data = res.data;
 
-      console.log("✅ Login successful:", data);
-
-      // Store JWT token
+      // Store token
       localStorage.setItem("token", data.token);
 
-      // Store user data
+      // Store user info
       localStorage.setItem("userId", data.user.id);
-      // localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("role", data.user.role);
       localStorage.setItem("email", data.user.email);
       localStorage.setItem("name", data.user.fullName);
@@ -53,17 +45,13 @@ export default function Login() {
       // Redirect based on role
       if (data.user.role === "admin") {
         navigate("/admin");
-      }
-      else if (data.user.role === "specialist") {
+      } else if (data.user.role === "specialist") {
         navigate("/specialist");
-      }
-      else {
+      } else {
         navigate("/");
       }
 
     } catch (error) {
-
-      console.error("❌ Login failed:", error);
 
       setError(
         error.response?.data?.message || "Login failed. Please try again."
@@ -74,117 +62,104 @@ export default function Login() {
   };
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center"
-      style={{
-        height: "100vh",
-        background: "linear-gradient(135deg, #e8f5e9, #c8e6c9)",
-      }}
-    >
-      <div
-        style={{
-          width: "400px",
-          padding: "40px",
-          borderRadius: "18px",
-          background: "#ffffff",
-          boxShadow: "0 18px 40px rgba(0,0,0,0.15)",
-        }}
-      >
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+
+      <div className="w-full max-w-md">
 
         {/* Logo */}
-        <div className="text-center mb-4">
-          <div
-            style={{
-              width: "55px",
-              height: "55px",
-              margin: "0 auto",
-              borderRadius: "50%",
-              background: "#2e7d32",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              fontSize: "20px",
-              fontWeight: "bold",
-            }}
-          >
+        <div className="text-center mb-8">
+
+          <div className="w-14 h-14 mx-auto rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xl shadow">
             🌿
           </div>
 
-          <h4 className="fw-semibold mt-3 mb-1">
-            Welcome to HealOne
-          </h4>
+          <h2 className="text-2xl font-semibold mt-4">
+            HealOne Admin
+          </h2>
 
-          <small className="text-muted">
-            Ayurvedic Wellness Ecosystem
-          </small>
+          <p className="text-gray-500 text-sm">
+            Sign in to your admin dashboard
+          </p>
+
         </div>
 
-        {error && (
-          <div className="alert alert-danger text-center py-1">
-            {error}
-          </div>
-        )}
+        {/* Login Card */}
+        <div className="bg-white border shadow-sm rounded-xl p-8">
 
-        <form onSubmit={handleLogin}>
+          {error && (
+            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4 text-center">
+              {error}
+            </div>
+          )}
 
-          {/* Email */}
-          <div className="mb-3">
-            <input
-              type="email"
-              className="form-control"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                borderRadius: "10px",
-                padding: "10px",
-              }}
-            />
-          </div>
+          <form onSubmit={handleLogin} className="space-y-5">
 
-          {/* Password */}
-          <div className="mb-3">
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                borderRadius: "10px",
-                padding: "10px",
-              }}
-            />
-          </div>
+            {/* Email */}
+            <div>
 
-          {/* Login Button */}
-          <button
-            type="submit"
-            className="btn w-100"
-            style={{
-              background: "#2e7d32",
-              color: "white",
-              borderRadius: "10px",
-              padding: "10px",
-              fontWeight: "500",
-            }}
-          >
-            Login
-          </button>
+              <label className="text-sm font-medium text-gray-700">
+                Email
+              </label>
 
-          <div className="text-center mt-3">
-            <small className="text-muted">
-              Don’t have an account?{" "}
-              <Link to="/register">Register</Link>
-            </small>
-          </div>
+              <input
+                type="email"
+                placeholder="admin@healone.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full mt-1 border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
 
-        </form>
+            </div>
+
+            {/* Password */}
+            <div>
+
+              <div className="flex justify-between text-sm">
+
+                <label className="font-medium text-gray-700">
+                  Password
+                </label>
+
+                <Link
+                  to="/forgot-password"
+                  className="text-emerald-600 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+
+              </div>
+
+              <input
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full mt-1 border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
+
+            </div>
+
+            {/* Login Button */}
+            <button
+              type="submit"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg font-medium transition"
+            >
+              Sign In
+            </button>
+
+          </form>
+
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-gray-400 mt-6">
+          HealOne Admin Panel
+        </p>
 
       </div>
+
     </div>
   );
 }

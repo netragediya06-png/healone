@@ -1,10 +1,14 @@
 const User = require("../models/User");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const bcrypt = require("bcryptjs");
+const sendEmail = require("../utils/sendEmail");
+
 
 /* =========================
    GENERATE JWT TOKEN
 ========================= */
+
 const generateToken = (user) => {
   return jwt.sign(
     {
@@ -17,10 +21,13 @@ const generateToken = (user) => {
 };
 
 
+
 /* =========================
    REGISTER
 ========================= */
+
 exports.register = async (req, res) => {
+
   try {
 
     const {
@@ -31,19 +38,19 @@ exports.register = async (req, res) => {
       gender,
       dateOfBirth,
       role,
+      state,
+      city,
+      area,
       professionalDetails,
-      location,
       documents,
       bio,
       expertiseSummary,
       treatmentApproach,
       consultationFees,
       availableTimeSlots,
-      languagesSpoken,
+      languagesSpoken
     } = req.body;
 
-    /* PROFILE PHOTO */
-    const profilePhoto = req.body.profilePhoto || "";
 
     /* VALIDATION */
 
@@ -52,6 +59,7 @@ exports.register = async (req, res) => {
         message: "Full name, email and password are required"
       });
     }
+
 
     /* CHECK EXISTING USER */
 
@@ -63,7 +71,19 @@ exports.register = async (req, res) => {
       });
     }
 
-    /* CREATE USER OBJECT */
+
+    /* PROFILE PHOTO */
+
+    let profilePhoto = "";
+
+    if (req.file) {
+      profilePhoto = req.file.path;
+    } else {
+      profilePhoto = `https://ui-avatars.com/api/?name=${fullName}&background=175C1A&color=fff`;
+    }
+
+
+    /* USER OBJECT */
 
     let newUser = {
       fullName,
@@ -76,9 +96,19 @@ exports.register = async (req, res) => {
       role: role || "user"
     };
 
-    /* =========================
-       SPECIALIST REGISTRATION
-    ========================= */
+
+    /* LOCATION */
+
+    if (state || city || area) {
+      newUser.location = {
+        state,
+        city,
+        address: area
+      };
+    }
+
+
+    /* SPECIALIST */
 
     if (role === "specialist") {
 
@@ -86,7 +116,6 @@ exports.register = async (req, res) => {
       newUser.isVerified = false;
 
       newUser.professionalDetails = professionalDetails;
-      newUser.location = location;
       newUser.documents = documents;
 
       newUser.bio = bio;
@@ -97,40 +126,57 @@ exports.register = async (req, res) => {
       newUser.availableTimeSlots = availableTimeSlots;
       newUser.languagesSpoken = languagesSpoken;
 
-    }
-
-    /* =========================
-       NORMAL USER
-    ========================= */
-
-    else {
+    } else {
 
       newUser.verificationStatus = "approved";
-      newUser.isVerified = true;
+      newUser.isVerified = false; // require email verification
 
     }
 
-    /* SAVE USER */
+
+    /* CREATE USER */
 
     const user = await User.create(newUser);
 
-    /* RESPONSE */
+
+    /* EMAIL VERIFICATION TOKEN */
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+
+    user.verificationToken = verificationToken;
+
+    await user.save();
+
+
+    /* SEND VERIFICATION EMAIL */
+
+    const verifyLink = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
+
+    await sendEmail(
+      user.email,
+      "Verify your HealOne account",
+      `
+      <h2>Welcome to HealOne 🌿</h2>
+      <p>Please verify your email to activate your account.</p>
+      <a href="${verifyLink}">Verify Email</a>
+      `
+    );
+
 
     res.status(201).json({
 
       message:
         role === "specialist"
           ? "Specialist registration submitted. Waiting for admin approval."
-          : "User registered successfully",
+          : "Registration successful. Please verify your email.",
 
       user: {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        role: user.role
-      },
-
-      token: generateToken(user)
+        role: user.role,
+        profilePhoto: user.profilePhoto
+      }
 
     });
 
@@ -143,7 +189,56 @@ exports.register = async (req, res) => {
     });
 
   }
+
 };
+
+
+
+/* =========================
+   VERIFY EMAIL
+========================= */
+
+exports.verifyEmail = async (req, res) => {
+
+  try {
+
+    const { token } = req.params;
+
+    const user = await User.findOne({
+      verificationToken: token
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid or expired verification link"
+      });
+    }
+
+    if (user.isVerified) {
+      return res.status(200).json({
+        message: "Account already verified"
+      });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Email verified successfully"
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: "Server error"
+    });
+
+  }
+
+};
+
 
 
 /* =========================
@@ -162,7 +257,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    /* FIND USER */
 
     const user = await User.findOne({ email }).select("+password");
 
@@ -172,7 +266,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    /* CHECK PASSWORD */
 
     const isMatch = await bcrypt.compare(password, user.password);
 
@@ -182,7 +275,13 @@ exports.login = async (req, res) => {
       });
     }
 
-    /* CHECK BLOCK */
+
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: "Please verify your email first"
+      });
+    }
+
 
     if (user.isBlocked) {
       return res.status(403).json({
@@ -190,7 +289,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    /* CHECK SPECIALIST STATUS */
 
     if (user.role === "specialist") {
 
@@ -208,7 +306,6 @@ exports.login = async (req, res) => {
 
     }
 
-    /* LOGIN SUCCESS */
 
     res.status(200).json({
 
@@ -219,7 +316,7 @@ exports.login = async (req, res) => {
         fullName: user.fullName,
         email: user.email,
         role: user.role,
-        verificationStatus: user.verificationStatus
+        profilePhoto: user.profilePhoto
       },
 
       token: generateToken(user)
@@ -239,11 +336,122 @@ exports.login = async (req, res) => {
 };
 
 
+
 /* =========================
-   EXPORT
+   FORGOT PASSWORD
 ========================= */
 
-module.exports = {
-  register: exports.register,
-  login: exports.login
-};  
+exports.forgotPassword = async (req, res) => {
+
+  try {
+
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Email is required"
+      });
+    }
+
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User with this email does not exist"
+      });
+    }
+
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    user.resetToken = resetToken;
+    user.resetTokenExpire = Date.now() + 3600000;
+
+    await user.save();
+
+
+    const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+    await sendEmail(
+      user.email,
+      "HealOne Password Reset",
+      `
+      <h2>Reset Your Password</h2>
+      <p>Click below to reset your password:</p>
+      <a href="${resetLink}">Reset Password</a>
+      `
+    );
+
+
+    res.status(200).json({
+      message: "Password reset email sent"
+    });
+
+  } catch (error) {
+
+    console.error("FORGOT PASSWORD ERROR:", error);
+
+    res.status(500).json({
+      message: "Server error"
+    });
+
+  }
+
+};
+
+
+
+/* =========================
+   RESET PASSWORD
+========================= */
+
+exports.resetPassword = async (req, res) => {
+
+  try {
+
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({
+        message: "Password is required"
+      });
+    }
+
+
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpire: { $gt: Date.now() }
+    });
+
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid or expired reset token"
+      });
+    }
+
+
+    user.password = password;
+    user.resetToken = undefined;
+    user.resetTokenExpire = undefined;
+
+    await user.save();
+
+
+    res.status(200).json({
+      message: "Password reset successful"
+    });
+
+  } catch (error) {
+
+    console.error("RESET PASSWORD ERROR:", error);
+
+    res.status(500).json({
+      message: "Server error"
+    });
+
+  }
+
+};

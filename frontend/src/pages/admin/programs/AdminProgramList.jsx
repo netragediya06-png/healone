@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import styles from "./AdminProgramList.module.css";
 import {
   getAdminPrograms,
   deleteProgram,
@@ -32,14 +31,12 @@ function AdminProgramList() {
     if (!window.confirm("Delete this program?")) return;
 
     try {
-
       await deleteProgram(id);
-
       setPrograms(programs.filter((p) => p._id !== id));
-
     } catch (error) {
       console.log(error);
     }
+
   };
 
   const handleApprove = async (id) => {
@@ -60,7 +57,7 @@ function AdminProgramList() {
     }
   };
 
-  /* ---------------- FILTER LOGIC ---------------- */
+  /* FILTER */
 
   const filteredPrograms = programs.filter((program) => {
 
@@ -72,9 +69,10 @@ function AdminProgramList() {
       activeTab === "all" || program?.approvalStatus === activeTab;
 
     return matchesSearch && matchesTab;
+
   });
 
-  /* ---------------- COUNTS ---------------- */
+  /* COUNTS */
 
   const total = programs.length;
   const pending = programs.filter(p => p.approvalStatus === "pending").length;
@@ -83,124 +81,165 @@ function AdminProgramList() {
 
   return (
 
-    <div className={styles.container}>
+    <div className="p-6">
 
       {/* HEADER */}
 
-      <div className={styles.header}>
+      <div className="flex justify-between items-center mb-6">
 
-        <h2 className={styles.pageTitle}>Wellness Programs</h2>
+        <h2 className="text-2xl font-semibold text-gray-800">
+          Wellness Programs
+        </h2>
 
-        <span className={styles.totalBadge}>
+        <span className="bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full">
           {total} Total Programs
         </span>
 
       </div>
+
 
       {/* SEARCH */}
 
       <input
         type="text"
         placeholder="Search programs..."
-        className={styles.search}
+        className="w-full border rounded-lg px-4 py-2 mb-5 focus:ring-2 focus:ring-green-500"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
 
+
       {/* TABS */}
 
-      <div className={styles.tabs}>
+      <div className="flex gap-2 mb-6">
 
         <button
-          className={activeTab === "all" ? styles.activeTab : ""}
           onClick={() => setActiveTab("all")}
+          className={`px-4 py-2 rounded-lg text-sm
+            ${activeTab === "all"
+              ? "bg-green-600 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+            }`}
         >
           All ({total})
         </button>
 
         <button
-          className={activeTab === "pending" ? styles.activeTab : ""}
           onClick={() => setActiveTab("pending")}
+          className={`px-4 py-2 rounded-lg text-sm
+            ${activeTab === "pending"
+              ? "bg-yellow-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+            }`}
         >
           Pending ({pending})
         </button>
 
         <button
-          className={activeTab === "approved" ? styles.activeTab : ""}
           onClick={() => setActiveTab("approved")}
+          className={`px-4 py-2 rounded-lg text-sm
+            ${activeTab === "approved"
+              ? "bg-green-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+            }`}
         >
           Approved ({approved})
         </button>
 
         <button
-          className={activeTab === "rejected" ? styles.activeTab : ""}
           onClick={() => setActiveTab("rejected")}
+          className={`px-4 py-2 rounded-lg text-sm
+            ${activeTab === "rejected"
+              ? "bg-red-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+            }`}
         >
           Rejected ({rejected})
         </button>
 
       </div>
 
-      {/* PROGRAM CARDS */}
 
-      <div className={styles.grid}>
+      {/* PROGRAM GRID */}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
         {filteredPrograms.map((program) => (
 
           <div
             key={program._id}
-
-            className={`${styles.card} ${
-              program.approvalStatus === "pending"
-                ? styles.cardPending
-                : program.approvalStatus === "approved"
-                ? styles.cardApproved
-                : styles.cardRejected
-            }`}
+            className="bg-white rounded-xl shadow-sm hover:shadow-md transition p-4"
           >
+
+            {/* IMAGE */}
 
             <img
               src={program.image || "https://via.placeholder.com/300x200"}
-              alt={program.title || "Program"}
-              className={styles.image}
+              alt={program.title}
+              className="w-full h-40 object-cover rounded-lg mb-3"
             />
 
-            <h3 className={styles.title}>
+            {/* TITLE */}
+
+            <h3 className="text-lg font-semibold text-gray-800 mb-1">
               {program.title || "Untitled Program"}
             </h3>
 
-            <p className={styles.category}>
+            {/* CATEGORY */}
+
+            <p className="text-sm text-gray-500">
               {program.category?.name || "No Category"}
             </p>
 
-            <p className={styles.specialist}>
+            {/* SPECIALIST */}
+
+            <p className="text-xs text-gray-500 mb-2">
               Specialist: {program.specialist?.fullName || "N/A"}
             </p>
 
-            <div className={styles.metaRow}>
+            {/* META */}
+
+            <div className="flex justify-between text-sm mb-2">
+
               <span>
                 Duration: {program.durationDays || 0} Days
               </span>
 
-              <span className={styles.price}>
+              <span className="font-semibold text-green-600">
                 ₹ {program.price || 0}
               </span>
+
             </div>
 
-            <span className={`${styles.status} ${styles[program.approvalStatus]}`}>
+            {/* STATUS */}
+
+            <span
+              className={`inline-block text-xs px-2 py-1 rounded-full mb-3
+                ${
+                  program.approvalStatus === "approved"
+                    ? "bg-green-100 text-green-700"
+                    : program.approvalStatus === "rejected"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }
+              `}
+            >
               {program.approvalStatus}
             </span>
 
+
             {/* ACTION BUTTONS */}
 
-            <div className={styles.actions}>
+            <div className="flex flex-wrap gap-2">
 
               <Link to={`/admin/programs/${program._id}`}>
-                <button className={styles.viewBtn}>View</button>
+                <button className="bg-green-700 text-white px-3 py-1 rounded text-xs">
+                  View
+                </button>
               </Link>
 
               <button
-                className={styles.approveBtn}
+                className="bg-green-500 text-white px-3 py-1 rounded text-xs disabled:opacity-50"
                 disabled={program.approvalStatus === "approved"}
                 onClick={() => handleApprove(program._id)}
               >
@@ -208,7 +247,7 @@ function AdminProgramList() {
               </button>
 
               <button
-                className={styles.rejectBtn}
+                className="bg-red-500 text-white px-3 py-1 rounded text-xs disabled:opacity-50"
                 disabled={program.approvalStatus === "rejected"}
                 onClick={() => handleReject(program._id)}
               >
@@ -216,7 +255,7 @@ function AdminProgramList() {
               </button>
 
               <button
-                className={styles.deleteBtn}
+                className="border border-red-500 text-red-500 px-3 py-1 rounded text-xs"
                 onClick={() => handleDelete(program._id)}
               >
                 Delete

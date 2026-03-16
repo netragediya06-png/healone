@@ -1,443 +1,197 @@
-import { useState, useEffect } from "react";
-
-const initialRemedies = JSON.parse(localStorage.getItem("myRemedies")) || [];
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import remedyService from "../../../services/remedyService";
 
 function MyRemedies() {
-  const [remedies, setRemedies] = useState(initialRemedies);
-  const [editId, setEditId] = useState(null);
-  const [preview, setPreview] = useState("");
-  const [viewRemedy, setViewRemedy] = useState(null);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    symptoms: [""],
-    ingredients: [""],
-    steps: [""],
-    benefits: "",
-    precautions: "",
-    healthCategory: "",
-    image: null
-  });
+const [remedies,setRemedies] = useState([]);
+const [loading,setLoading] = useState(true);
 
-  /* Sync with localStorage */
-  useEffect(() => {
-    localStorage.setItem("myRemedies", JSON.stringify(remedies));
-  }, [remedies]);
+const token = localStorage.getItem("token");
+const navigate = useNavigate();
 
-  /* INPUT CHANGE */
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+useEffect(()=>{
+fetchRemedies();
+},[]);
 
-  /* IMAGE CHANGE */
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+const fetchRemedies = async ()=>{
 
-    const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result);
-    reader.readAsDataURL(file);
+try{
 
-    setFormData({ ...formData, image: file });
-  };
+const data = await remedyService.getMyRemedies(token);
+setRemedies(data);
 
-  /* ARRAY CHANGE */
-  const handleArrayChange = (index, field, value) => {
-    const data = [...formData[field]];
-    data[index] = value;
-    setFormData({ ...formData, [field]: data });
-  };
+}catch(err){
+console.error(err);
+}
 
-  /* ADD FIELD */
-  const addField = (field) => {
-    setFormData({ ...formData, [field]: [...formData[field], ""] });
-  };
+setLoading(false);
 
-  /* REMOVE FIELD */
-  const removeField = (index, field) => {
-    const data = [...formData[field]];
-    data.splice(index, 1);
-    setFormData({ ...formData, [field]: data });
-  };
+};
 
-  /* EDIT REMEDY */
-  const handleEdit = (remedy) => {
-    setEditId(remedy._id);
+const deleteRemedy = async(id)=>{
 
-    setFormData({
-      title: remedy.title || "",
-      symptoms: remedy.symptoms || [""],
-      ingredients: remedy.ingredients || [""],
-      steps: remedy.steps || [""],
-      benefits: remedy.benefits || "",
-      precautions: remedy.precautions || "",
-      healthCategory: remedy.healthCategory || "",
-      image: null
-    });
+if(!window.confirm("Delete this remedy?")) return;
 
-    setPreview(remedy.image || "");
+try{
 
-    const modal = new window.bootstrap.Modal(
-      document.getElementById("remedyModal")
-    );
-    modal.show();
-  };
+await remedyService.deleteRemedy(id,token);
+fetchRemedies();
 
-  /* VIEW REMEDY */
-  const handleView = (remedy) => {
-    setViewRemedy(remedy);
+}catch(err){
+console.error(err);
+}
 
-    const modal = new window.bootstrap.Modal(
-      document.getElementById("viewModal")
-    );
-    modal.show();
-  };
+};
 
-  /* ADD / UPDATE */
-  const handleSubmit = (e) => {
-    e.preventDefault();
+return(
 
-    if (editId) {
-      const updated = remedies.map((r) =>
-        r._id === editId ? { ...r, ...formData, image: preview } : r
-      );
-      setRemedies(updated);
-    } else {
-      const newRemedy = {
-        ...formData,
-        _id: Date.now(),
-        image: preview
-      };
-      setRemedies([...remedies, newRemedy]);
-    }
+<div className="p-6">
 
-    setEditId(null);
+{/* HEADER */}
 
-    setFormData({
-      title: "",
-      symptoms: [""],
-      ingredients: [""],
-      steps: [""],
-      benefits: "",
-      precautions: "",
-      healthCategory: "",
-      image: null
-    });
+<div className="flex justify-between items-center mb-6">
 
-    setPreview("");
+<div>
 
-    const modal = window.bootstrap.Modal.getInstance(
-      document.getElementById("remedyModal")
-    );
-    modal.hide();
-  };
+<h2 className="text-2xl font-semibold text-gray-800">
+My Remedies
+</h2>
 
-  /* DELETE */
-  const handleDelete = (id) => {
-    if (!window.confirm("Delete this remedy?")) return;
-    setRemedies(remedies.filter((r) => r._id !== id));
-  };
+<p className="text-sm text-gray-500">
+Manage your submitted remedies
+</p>
 
-  return (
-    <div className="container-fluid mt-4">
-      {/* HEADER */}
-      <div className="d-flex justify-content-between mb-4">
-        <h2>My Remedies</h2>
+</div>
 
-        <button
-          className="btn btn-success"
-          data-bs-toggle="modal"
-          data-bs-target="#remedyModal"
-          onClick={() => {
-            setEditId(null);
-            setFormData({
-              title: "",
-              symptoms: [""],
-              ingredients: [""],
-              steps: [""],
-              benefits: "",
-              precautions: "",
-              healthCategory: "",
-              image: null
-            });
-            setPreview("");
-          }}
-        >
-          + Add Remedy
-        </button>
+<button
+onClick={()=>navigate("/specialist/add-remedy")}
+className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+>
++ Add Remedy
+</button>
 
-        <span className="badge bg-success p-3">
-            {remedies.length} Total Remedies
-          </span>
-      </div>
+</div>
 
-      {/* CARDS */}
-      <div className="row">
-        {remedies.map((remedy) => (
-          <div className="col-md-4 mb-4" key={remedy._id}>
-            <div className="card shadow border-0 h-100">
-              {remedy.image && (
-                <img
-                  src={remedy.image}
-                  className="card-img-top"
-                  style={{ height: "180px", objectFit: "cover" }}
-                  alt={remedy.title}
-                />
-              )}
 
-              <div className="card-body">
-                <h5>{remedy.title}</h5>
-                <p className="text-muted">
-                  Category: {remedy.healthCategory}
-                </p>
-              </div>
+{/* LOADING */}
 
-              {/* 3 BUTTONS */}
-              <div className="card-footer d-flex justify-content-between">
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => handleView(remedy)}
-                >
-                  View
-                </button>
+{loading && (
+<p className="text-center text-gray-500">
+Loading remedies...
+</p>
+)}
 
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => handleEdit(remedy)}
-                >
-                  Edit
-                </button>
 
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleDelete(remedy._id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+{/* EMPTY STATE */}
 
-      {/* VIEW MODAL */}
-      <div className="modal fade" id="viewModal">
-        <div className="modal-dialog modal-lg">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5>Remedy Details</h5>
-              <button className="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+{!loading && remedies.length === 0 && (
 
-            <div className="modal-body">
-              {viewRemedy && (
-                <>
-                  {viewRemedy.image && (
-                    <img
-                      src={viewRemedy.image}
-                      style={{
-                        width: "100%",
-                        height: "200px",
-                        objectFit: "cover"
-                      }}
-                      className="mb-3"
-                    />
-                  )}
+<div className="text-center py-20 text-gray-500">
 
-                  <h4>{viewRemedy.title}</h4>
+<p className="mb-4">No remedies submitted yet</p>
 
-                  <p><b>Category:</b> {viewRemedy.healthCategory}</p>
-                  <p><b>Benefits:</b> {viewRemedy.benefits}</p>
-                  <p><b>Precautions:</b> {viewRemedy.precautions}</p>
+<button
+onClick={()=>navigate("/specialist/add-remedy")}
+className="bg-green-600 text-white px-4 py-2 rounded-lg"
+>
+Add Your First Remedy
+</button>
 
-                  <h6>Symptoms</h6>
-                  <ul>
-                    {viewRemedy.symptoms.map((s, i) => (
-                      <li key={i}>{s}</li>
-                    ))}
-                  </ul>
+</div>
 
-                  <h6>Ingredients</h6>
-                  <ul>
-                    {viewRemedy.ingredients.map((s, i) => (
-                      <li key={i}>{s}</li>
-                    ))}
-                  </ul>
+)}
 
-                  <h6>Steps</h6>
-                  <ul>
-                    {viewRemedy.steps.map((s, i) => (
-                      <li key={i}>{s}</li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* ADD / EDIT MODAL */}
-      <div className="modal fade" id="remedyModal">
-        <div className="modal-dialog modal-lg modal-dialog-scrollable">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5>{editId ? "Edit Remedy" : "Add Remedy"}</h5>
-              <button className="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+{/* GRID */}
 
-            <div className="modal-body">
-              <form>
-                <input
-                  className="form-control mb-3"
-                  name="title"
-                  placeholder="Title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  required
-                />
+<div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
-                <input
-                  className="form-control mb-3"
-                  name="healthCategory"
-                  placeholder="Category"
-                  value={formData.healthCategory}
-                  onChange={handleChange}
-                />
+{remedies.map((remedy)=>(
 
-                <textarea
-                  className="form-control mb-3"
-                  name="benefits"
-                  placeholder="Benefits"
-                  value={formData.benefits}
-                  onChange={handleChange}
-                />
+<div
+key={remedy._id}
+className="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden"
+>
 
-                <textarea
-                  className="form-control mb-3"
-                  name="precautions"
-                  placeholder="Precautions"
-                  value={formData.precautions}
-                  onChange={handleChange}
-                />
+{/* IMAGE */}
 
-                <label>Upload Image</label>
-                <input
-                  type="file"
-                  className="form-control mb-3"
-                  onChange={handleImageChange}
-                />
+{remedy.image && (
+<img
+src={remedy.image}
+alt={remedy.title}
+className="w-full h-28 object-contain bg-gray-50 p-2"
+/>
+)}
 
-                {preview && (
-                  <img
-                    src={preview}
-                    style={{
-                      width: "100%",
-                      height: "200px",
-                      objectFit: "cover",
-                      marginBottom: "15px"
-                    }}
-                  />
-                )}
+{/* CONTENT */}
 
-                {/* Symptoms */}
-                <h6>Symptoms</h6>
-                {formData.symptoms.map((item, index) => (
-                  <div className="input-group mb-2" key={index}>
-                    <input
-                      className="form-control"
-                      value={item}
-                      onChange={(e) =>
-                        handleArrayChange(index, "symptoms", e.target.value)
-                      }
-                    />
-                    <button
-                      type="button"
-                      className="btn btn-danger"
-                      onClick={() => removeField(index, "symptoms")}
-                    >
-                      -
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  className="btn btn-outline-primary btn-sm mb-3"
-                  onClick={() => addField("symptoms")}
-                >
-                  + Add Symptom
-                </button>
+<div className="p-4 space-y-2">
 
-                {/* Ingredients */}
-                <h6>Ingredients</h6>
-                {formData.ingredients.map((item, index) => (
-                  <div className="input-group mb-2" key={index}>
-                    <input
-                      className="form-control"
-                      value={item}
-                      onChange={(e) =>
-                        handleArrayChange(index, "ingredients", e.target.value)
-                      }
-                    />
-                    <button
-                      type="button"
-                      className="btn btn-danger"
-                      onClick={() => removeField(index, "ingredients")}
-                    >
-                      -
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  className="btn btn-outline-primary btn-sm mb-3"
-                  onClick={() => addField("ingredients")}
-                >
-                  + Add Ingredient
-                </button>
+<div className="flex justify-between items-center">
 
-                {/* Steps */}
-                <h6>Steps</h6>
-                {formData.steps.map((item, index) => (
-                  <div className="input-group mb-2" key={index}>
-                    <input
-                      className="form-control"
-                      value={item}
-                      onChange={(e) =>
-                        handleArrayChange(index, "steps", e.target.value)
-                      }
-                    />
-                    <button
-                      type="button"
-                      className="btn btn-danger"
-                      onClick={() => removeField(index, "steps")}
-                    >
-                      -
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  className="btn btn-outline-primary btn-sm mb-3"
-                  onClick={() => addField("steps")}
-                >
-                  + Add Step
-                </button>
+<h3 className="font-semibold text-sm">
+{remedy.title}
+</h3>
 
-                <button
-                  type="button"
-                  className="btn btn-success w-100 mt-3"
-                  onClick={handleSubmit}
-                >
-                  {editId ? "Update Remedy" : "Add Remedy"}
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+<span
+className={`text-xs px-2 py-1 rounded-full
+${
+remedy.status === "Approved"
+? "bg-green-100 text-green-700"
+: remedy.status === "Rejected"
+? "bg-red-100 text-red-600"
+: "bg-yellow-100 text-yellow-700"
+}`}
+>
+
+{remedy.status}
+
+</span>
+
+</div>
+
+<p className="text-xs text-gray-500">
+{remedy.healthCategory}
+</p>
+
+<div className="flex justify-between text-xs text-gray-400">
+
+<span>👁 {remedy.views || 0}</span>
+<span>❤️ {remedy.savedBy?.length || 0}</span>
+
+</div>
+
+<div className="flex gap-2 pt-2 flex-wrap">
+
+<button
+onClick={()=>navigate(`/specialist/edit-remedy/${remedy._id}`)}
+className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs rounded"
+>
+Edit
+</button>
+
+<button
+onClick={()=>deleteRemedy(remedy._id)}
+className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs rounded"
+>
+Delete
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+))}
+
+</div>
+
+</div>
+
+);
+
 }
 
 export default MyRemedies;

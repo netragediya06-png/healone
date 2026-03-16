@@ -1,15 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
-// import "../pages/admin/Dashboaed.css";
-import "../App.css";
+import { Bell } from "lucide-react";
 
 function DashboardLayout() {
 
   const navigate = useNavigate();
 
+  const notifRef = useRef(null);
+  const profileRef = useRef(null);
+
   const [openSidebarToggle, setOpenSidebarToggle] = useState(true);
   const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [showNotif, setShowNotif] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [modalType, setModalType] = useState(null);
@@ -21,7 +24,8 @@ function DashboardLayout() {
     setOpenSidebarToggle(!openSidebarToggle);
   };
 
-  // Fetch admin data from localStorage
+  /* ================= ADMIN DATA + DEMO NOTIFICATIONS ================= */
+
   useEffect(() => {
 
     const name = localStorage.getItem("name");
@@ -31,323 +35,292 @@ function DashboardLayout() {
     setAdminEmail(email);
 
     const demoNotifications = [
-      { _id: 1, title: "New Product Added", message: "Ashwagandha Capsules added" },
-      { _id: 2, title: "New Order", message: "Order #1023 received" },
-      { _id: 3, title: "New User Registered", message: "Rahul created account" },
+      { _id: 1, title: "New Product Added", message: "Ashwagandha Capsules added", read: false },
+      { _id: 2, title: "New Order", message: "Order #1023 received", read: false },
+      { _id: 3, title: "New User Registered", message: "Rahul created account", read: false },
     ];
 
     setNotifications(demoNotifications);
+    setUnreadCount(demoNotifications.length);
+
+    const interval = setInterval(() => {
+
+      const newNotif = {
+        _id: Date.now(),
+        title: "System Update",
+        message: "New activity detected",
+        read: false
+      };
+
+      setNotifications((prev) => [newNotif, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+
+    }, 30000);
+
+    return () => clearInterval(interval);
 
   }, []);
 
-  const closeModal = () => {
-    setModalType(null);
+  /* ================= CLICK OUTSIDE HANDLER ================= */
+
+  useEffect(() => {
+
+    const handleClickOutside = (event) => {
+
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setShowNotif(false);
+      }
+
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+
+  }, []);
+
+  /* ================= FUNCTIONS ================= */
+
+  const closeModal = () => setModalType(null);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
   };
 
-  // Logout function
-  const handleLogout = () => {
+  const markAsRead = (id) => {
 
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("role");
-    localStorage.removeItem("email");
-    localStorage.removeItem("name");
+    const updated = notifications.map((n) =>
+      n._id === id ? { ...n, read: true } : n
+    );
 
-    navigate("/login");
+    setNotifications(updated);
 
+    const unread = updated.filter((n) => !n.read).length;
+    setUnreadCount(unread);
   };
 
   return (
-    <div className="dashboard">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
 
-      <div className="dashboard-body">
+      {/* SIDEBAR */}
 
-        <Sidebar
-          openSidebarToggle={openSidebarToggle}
-          OpenSidebar={OpenSidebar}
-        />
+      <Sidebar
+        openSidebarToggle={openSidebarToggle}
+        OpenSidebar={OpenSidebar}
+      />
 
-        <div className="main-section">
+      {/* MAIN */}
 
-          {/* HEADER */}
+      <div
+  className={`flex flex-col flex-1 transition-all duration-300 ${
+  openSidebarToggle ? "ml-[220px]" : "ml-[70px]"
+}`}
+>
 
-          <div className="admin-header">
+        {/* HEADER */}
 
-            <div className="header-left">
-              <h3>HealOne Admin</h3>
-            </div>
+        <header className="bg-white border-b shadow-sm px-6 py-3 flex items-center justify-between">
 
-            <div className="header-right">
+          {/* LEFT */}
 
-              {/* Notifications */}
+          <div className="flex items-center gap-4">
 
-              <div
-                className="icon-circle"
+            <button
+              onClick={OpenSidebar}
+              className="text-gray-600 hover:text-green-600 text-lg"
+            >
+              <i className="fa-solid fa-bars"></i>
+            </button>
+
+            <h2 className="text-lg font-semibold text-gray-800">
+              HealOne Admin
+            </h2>
+
+          </div>
+
+          {/* RIGHT */}
+
+          <div className="flex items-center gap-6">
+
+            {/* NOTIFICATIONS */}
+
+            <div ref={notifRef} className="relative">
+
+              <button
                 onClick={() => setShowNotif(!showNotif)}
+                className="relative p-2 rounded-full hover:bg-gray-100 transition"
               >
 
-                <i className="fa-solid fa-bell"></i>
+                <Bell className={`w-6 h-6 text-gray-700 ${unreadCount > 0 ? "animate-bounce" : ""}`} />
 
-                {notifications.length > 0 && (
-                  <span className="notif-badge">
-                    {notifications.length}
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full shadow">
+                    {unreadCount}
                   </span>
                 )}
 
-                {showNotif && (
-                  <div className="notif-dropdown">
+              </button>
 
-                    {notifications.map((n) => (
-                      <div key={n._id} className="notif-item">
-                        <strong>{n.title}</strong>
-                        <p>{n.message}</p>
-                      </div>
-                    ))}
+              {showNotif && (
+                <div className="absolute right-0 mt-3 w-72 bg-white shadow-xl rounded-xl border z-50 overflow-hidden">
 
+                  <div className="p-3 border-b font-semibold text-sm bg-gray-50">
+                    Notifications
                   </div>
-                )}
 
-              </div>
+                  {notifications.map((n) => (
+                    <div
+                      key={n._id}
+                      onClick={() => markAsRead(n._id)}
+                      className={`px-4 py-3 border-b cursor-pointer
+                      ${n.read ? "bg-white" : "bg-blue-50"}
+                      hover:bg-gray-50`}
+                    >
 
-              {/* PROFILE */}
+                      <p className="text-sm font-medium">{n.title}</p>
+                      <p className="text-xs text-gray-500">{n.message}</p>
 
-              <div
-                className="admin-profile"
+                      {!n.read && (
+                        <span className="text-[10px] text-blue-600 font-medium">
+                          Unread
+                        </span>
+                      )}
+
+                    </div>
+                  ))}
+
+                </div>
+              )}
+
+            </div>
+
+            {/* PROFILE */}
+
+            <div ref={profileRef} className="relative">
+
+              <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="flex items-center gap-3 hover:bg-gray-100 px-2 py-1 rounded-lg"
               >
 
                 <img
                   src="https://i.pravatar.cc/40"
+                  className="w-9 h-9 rounded-full border"
                   alt="admin"
                 />
 
-                <span>{adminName}</span>
+                <span className="hidden md:block text-sm font-medium text-gray-700">
+                  {adminName}
+                </span>
 
-                <i className="fa-solid fa-chevron-down small-arrow"></i>
+                <i className="fa-solid fa-chevron-down text-xs text-gray-500"></i>
 
-                {showProfileMenu && (
-                  <div className="profile-dropdown">
+              </button>
 
-                    <div
-                      className="profile-item"
-                      onClick={() => setModalType("profile")}
-                    >
-                      <i className="fa-solid fa-user"></i> View Profile
-                    </div>
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-3 w-52 bg-white shadow-xl rounded-xl border z-50 overflow-hidden">
 
-                    <div
-                      className="profile-item"
-                      onClick={() => setModalType("edit")}
-                    >
-                      <i className="fa-solid fa-pen"></i> Edit Profile
-                    </div>
+                  <button
+                    onClick={() => setModalType("profile")}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm"
+                  >
+                    View Profile
+                  </button>
 
-                    <div
-                      className="profile-item"
-                      onClick={() => setModalType("password")}
-                    >
-                      <i className="fa-solid fa-key"></i> Change Password
-                    </div>
+                  <button
+                    onClick={() => setModalType("edit")}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm"
+                  >
+                    Edit Profile
+                  </button>
 
-                    {/* Logout */}
+                  <button
+                    onClick={() => setModalType("password")}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm"
+                  >
+                    Change Password
+                  </button>
 
-                    <div
-                      className="profile-item text-danger"
-                      onClick={handleLogout}
-                    >
-                      <i className="fa-solid fa-right-from-bracket"></i> Logout
-                    </div>
+                  <div className="border-t"></div>
 
-                  </div>
-                )}
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-3 hover:bg-red-50 text-red-500 text-sm"
+                  >
+                    Logout
+                  </button>
 
-              </div>
+                </div>
+              )}
 
             </div>
 
           </div>
 
-          <main className="main-container">
-            <Outlet />
-          </main>
+        </header>
 
-        </div>
+        {/* PAGE */}
+
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet />
+        </main>
 
       </div>
 
-      {/* VIEW PROFILE MODAL */}
+      {/* PROFILE MODAL */}
 
       {modalType === "profile" && (
-        <div className="modal fade show d-block">
+        <ModalWrapper closeModal={closeModal} title="Admin Profile">
 
-          <div className="modal-dialog">
+          <div className="text-center">
 
-            <div className="modal-content">
+            <img
+              src="https://i.pravatar.cc/100"
+              className="w-24 h-24 rounded-full mx-auto mb-4 border"
+              alt="profile"
+            />
 
-              <div className="modal-header">
-
-                <h5 className="modal-title">
-                  Admin Profile
-                </h5>
-
-                <button
-                  className="btn-close"
-                  onClick={closeModal}
-                ></button>
-
-              </div>
-
-              <div className="modal-body text-center">
-
-                <img
-                  src="https://i.pravatar.cc/100"
-                  className="rounded-circle mb-3"
-                  alt="profile"
-                />
-
-                <h5>{adminName}</h5>
-                <p>{adminEmail}</p>
-
-              </div>
-
-            </div>
+            <h4 className="text-lg font-semibold">{adminName}</h4>
+            <p className="text-gray-500">{adminEmail}</p>
 
           </div>
 
-        </div>
+        </ModalWrapper>
       )}
 
-      {/* EDIT PROFILE MODAL */}
+    </div>
+  );
+}
 
-      {modalType === "edit" && (
-        <div className="modal fade show d-block">
+/* MODAL */
 
-          <div className="modal-dialog">
+function ModalWrapper({ title, children, closeModal }) {
 
-            <div className="modal-content">
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
 
-              <div className="modal-header">
+      <div className="bg-white rounded-xl shadow-2xl w-[400px] p-6">
 
-                <h5 className="modal-title">
-                  Edit Profile
-                </h5>
+        <div className="flex justify-between items-center mb-4">
 
-                <button
-                  className="btn-close"
-                  onClick={closeModal}
-                ></button>
+          <h3 className="font-semibold text-lg">{title}</h3>
 
-              </div>
-
-              <div className="modal-body">
-
-                <form>
-
-                  <div className="mb-3">
-                    <label>Name</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      defaultValue={adminName}
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      className="form-control"
-                      defaultValue={adminEmail}
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label>Profile Photo</label>
-                    <input
-                      type="file"
-                      className="form-control"
-                    />
-                  </div>
-
-                  <button className="btn btn-success w-100">
-                    Update Profile
-                  </button>
-
-                </form>
-
-              </div>
-
-            </div>
-
-          </div>
+          <button onClick={closeModal}>
+            <i className="fa-solid fa-xmark"></i>
+          </button>
 
         </div>
-      )}
 
-      {/* CHANGE PASSWORD MODAL */}
+        {children}
 
-      {modalType === "password" && (
-        <div className="modal fade show d-block">
-
-          <div className="modal-dialog">
-
-            <div className="modal-content">
-
-              <div className="modal-header">
-
-                <h5 className="modal-title">
-                  Change Password
-                </h5>
-
-                <button
-                  className="btn-close"
-                  onClick={closeModal}
-                ></button>
-
-              </div>
-
-              <div className="modal-body">
-
-                <form>
-
-                  <div className="mb-3">
-                    <label>Current Password</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label>New Password</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label>Confirm Password</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                    />
-                  </div>
-
-                  <button className="btn btn-primary w-100">
-                    Update Password
-                  </button>
-
-                </form>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-      )}
+      </div>
 
     </div>
   );

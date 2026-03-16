@@ -1,6 +1,44 @@
-const WellnessProgram = require("../models/WellnessProgram");
-const User = require("../models/User");
+const Program = require("../models/Program");
+const cloudinary = require("../config/cloudinary");
+
+
+/* =====================================
+   CLOUDINARY IMAGE UPLOAD HELPER
+===================================== */
+
+const uploadImage = (fileBuffer, folder) => {
+
+  return new Promise((resolve, reject) => {
+
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        quality: "auto",
+        fetch_format: "auto"
+      },
+      (error, result) => {
+
+        if (error) return reject(error);
+
+        resolve(result.secure_url);
+
+      }
+    );
+
+    stream.end(fileBuffer);
+
+  });
+
+};
+
+
+
+/* ======================================================
+   CREATE PROGRAM
+====================================================== */
+
 exports.createProgram = async (req, res) => {
+
   try {
 
     const {
@@ -8,170 +46,393 @@ exports.createProgram = async (req, res) => {
       description,
       category,
       durationDays,
-      price
+      programLevel,
+      startDate,
+      endDate,
+      seatsLimit,
+      benefits,
+      plans,
+      linkedRemedies,
+      linkedYoga
     } = req.body;
 
-    const program = await WellnessProgram.create({
+    let imageUrl = "";
+
+    if (req.file) {
+
+      imageUrl = await uploadImage(
+        req.file.buffer,
+        "healone_programs"
+      );
+
+    }
+
+    const program = new Program({
+
       title,
       description,
       category,
       durationDays,
-      price,
-      specialist: req.user.id,
-      image: req.file ? req.file.path : null
+      programLevel,
+      startDate,
+      endDate,
+      seatsLimit,
+
+      benefits: typeof benefits === "string"
+        ? JSON.parse(benefits)
+        : benefits,
+
+      plans: typeof plans === "string"
+        ? JSON.parse(plans)
+        : plans,
+
+      linkedRemedies,
+      linkedYoga,
+
+      coverImage: imageUrl,
+
+      specialist: req.user._id,
+
+      status: "pending"
+
     });
 
-    res.status(201).json({
-      message: "Program created and waiting for admin approval",
-      program
-    });
+    const savedProgram = await program.save();
+
+    res.status(201).json(savedProgram);
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.log("CREATE PROGRAM ERROR:", error);
+
+    res.status(500).json({
+      message: error.message
+    });
+
   }
+
 };
-exports.getAdminPrograms = async (req, res) => {
+
+
+
+/* ======================================================
+   GET ALL PROGRAMS (ADMIN)
+====================================================== */
+
+exports.getAllPrograms = async (req, res) => {
+
   try {
 
-    const programs = await WellnessProgram.find()
-      .populate("category", "name")
+    const programs = await Program
+      .find()
       .populate("specialist", "fullName email");
 
-    res.status(200).json(programs);
+    res.json(programs);
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-exports.getApprovedPrograms = async (req, res) => {
-  try {
 
-    const programs = await WellnessProgram.find({
-      approvalStatus: "approved",
-      status: true
-    })
-      .populate("category", "name")
-      .populate("specialist", "fullName profilePhoto");
-
-    res.status(200).json(programs);
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};  
-exports.getSingleProgram = async (req, res) => {
-  try {
-
-    const program = await WellnessProgram.findById(req.params.id)
-      .populate("category", "name")
-      .populate("specialist", "fullName bio");
-
-    if (!program) {
-      return res.status(404).json({ message: "Program not found" });
-    }
-
-    res.status(200).json(program);
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-exports.updateProgram = async (req, res) => {
-  try {
-
-    const program = await WellnessProgram.findById(req.params.id);
-
-    if (!program) {
-      return res.status(404).json({ message: "Program not found" });
-    }
-
-    Object.assign(program, req.body);
-
-    await program.save();
-
-    res.status(200).json({
-      message: "Program updated successfully",
-      program
+    res.status(500).json({
+      message: error.message
     });
 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
   }
+
 };
-exports.deleteProgram = async (req, res) => {
+
+
+
+/* ======================================================
+   GET APPROVED PROGRAMS (USER)
+====================================================== */
+
+exports.getApprovedPrograms = async (req, res) => {
+
   try {
 
-    const program = await WellnessProgram.findById(req.params.id);
+    const programs = await Program.find({
+      status: "approved"
+    });
+
+    res.json(programs);
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+
+};
+
+
+
+/* ======================================================
+   GET SINGLE PROGRAM
+====================================================== */
+
+exports.getProgram = async (req, res) => {
+
+  try {
+
+    const program = await Program
+      .findById(req.params.id)
+      .populate("specialist", "fullName email")
+      .populate("linkedRemedies")
+      .populate("linkedYoga");
 
     if (!program) {
-      return res.status(404).json({ message: "Program not found" });
+
+      return res.status(404).json({
+        message: "Program not found"
+      });
+
+    }
+
+    res.json(program);
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+
+};
+
+
+
+/* ======================================================
+   GET MY PROGRAMS (SPECIALIST)
+====================================================== */
+
+exports.getMyPrograms = async (req, res) => {
+
+  try {
+
+    const programs = await Program.find({
+      specialist: req.user._id
+    });
+
+    res.json(programs);
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+
+};
+
+
+
+/* ======================================================
+   UPDATE PROGRAM
+====================================================== */
+
+exports.updateProgram = async (req, res) => {
+
+  try {
+
+    const program = await Program.findById(req.params.id);
+
+    if (!program) {
+
+      return res.status(404).json({
+        message: "Program not found"
+      });
+
+    }
+
+    const {
+      title,
+      description,
+      category,
+      durationDays,
+      programLevel,
+      startDate,
+      endDate,
+      seatsLimit,
+      benefits,
+      plans,
+      linkedRemedies,
+      linkedYoga
+    } = req.body;
+
+    if (title) program.title = title;
+    if (description) program.description = description;
+    if (category) program.category = category;
+    if (durationDays) program.durationDays = durationDays;
+    if (programLevel) program.programLevel = programLevel;
+
+    if (startDate) program.startDate = startDate;
+    if (endDate) program.endDate = endDate;
+
+    if (seatsLimit) program.seatsLimit = seatsLimit;
+
+    if (benefits)
+      program.benefits = typeof benefits === "string"
+        ? JSON.parse(benefits)
+        : benefits;
+
+    if (plans)
+      program.plans = typeof plans === "string"
+        ? JSON.parse(plans)
+        : plans;
+
+    if (linkedRemedies) program.linkedRemedies = linkedRemedies;
+    if (linkedYoga) program.linkedYoga = linkedYoga;
+
+
+    if (req.file) {
+
+      const imageUrl = await uploadImage(
+        req.file.buffer,
+        "healone_programs"
+      );
+
+      program.coverImage = imageUrl;
+
+    }
+
+    const updated = await program.save();
+
+    res.json(updated);
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+
+};
+
+
+
+/* ======================================================
+   UPDATE PROGRAM STATUS (ADMIN)
+====================================================== */
+
+exports.updateProgramStatus = async (req, res) => {
+
+  try {
+
+    const program = await Program.findById(req.params.id);
+
+    if (!program) {
+
+      return res.status(404).json({
+        message: "Program not found"
+      });
+
+    }
+
+    program.status = req.body.status;
+
+    if (req.body.adminFeedback) {
+
+      program.adminFeedback = req.body.adminFeedback;
+
+    }
+
+    const updated = await program.save();
+
+    res.json(updated);
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+
+};
+
+
+
+/* ======================================================
+   DELETE PROGRAM
+====================================================== */
+
+exports.deleteProgram = async (req, res) => {
+
+  try {
+
+    const program = await Program.findById(req.params.id);
+
+    if (!program) {
+
+      return res.status(404).json({
+        message: "Program not found"
+      });
+
     }
 
     await program.deleteOne();
 
-    res.status(200).json({
+    res.json({
       message: "Program deleted successfully"
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-exports.approveProgram = async (req, res) => {
-  try {
 
-    const program = await WellnessProgram.findById(req.params.id);
-
-    if (!program) {
-      return res.status(404).json({ message: "Program not found" });
-    }
-
-    program.approvalStatus = "approved";
-
-    await program.save();
-
-    res.status(200).json({
-      message: "Program approved successfully"
+    res.status(500).json({
+      message: error.message
     });
 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
   }
+
 };
 
-/* ===========================================
-   REJECT PROGRAM (ADMIN)
-=========================================== */
 
-exports.rejectProgram = async (req, res) => {
+
+/* ======================================================
+   ENROLL USER IN PROGRAM
+====================================================== */
+
+exports.enrollProgram = async (req, res) => {
+
   try {
 
-    const programId = req.params.id;
-
-    const program = await WellnessProgram.findById(programId);
+    const program = await Program.findById(req.params.id);
 
     if (!program) {
+
       return res.status(404).json({
         message: "Program not found"
       });
+
     }
 
-    program.approvalStatus = "rejected";
+    if (program.seatsBooked >= program.seatsLimit) {
+
+      return res.status(400).json({
+        message: "Program seats full"
+      });
+
+    }
+
+    program.seatsBooked += 1;
+    program.totalEnrollments += 1;
 
     await program.save();
 
-    res.status(200).json({
-      message: "Program rejected successfully",
-      program
+    res.json({
+      message: "Enrollment successful"
     });
 
   } catch (error) {
 
-    console.log("REJECT PROGRAM ERROR:", error);
-
     res.status(500).json({
-      message: "Server error while rejecting program"
+      message: error.message
     });
 
   }
+
 };

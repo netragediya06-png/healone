@@ -128,3 +128,26 @@
     box-shadow: var(--shadow-elevated);
   }
 }
+.input-premium{
+@apply w-full px-4 py-3 rounded-xl border border-input bg-white
+focus:outline-none focus:ring-2 focus:ring-primary
+focus:border-primary transition-all duration-200;
+}
+
+.btn-premium{
+@apply bg-primary hover:brightness-110 text-primary-foreground
+px-6 py-3 rounded-xl font-medium shadow-soft
+transition-all duration-200;
+}
+/* @keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease;
+} */

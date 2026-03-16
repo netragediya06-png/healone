@@ -1,8 +1,10 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 
 /* ---------------- AUTH ---------------- */
 import Login from "./pages/auth/Login.jsx";
-import Register from "./pages/auth/Register.jsx";
+import Register from "./pages/user/Register.js";
+import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
+import ResetPassword from "./pages/auth/ResetPassword.jsx";
 
 /* ---------------- ADMIN ---------------- */
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -29,6 +31,12 @@ import SpecialistDashboard from "./pages/specialist/dashboard/SpecialistDashboar
 import MyRemedies from "./pages/specialist/remedies/MyRemedies";
 import AddRemedy from "./pages/specialist/remedies/AddRemedy";
 import EditRemedy from "./pages/specialist/remedies/EditRemedy";
+import AddYoga from "./pages/specialist/Yoga/AddYoga.jsx";
+import MyYogaList from "./pages/specialist/Yoga/MyYogaList";
+import EditYoga from "./pages/specialist/Yoga/EditYoga";
+import CreateProgram from "./pages/specialist/wellness-program/CreateProgram.jsx";
+import EditProgram from "./pages/specialist/wellness-program/EditProgram.jsx";
+import MyPrograms from "./pages/specialist/wellness-program/MyPrograms.jsx";
 
 /* ---------------- USER (Lovable UI) ---------------- */
 import Navbar from "./components/Navbar";
@@ -50,11 +58,10 @@ import Programs from "./pages/user/Programs";
 import Specialists from "./pages/user/Specialists";
 import Checkout from "./pages/user/Checkout";
 import DoshaQuiz from "./pages/user/DoshaQuiz";
+import VerifyEmail from "./pages/user/VerifyEmail";
 import NotFound from "./pages/user/NotFound";
 
 /* ---------------- USER LAYOUT ---------------- */
-import { Outlet } from "react-router-dom";
-
 function UserLayout() {
   return (
     <>
@@ -66,10 +73,19 @@ function UserLayout() {
   );
 }
 
+/* ---------------- AUTH LAYOUT (Navbar Only) ---------------- */
+function AuthLayout() {
+  return (
+    <>
+      <Navbar />
+      <Outlet />
+    </>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
-
       <Routes>
 
         {/* ================= USER ROUTES ================= */}
@@ -91,8 +107,14 @@ function App() {
         </Route>
 
         {/* ================= AUTH ROUTES ================= */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+           {/* EMAIL VERIFICATION */}
+  <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        </Route>
 
         {/* ================= ADMIN ROUTES ================= */}
         <Route
@@ -112,7 +134,7 @@ function App() {
           <Route path="specialists" element={<ManageSpecialists />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="remedies" element={<AdminRemedies />} />
-          <Route path="yoga-services" element={<AdminYogaServices />} />
+          <Route path="yoga" element={<AdminYogaServices />} />
           <Route path="programs" element={<AdminProgramList />} />
           <Route path="programs/:id" element={<AdminProgramDetail />} />
           <Route path="subscriptions" element={<AdminSubscriptions />} />
@@ -132,13 +154,22 @@ function App() {
           <Route path="remedies" element={<MyRemedies />} />
           <Route path="add-remedy" element={<AddRemedy />} />
           <Route path="edit-remedy/:id" element={<EditRemedy />} />
+
+          {/* YOGA */}
+          <Route path="yoga" element={<MyYogaList />} />
+          <Route path="add-yoga" element={<AddYoga />} />
+          <Route path="edit-yoga/:id" element={<EditYoga />} />
+
+          {/* PROGRAMS */}
+          <Route path="programs" element={<MyPrograms />} />
+          <Route path="create-program" element={<CreateProgram />} />
+          <Route path="edit-program/:id" element={<EditProgram />} />
         </Route>
 
         {/* ================= 404 ================= */}
         <Route path="*" element={<NotFound />} />
 
       </Routes>
-
     </BrowserRouter>
   );
 }

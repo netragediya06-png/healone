@@ -1,186 +1,365 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import remedyService from "../../../services/remedyService";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const AddRemedy = () => {
-  const [title, setTitle] = useState("");
-  const [ingredients, setIngredients] = useState([""]);
-  const [steps, setSteps] = useState([""]);
-  const [healthCategory, setHealthCategory] = useState("");
-  const [loading, setLoading] = useState(false);
+function AddRemedy() {
 
-  const userId = localStorage.getItem("userId"); // make sure stored on login
+const navigate = useNavigate();
+const token = localStorage.getItem("token");
 
-  // Handle ingredient change
-  const handleIngredientChange = (index, value) => {
-    const newIngredients = [...ingredients];
-    newIngredients[index] = value;
-    setIngredients(newIngredients);
-  };
+const [categories,setCategories] = useState([]);
 
-  // Add ingredient field
-  const addIngredient = () => {
-    setIngredients([...ingredients, ""]);
-  };
+const [formData,setFormData] = useState({
+title:"",
+healthCategory:"",
+usage:"",
+benefits:"",
+precautions:"",
+symptoms:[""],
+ingredients:[""],
+steps:[""]
+});
 
-  // Handle step change
-  const handleStepChange = (index, value) => {
-    const newSteps = [...steps];
-    newSteps[index] = value;
-    setSteps(newSteps);
-  };
+const [image,setImage] = useState(null);
+const [loading,setLoading] = useState(false);
 
-  const addStep = () => {
-    setSteps([...steps, ""]);
-  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+/* ================================
+   FETCH CATEGORIES
+================================ */
 
-    try {
-      await axios.post(
-        "http://localhost:5000/api/remedies/specialist",
-        {
-          title,
-          ingredients,
-          steps,
-          healthCategory,
-        },
-        {
-          headers: {
-            userid: userId,
-          },
-        }
-      );
+useEffect(()=>{
+fetchCategories();
+},[]);
 
-      alert("Remedy submitted for approval ✅");
+const fetchCategories = async ()=>{
 
-      // Reset form
-      setTitle("");
-      setIngredients([""]);
-      setSteps([""]);
-      setHealthCategory("");
+try{
 
-    } catch (error) {
-      alert(error.response?.data?.message || "Error creating remedy");
-    }
+const res = await axios.get(
+"http://localhost:5000/api/categories"
+);
 
-    setLoading(false);
-  };
+setCategories(res.data);
 
-  return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>Add New Remedy</h2>
+}catch(err){
+console.error(err);
+}
 
-      <form onSubmit={handleSubmit} style={styles.form}>
-        {/* Title */}
-        <input
-          type="text"
-          placeholder="Remedy Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          style={styles.input}
-        />
-
-        {/* Health Category */}
-        <input
-          type="text"
-          placeholder="Health Category (e.g. Immunity)"
-          value={healthCategory}
-          onChange={(e) => setHealthCategory(e.target.value)}
-          required
-          style={styles.input}
-        />
-
-        {/* Ingredients */}
-        <h4>Ingredients</h4>
-        {ingredients.map((ingredient, index) => (
-          <input
-            key={index}
-            type="text"
-            placeholder={`Ingredient ${index + 1}`}
-            value={ingredient}
-            onChange={(e) =>
-              handleIngredientChange(index, e.target.value)
-            }
-            required
-            style={styles.input}
-          />
-        ))}
-        <button type="button" onClick={addIngredient} style={styles.smallBtn}>
-          + Add Ingredient
-        </button>
-
-        {/* Steps */}
-        <h4>Steps</h4>
-        {steps.map((step, index) => (
-          <input
-            key={index}
-            type="text"
-            placeholder={`Step ${index + 1}`}
-            value={step}
-            onChange={(e) => handleStepChange(index, e.target.value)}
-            required
-            style={styles.input}
-          />
-        ))}
-        <button type="button" onClick={addStep} style={styles.smallBtn}>
-          + Add Step
-        </button>
-
-        {/* Submit */}
-        <button type="submit" disabled={loading} style={styles.submitBtn}>
-          {loading ? "Submitting..." : "Submit Remedy"}
-        </button>
-      </form>
-    </div>
-  );
 };
 
-const styles = {
-  container: {
-    maxWidth: "600px",
-    margin: "40px auto",
-    padding: "30px",
-    backgroundColor: "#f9fdf9",
-    borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-  },
-  heading: {
-    textAlign: "center",
-    marginBottom: "20px",
-    color: "#2e7d32",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
-  input: {
-    padding: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-  },
-  smallBtn: {
-    padding: "6px 10px",
-    backgroundColor: "#4caf50",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    width: "fit-content",
-  },
-  submitBtn: {
-    padding: "12px",
-    backgroundColor: "#2e7d32",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    marginTop: "10px",
-    fontWeight: "bold",
-  },
+
+/* ================================
+   INPUT CHANGE
+================================ */
+
+const handleChange=(e)=>{
+
+setFormData({
+...formData,
+[e.target.name]:e.target.value
+});
+
 };
+
+
+/* ================================
+   ARRAY CHANGE
+================================ */
+
+const handleArrayChange=(index,type,value)=>{
+
+const arr=[...formData[type]];
+arr[index]=value;
+
+setFormData({
+...formData,
+[type]:arr
+});
+
+};
+
+
+/* ================================
+   ADD FIELD
+================================ */
+
+const addField=(type)=>{
+
+setFormData({
+...formData,
+[type]:[...formData[type],""]
+});
+
+};
+
+
+/* ================================
+   IMAGE CHANGE
+================================ */
+
+const handleImageChange = (e) => {
+
+const file = e.target.files[0];
+
+if(file){
+
+setImage(file);
+
+}
+
+};
+
+
+/* ================================
+   SUBMIT
+================================ */
+
+const handleSubmit=async(e)=>{
+
+e.preventDefault();
+
+const data=new FormData();
+
+/* TEXT FIELDS */
+
+data.append("title",formData.title);
+data.append("healthCategory",formData.healthCategory);
+data.append("usage",formData.usage);
+data.append("benefits",formData.benefits);
+data.append("precautions",formData.precautions);
+
+/* ARRAYS AS JSON */
+
+data.append("symptoms",JSON.stringify(formData.symptoms));
+data.append("ingredients",JSON.stringify(formData.ingredients));
+data.append("steps",JSON.stringify(formData.steps));
+
+/* IMAGE */
+
+if(image){
+data.append("image",image);
+}
+
+try{
+
+setLoading(true);
+
+await remedyService.createRemedy(data,token);
+
+alert("Remedy submitted for admin approval");
+
+navigate("/specialist/remedies");
+
+}catch(err){
+
+console.error(err);
+alert("Error creating remedy");
+
+}
+
+setLoading(false);
+
+};
+
+
+return(
+
+<div className="max-w-3xl mx-auto bg-white shadow-lg rounded-xl p-8">
+
+<h2 className="text-2xl font-semibold mb-6 text-center text-green-700">
+Add Remedy
+</h2>
+
+<form onSubmit={handleSubmit} className="space-y-5">
+
+{/* TITLE */}
+
+<input
+name="title"
+placeholder="Remedy Title"
+value={formData.title}
+onChange={handleChange}
+className="w-full border rounded-lg px-4 py-2"
+required
+/>
+
+
+{/* CATEGORY */}
+
+<select
+name="healthCategory"
+value={formData.healthCategory}
+onChange={handleChange}
+className="w-full border rounded-lg px-4 py-2"
+required
+>
+
+<option value="">Select Category</option>
+
+{categories.map((cat)=>(
+<option key={cat._id} value={cat.name}>
+{cat.name}
+</option>
+))}
+
+</select>
+
+
+{/* USAGE */}
+
+<textarea
+name="usage"
+placeholder="Usage"
+value={formData.usage}
+onChange={handleChange}
+className="w-full border rounded-lg px-4 py-2"
+/>
+
+
+{/* BENEFITS */}
+
+<textarea
+name="benefits"
+placeholder="Benefits"
+value={formData.benefits}
+onChange={handleChange}
+className="w-full border rounded-lg px-4 py-2"
+/>
+
+
+{/* PRECAUTIONS */}
+
+<textarea
+name="precautions"
+placeholder="Precautions"
+value={formData.precautions}
+onChange={handleChange}
+className="w-full border rounded-lg px-4 py-2"
+/>
+
+
+{/* IMAGE */}
+
+<div>
+
+<label className="block text-sm mb-1">Upload Image</label>
+
+<input
+type="file"
+accept="image/*"
+onChange={handleImageChange}
+/>
+
+</div>
+
+
+{/* SYMPTOMS */}
+
+<div>
+
+<h4 className="font-semibold mb-2">Symptoms</h4>
+
+{formData.symptoms.map((s,i)=>(
+
+<input
+key={i}
+value={s}
+onChange={(e)=>handleArrayChange(i,"symptoms",e.target.value)}
+className="border rounded-lg px-3 py-2 w-full mb-2"
+placeholder={`Symptom ${i+1}`}
+/>
+
+))}
+
+<button
+type="button"
+onClick={()=>addField("symptoms")}
+className="text-sm bg-gray-200 px-3 py-1 rounded"
+>
++ Add Symptom
+</button>
+
+</div>
+
+
+{/* INGREDIENTS */}
+
+<div>
+
+<h4 className="font-semibold mb-2">Ingredients</h4>
+
+{formData.ingredients.map((s,i)=>(
+
+<input
+key={i}
+value={s}
+onChange={(e)=>handleArrayChange(i,"ingredients",e.target.value)}
+className="border rounded-lg px-3 py-2 w-full mb-2"
+placeholder={`Ingredient ${i+1}`}
+/>
+
+))}
+
+<button
+type="button"
+onClick={()=>addField("ingredients")}
+className="text-sm bg-gray-200 px-3 py-1 rounded"
+>
++ Add Ingredient
+</button>
+
+</div>
+
+
+{/* STEPS */}
+
+<div>
+
+<h4 className="font-semibold mb-2">Steps</h4>
+
+{formData.steps.map((s,i)=>(
+
+<input
+key={i}
+value={s}
+onChange={(e)=>handleArrayChange(i,"steps",e.target.value)}
+className="border rounded-lg px-3 py-2 w-full mb-2"
+placeholder={`Step ${i+1}`}
+/>
+
+))}
+
+<button
+type="button"
+onClick={()=>addField("steps")}
+className="text-sm bg-gray-200 px-3 py-1 rounded"
+>
++ Add Step
+</button>
+
+</div>
+
+
+{/* SUBMIT */}
+
+<button
+type="submit"
+disabled={loading}
+className="bg-green-600 hover:bg-green-700 text-white w-full py-2 rounded-lg"
+>
+
+{loading ? "Submitting..." : "Submit Remedy"}
+
+</button>
+
+</form>
+
+</div>
+
+);
+
+}
 
 export default AddRemedy;

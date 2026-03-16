@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import API from "../../services/api";
 import { FaUserCircle, FaTrash, FaBan, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
-import "./AdminUsers.css";
 
 const AdminUsers = () => {
 
@@ -102,15 +101,17 @@ const AdminUsers = () => {
 
   return (
 
-    <div className="users-container">
+    <div className="p-6">
 
       {/* HEADER */}
 
-      <div className="users-header">
+      <div className="flex justify-between items-center mb-6">
 
-        <h2>Users</h2>
+        <h2 className="text-2xl font-bold text-gray-800">
+          Users
+        </h2>
 
-        <span className="total-badge">
+        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
           {users.length} Total Users
         </span>
 
@@ -118,35 +119,47 @@ const AdminUsers = () => {
 
       {/* SEARCH + FILTER */}
 
-      <div className="users-controls">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
 
         <input
           type="text"
           placeholder="Search users..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="search-input"
+          className="border rounded-lg px-4 py-2 w-full md:w-1/3 focus:ring-2 focus:ring-green-500"
         />
 
-        <div className="filter-wrapper">
+        <div className="flex gap-2 flex-wrap">
 
           <button
-            className={`filter-btn ${filter === "all" ? "selected" : ""}`}
             onClick={() => setFilter("all")}
+            className={`px-4 py-2 rounded-lg text-sm
+              ${filter === "all"
+                ? "bg-green-600 text-white"
+                : "bg-gray-100 hover:bg-gray-200"}
+            `}
           >
             All ({users.length})
           </button>
 
           <button
-            className={`filter-btn ${filter === "active" ? "selected" : ""}`}
             onClick={() => setFilter("active")}
+            className={`px-4 py-2 rounded-lg text-sm
+              ${filter === "active"
+                ? "bg-green-600 text-white"
+                : "bg-gray-100 hover:bg-gray-200"}
+            `}
           >
             Active ({activeCount})
           </button>
 
           <button
-            className={`filter-btn ${filter === "blocked" ? "selected" : ""}`}
             onClick={() => setFilter("blocked")}
+            className={`px-4 py-2 rounded-lg text-sm
+              ${filter === "blocked"
+                ? "bg-green-600 text-white"
+                : "bg-gray-100 hover:bg-gray-200"}
+            `}
           >
             Blocked ({blockedCount})
           </button>
@@ -157,11 +170,11 @@ const AdminUsers = () => {
 
       {/* USER LIST */}
 
-      <div className="users-list">
+      <div className="space-y-4">
 
         {filteredUsers.length === 0 ? (
 
-          <div className="empty-state">
+          <div className="bg-yellow-100 text-yellow-800 p-4 rounded-lg">
             No users found.
           </div>
 
@@ -170,50 +183,61 @@ const AdminUsers = () => {
           filteredUsers.map((user) => {
 
             const age = user.dateOfBirth
-              ? new Date().getFullYear() - new Date(user.dateOfBirth).getFullYear()
+              ? new Date().getFullYear() -
+                new Date(user.dateOfBirth).getFullYear()
               : null;
 
             return (
 
-              <div className="user-item" key={user._id}>
+              <div
+                key={user._id}
+                className="flex justify-between items-center bg-white p-4 rounded-xl shadow hover:shadow-md transition"
+              >
 
-                {/* LEFT SIDE */}
+                {/* LEFT */}
 
-                <div className="user-left">
+                <div className="flex items-center gap-4">
 
                   {user.profilePhoto ? (
+
                     <img
                       src={user.profilePhoto}
                       alt="profile"
-                      className="avatar"
+                      className="w-14 h-14 rounded-full object-cover"
                     />
+
                   ) : (
-                    <FaUserCircle className="avatar-icon" />
+
+                    <FaUserCircle className="text-4xl text-gray-400" />
+
                   )}
 
-                  <div className="user-info">
+                  <div>
 
-                    <h4>{user.fullName}</h4>
+                    <h4 className="font-semibold text-gray-800">
+                      {user.fullName}
+                    </h4>
 
-                    <p className="email">
+                    <p className="text-sm text-gray-500">
                       {user.email}
                     </p>
 
                     {user.phone && (
-                      <p className="meta">
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
                         <FaPhone /> {user.phone}
                       </p>
                     )}
 
                     {(user.gender || age) && (
-                      <p className="meta">
+                      <p className="text-xs text-gray-500">
                         {user.gender || ""} {age ? `| ${age} yrs` : ""}
                       </p>
                     )}
 
                     {user.location?.city && (
-                      <p className="meta">
-                        <FaMapMarkerAlt /> {user.location.city}, {user.location.state}
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <FaMapMarkerAlt /> {user.location.city},{" "}
+                        {user.location.state}
                       </p>
                     )}
 
@@ -221,28 +245,32 @@ const AdminUsers = () => {
 
                 </div>
 
-                {/* RIGHT SIDE */}
+                {/* RIGHT */}
 
-                <div className="user-right">
+                <div className="flex items-center gap-3">
 
                   <span
-                    className={`status ${
-                      user.isBlocked ? "blocked" : "active"
-                    }`}
+                    className={`px-3 py-1 text-xs rounded-full
+                      ${
+                        user.isBlocked
+                          ? "bg-red-100 text-red-600"
+                          : "bg-green-100 text-green-700"
+                      }
+                    `}
                   >
                     {user.isBlocked ? "Blocked" : "Active"}
                   </span>
 
                   <button
-                    className="icon-btn"
                     onClick={() => handleBlock(user._id)}
+                    className="bg-yellow-500 text-white p-2 rounded-lg hover:bg-yellow-600"
                   >
                     <FaBan />
                   </button>
 
                   <button
-                    className="icon-btn delete"
                     onClick={() => handleDelete(user._id)}
+                    className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600"
                   >
                     <FaTrash />
                   </button>
@@ -255,7 +283,7 @@ const AdminUsers = () => {
 
           })
 
-        )}  
+        )}
 
       </div>
 

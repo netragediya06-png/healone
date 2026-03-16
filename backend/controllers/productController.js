@@ -10,8 +10,34 @@ exports.createProduct = async (req, res) => {
 
   try {
 
+    // =========================
+    // VALIDATE REQUIRED FIELDS
+    // =========================
+    const {
+  name,
+  description,
+  price,
+  originalPrice,
+  rating,
+  reviews,
+  badge,
+  category,
+  subCategory,
+  stock
+} = req.body;
+
+    if (!name || !description || !price || !category || !subCategory) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, description, price, category and subCategory are required"
+      });
+    }
+
     let imageUrl = "";
 
+    // =========================
+    // UPLOAD IMAGE TO CLOUDINARY
+    // =========================
     if (req.file) {
 
       const result = await new Promise((resolve, reject) => {
@@ -19,8 +45,10 @@ exports.createProduct = async (req, res) => {
         const stream = cloudinary.uploader.upload_stream(
           { folder: "healone_products" },
           (error, result) => {
-            if (result) resolve(result);
-            else reject(error);
+
+            if (error) reject(error);
+            else resolve(result);
+
           }
         );
 
@@ -32,25 +60,47 @@ exports.createProduct = async (req, res) => {
 
     }
 
-    const stockValue = Number(req.body.stock) || 0;
+    // =========================
+    // SAFE NUMBER CONVERSION
+    // =========================
+    const priceValue = Number(price);
+    const stockValue = Number(stock) || 0;
 
-    const product = await Product.create({
+    if (isNaN(priceValue)) {
+      return res.status(400).json({
+        success: false,
+        message: "Price must be a valid number"
+      });
+    }
 
-      name: req.body.name,
-      description: req.body.description,
-      price: Number(req.body.price),
-      stock: stockValue,
+    // =========================
+    // CREATE PRODUCT
+    // =========================
+const product = await Product.create({
 
-      category: req.body.category,
-      subCategory: req.body.subCategory,
+  name,
+  description,
 
-      image: imageUrl,
+  price: priceValue,
+  originalPrice: Number(originalPrice) || priceValue,
 
-      status: stockValue > 0 ? "active" : "inactive",
+  rating: Number(rating) || 4,
+  reviews: Number(reviews) || 0,
 
-      createdBy: req.user._id
+  badge,
 
-    });
+  stock: stockValue,
+
+  category,
+  subCategory,
+
+  image: imageUrl,
+
+  status: stockValue > 0 ? "active" : "inactive",
+
+  createdBy: req.user ? req.user._id : null
+
+});
 
     res.status(201).json({
       success: true,
@@ -64,7 +114,7 @@ exports.createProduct = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: error.message
+      message: "Server error while creating product"
     });
 
   }

@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const upload = require("../middleware/upload");
 
 const {
@@ -63,6 +64,7 @@ router.put(
   "/:id",
   protect,
   authorize("admin"),
+  upload.single("image"),   // ✅ FIX ADDED
   updateProduct
 );
 
@@ -77,6 +79,10 @@ router.delete(
   deleteProduct
 );
 
+
+// ==========================
+// ADMIN TOGGLE STATUS
+// ==========================
 router.put(
   "/toggle/:id",
   protect,

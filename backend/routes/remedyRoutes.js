@@ -12,13 +12,13 @@ const {
   saveRemedy,
   unsaveRemedy,
   getSavedRemedies,
-  searchRemediesBySymptom,
+  searchRemediesBySymptom
 } = require("../controllers/remedyController");
 
 const {
   protect,
   authorize,
-  specialistApprovedOnly,
+  specialistApprovedOnly
 } = require("../middleware/authMiddleware");
 
 const upload = require("../middleware/upload");
@@ -26,7 +26,6 @@ const upload = require("../middleware/upload");
 
 /* ======================================================
    CREATE REMEDY - SPECIALIST
-   Only approved specialists can create remedies
 ====================================================== */
 
 router.post(
@@ -39,7 +38,7 @@ router.post(
 
 
 /* ======================================================
-   CREATE REMEDY - ADMIN (AUTO APPROVED)
+   CREATE REMEDY - ADMIN
 ====================================================== */
 
 router.post(
@@ -52,45 +51,39 @@ router.post(
 
 
 /* ======================================================
-   GET ALL REMEDIES (ADMIN ONLY)
-====================================================== */
-
-router.get(
-  "/",
-  protect,
-  authorize("admin"),
-  getAllRemedies
-);
-
-
-/* ======================================================
-   GET MY REMEDIES (SPECIALIST)
-====================================================== */
-
-router.get(
-  "/my",
-  protect,
-  authorize("specialist"),
-  getMyRemedies
-);
-
-
-/* ======================================================
    GET APPROVED REMEDIES (PUBLIC)
 ====================================================== */
 
-router.get("/approved", getApprovedRemedies);
+router.get(
+  "/approved",
+  getApprovedRemedies
+);
 
 
 /* ======================================================
    SEARCH REMEDIES BY SYMPTOM
 ====================================================== */
 
-router.get("/search", searchRemediesBySymptom);
+router.get(
+  "/search",
+  searchRemediesBySymptom
+);
 
 
 /* ======================================================
-   SAVE REMEDY (USER)
+   GET SAVED REMEDIES
+====================================================== */
+
+router.get(
+  "/saved",
+  protect,
+  authorize("user"),
+  getSavedRemedies
+);
+
+
+/* ======================================================
+   SAVE REMEDY
 ====================================================== */
 
 router.post(
@@ -114,14 +107,26 @@ router.delete(
 
 
 /* ======================================================
-   GET SAVED REMEDIES
+   GET MY REMEDIES (SPECIALIST)
 ====================================================== */
 
 router.get(
-  "/saved",
+  "/my",
   protect,
-  authorize("user"),
-  getSavedRemedies
+  authorize("specialist"),
+  getMyRemedies
+);
+
+
+/* ======================================================
+   GET ALL REMEDIES (ADMIN)
+====================================================== */
+
+router.get(
+  "/",
+  protect,
+  authorize("admin"),
+  getAllRemedies
 );
 
 
@@ -139,7 +144,7 @@ router.put(
 
 
 /* ======================================================
-   UPDATE REMEDY STATUS (ADMIN ONLY)
+   UPDATE REMEDY STATUS (ADMIN)
 ====================================================== */
 
 router.put(

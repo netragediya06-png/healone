@@ -100,7 +100,33 @@ const Navbar = () => {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-4 ml-6">
+
+  <Link
+    to="/signin"
+    className="text-sm font-medium text-foreground/80 hover:text-primary transition"
+  >
+    Sign In
+  </Link>
+
+  <Link
+    to="/register"
+    className="text-sm font-medium text-foreground/80 hover:text-primary transition"
+  >
+    Sign Up
+  </Link>
+
+  <div className="h-5 w-px bg-border"></div>
+
+  <Link
+    to="/specialist/signup"
+    className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition"
+  >
+    Join Specialist
+  </Link>
+
+</div>
             <div ref={searchRef} className="relative">
               <button onClick={() => setSearchOpen(!searchOpen)} className="p-2 rounded-full hover:bg-secondary transition-colors">
                 <Search className="h-5 w-5 text-foreground/70" />
