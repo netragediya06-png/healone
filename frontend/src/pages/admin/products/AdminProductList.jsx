@@ -5,14 +5,18 @@ import productService from "../../../services/productService";
 function AdminProductList() {
 
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  const [page] = useState(1);
 
   const limit = 8;
 
-  // ===============================
+  // ============================
   // FETCH PRODUCTS
-  // ===============================
+  // ============================
   const fetchProducts = async () => {
 
     try {
@@ -23,174 +27,213 @@ function AdminProductList() {
         limit
       });
 
-      setProducts(res.data.products);
+      const data = res.data.products;
+
+      setProducts(data);
 
     } catch (error) {
 
-      console.error("Fetch products error:", error);
+      console.error(error);
 
     }
 
   };
 
-  // ===============================
-  // AUTO SEARCH
-  // ===============================
+  // ============================
+  // SEARCH + FILTER
+  // ============================
   useEffect(() => {
 
-    const delay = setTimeout(() => {
-
-      fetchProducts();
-
-    }, 400);
-
-    return () => clearTimeout(delay);
+    fetchProducts();
 
   }, [search, page]);
 
-  // ===============================
+  useEffect(() => {
+
+    let data = [...products];
+
+    if (statusFilter !== "All") {
+      data = data.filter((p) => p.status === statusFilter);
+    }
+
+    setFilteredProducts(data);
+
+  }, [products, statusFilter]);
+
+  // ============================
   // TOGGLE STATUS
-  // ===============================
+  // ============================
   const handleToggle = async (id) => {
 
-    try {
+    await productService.toggleProductStatus(id);
 
-      await productService.toggleProductStatus(id);
-
-      fetchProducts();
-
-    } catch (error) {
-
-      console.error("Toggle error:", error);
-
-    }
+    fetchProducts();
 
   };
 
-  // ===============================
+  // ============================
   // DELETE PRODUCT
-  // ===============================
+  // ============================
   const handleDelete = async (id) => {
 
     if (!window.confirm("Delete this product?")) return;
 
-    try {
+    await productService.deleteProduct(id);
 
-      await productService.deleteProduct(id);
+    fetchProducts();
 
-      fetchProducts();
+  };
 
-    } catch (error) {
+  // ============================
+  // STATS
+  // ============================
+  const stats = {
 
-      console.error("Delete error:", error);
+    total: products.length,
 
-    }
+    active: products.filter((p) => p.status === "active").length,
+
+    inactive: products.filter((p) => p.status === "inactive").length
 
   };
 
   return (
 
-    <div className="p-6">
+    <div className="p-6 space-y-6">
 
-      {/* TOP BAR */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+      {/* HEADER */}
 
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">
-            Products
-          </h2>
+      <div>
 
-          <p className="text-sm text-gray-500">
-            {products.length} products
-          </p>
-        </div>
+        <h2 className="text-2xl font-bold text-gray-800">
+          Product Management
+        </h2>
 
-        <div className="flex gap-3">
+        <p className="text-sm text-gray-500">
+          Manage your store products
+        </p>
 
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
-          />
+      </div>
 
-          <Link
-            to="/admin/products/add"
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+
+      {/* TOP STATS CARDS */}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        {[
+          { label: "Total Products", value: stats.total, key: "All", color: "bg-gray-100" },
+          { label: "Active", value: stats.active, key: "active", color: "bg-green-100" },
+          { label: "Inactive", value: stats.inactive, key: "inactive", color: "bg-red-100" }
+        ].map((card) => (
+
+          <div
+            key={card.key}
+            onClick={() => setStatusFilter(card.key)}
+            className={`p-4 rounded-lg cursor-pointer text-center
+            ${card.color}
+            ${statusFilter === card.key ? "ring-2 ring-green-500" : ""}
+            `}
           >
-            + Add Product
-          </Link>
 
-        </div>
+            <h4 className="text-xl font-bold">
+              {card.value}
+            </h4>
+
+            <span className="text-sm text-gray-600">
+              {card.label}
+            </span>
+
+          </div>
+
+        ))}
+
+      </div>
+
+
+      {/* SEARCH + ADD */}
+
+      <div className="flex flex-col md:flex-row md:justify-between gap-4">
+
+        <input
+          type="text"
+          placeholder="Search product..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border rounded-lg px-4 py-2 w-full md:w-2/3 focus:ring-2 focus:ring-green-500"
+        />
+
+        <Link
+          to="/admin/products/add"
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-center"
+        >
+          + Add Product
+        </Link>
 
       </div>
 
 
       {/* PRODUCT GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
-        {products.map((p) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {filteredProducts.map((p) => (
 
           <div
             key={p._id}
-            className={`bg-white rounded-xl shadow hover:shadow-md transition p-4 flex flex-col
-            ${p.stock > 0 && p.stock < 5 ? "border border-red-200" : ""}
-            `}
+            className="bg-white rounded-xl shadow-md hover:shadow-xl
+            hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col"
           >
 
             {/* IMAGE */}
-            <div className="w-full h-40 rounded-lg overflow-hidden bg-gray-100 mb-3">
+
+            <div className="bg-gray-50 flex items-center justify-center h-40">
 
               {p.image ? (
 
                 <img
                   src={p.image}
                   alt={p.name}
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                  className="h-32 object-contain hover:scale-110 transition"
                 />
 
               ) : (
 
-                <div className="flex items-center justify-center h-full text-gray-400">
+                <span className="text-gray-400 text-sm">
                   No Image
-                </div>
+                </span>
 
               )}
 
             </div>
 
 
-            {/* PRODUCT INFO */}
-            <div className="flex-1">
+            {/* CONTENT */}
 
-              <h3 className="font-semibold text-gray-800">
-                {p.name}
-              </h3>
+            <div className="p-4 flex flex-col justify-between flex-grow">
 
-              <p className="text-xs text-gray-500 mb-2">
-                {p.category?.name} / {p.subCategory?.name}
-              </p>
+              <div>
 
+                <h3 className="font-semibold text-gray-800 text-sm">
+                  {p.name}
+                </h3>
 
-              {/* PRICE + STOCK */}
-              <div className="flex justify-between text-sm mb-2">
+                <p className="text-xs text-gray-500 mb-3">
+                  {p.category?.name} / {p.subCategory?.name}
+                </p>
 
-                <span className="font-semibold text-green-600">
-                  ₹ {p.price}
-                </span>
+                <div className="flex justify-between text-sm mb-2">
 
-                <span className="text-gray-500">
-                  Stock: {p.stock}
-                </span>
+                  <span className="text-green-600 font-semibold">
+                    ₹ {p.price}
+                  </span>
 
-              </div>
+                  <span className="text-gray-500">
+                    Stock: {p.stock}
+                  </span>
 
+                </div>
 
-              {/* BADGES */}
-              <div className="flex gap-2 mb-3">
-
-                <span className={`px-2 py-0.5 text-xs rounded-full
+                <span className={`text-xs px-2 py-1 rounded-full
                   ${p.status === "active"
                     ? "bg-green-100 text-green-700"
                     : "bg-gray-200 text-gray-600"}
@@ -198,32 +241,23 @@ function AdminProductList() {
                   {p.status}
                 </span>
 
-                {p.stock === 0 && (
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-600">
-                    Out of Stock
-                  </span>
-                )}
-
-                {p.stock > 0 && p.stock < 5 && (
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-yellow-100 text-yellow-700">
-                    Low Stock
-                  </span>
-                )}
-
               </div>
 
 
-              {/* ACTIONS */}
-              <div className="flex items-center justify-between">
+              {/* BUTTONS */}
+
+              <div className="flex items-center justify-between mt-3">
 
                 <Link
                   to={`/admin/products/edit/${p._id}`}
-                  className="text-xs border border-blue-500 text-blue-500 px-3 py-1 rounded hover:bg-blue-50"
+                  className="px-3 py-1 text-xs rounded-md bg-slate-600 text-white hover:bg-slate-700"
                 >
                   Edit
                 </Link>
 
-                {/* STATUS SWITCH */}
+
+                {/* TOGGLE */}
+
                 <label className="relative inline-flex items-center cursor-pointer">
 
                   <input
@@ -235,14 +269,15 @@ function AdminProductList() {
 
                   <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500
                   after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                  after:bg-white after:border after:rounded-full after:h-4 after:w-4
+                  after:bg-white after:rounded-full after:h-4 after:w-4
                   after:transition-all peer-checked:after:translate-x-full"></div>
 
                 </label>
 
+
                 <button
                   onClick={() => handleDelete(p._id)}
-                  className="text-xs border border-red-500 text-red-500 px-3 py-1 rounded hover:bg-red-50"
+                  className="px-3 py-1 text-xs rounded-md bg-red-600 text-white hover:bg-red-700"
                 >
                   Delete
                 </button>
@@ -259,7 +294,8 @@ function AdminProductList() {
 
 
       {/* PAGINATION */}
-      <div className="flex justify-center mt-8 gap-4">
+
+      {/* <div className="flex justify-center gap-4 mt-8">
 
         <button
           onClick={() => setPage(page - 1)}
@@ -280,7 +316,7 @@ function AdminProductList() {
           Next
         </button>
 
-      </div>
+      </div> */}
 
     </div>
 

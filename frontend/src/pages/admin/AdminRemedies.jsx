@@ -153,13 +153,13 @@ const AdminRemedies = () => {
         placeholder="Search remedy..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="border rounded-lg px-4 py-2 w-full md:w-1/3 focus:ring-2 focus:ring-green-500"
+        className="border rounded-lg px-4 py-2 w-full md:w-1/2 focus:ring-2 focus:ring-green-500"
       />
 
 
       {/* CARD GRID */}
 
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
         {loading ? (
 
@@ -170,12 +170,8 @@ const AdminRemedies = () => {
         ) : filteredRemedies.length === 0 ? (
 
           <div className="col-span-full text-center">
-
             <h4 className="font-semibold">No Remedies Found</h4>
-            <p className="text-sm text-gray-500">
-              Try adjusting search or filters
-            </p>
-
+            <p className="text-sm text-gray-500">Try adjusting search or filters</p>
           </div>
 
         ) : (
@@ -184,100 +180,112 @@ const AdminRemedies = () => {
 
             <div
               key={remedy._id}
-              className="bg-white rounded-xl shadow hover:shadow-xl hover:-translate-y-1 transition overflow-hidden cursor-pointer"
-              onClick={() => {
-                setSelectedRemedy(remedy);
-                setEditMode(false);
-              }}
+              className="bg-white rounded-xl shadow-md hover:shadow-xl
+              hover:-translate-y-2 hover:scale-[1.02]
+              transition-all duration-300 ease-in-out
+              overflow-hidden flex flex-col cursor-pointer"
             >
 
               {/* IMAGE */}
 
               {remedy.image && (
 
-                <img
-                  src={remedy.image}
-                  alt={remedy.title}
-                  className="w-full h-28 object-contain bg-gray-50 p-3"
-                />
+                <div className="bg-gray-50 flex items-center justify-center h-40 overflow-hidden">
+
+                  <img
+                    src={remedy.image}
+                    alt={remedy.title}
+                    className="h-32 object-contain transition-transform duration-300 hover:scale-110"
+                  />
+
+                </div>
 
               )}
 
+
               {/* CONTENT */}
 
-              <div className="p-4 space-y-2">
+              <div className="p-4 flex flex-col justify-between flex-grow">
 
-                <div className="flex justify-between">
+                <div>
 
-                  <h3 className="font-semibold text-sm">
-                    {remedy.title}
-                  </h3>
+                  <div className="flex justify-between items-start mb-2">
 
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full
-                      ${
-                        remedy.status === "Approved"
+                    <h3 className="font-semibold text-sm text-gray-800">
+                      {remedy.title}
+                    </h3>
+
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full
+                      ${remedy.status === "Approved"
                           ? "bg-green-100 text-green-700"
                           : remedy.status === "Rejected"
-                          ? "bg-red-100 text-red-600"
-                          : "bg-yellow-100 text-yellow-700"
-                      }
-                    `}
+                            ? "bg-red-100 text-red-600"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                    >
+                      {remedy.status}
+                    </span>
+
+                  </div>
+
+                  <p className="text-xs text-gray-500 mb-3">
+                    {remedy.healthCategory}
+                  </p>
+
+                  <div className="flex justify-between text-xs text-gray-400 mb-3">
+                    <span>❤️ {remedy.savedBy?.length || 0}</span>
+                    <span>👁 {remedy.views || 0}</span>
+                  </div>
+
+                </div>
+
+
+                {/* BUTTONS */}
+
+                <div className="flex flex-wrap gap-2">
+
+                  <button
+                    onClick={() => {
+                      setSelectedRemedy(remedy);
+                      setEditMode(false);
+                    }}
+                    className="px-3 py-1 text-xs rounded-md bg-green-600 text-white hover:bg-green-700 transition"
                   >
-                    {remedy.status}
-                  </span>
-
-                </div>
-
-                <p className="text-sm text-gray-500">
-                  {remedy.healthCategory}
-                </p>
-
-                <div className="flex justify-between text-xs text-gray-400">
-
-                  <span>❤️ {remedy.savedBy?.length || 0}</span>
-                  <span>👁 {remedy.views || 0}</span>
-
-                </div>
-
-                <div
-                  className="flex gap-2 pt-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                    View
+                  </button>
 
                   <button
                     onClick={() => {
                       setSelectedRemedy(remedy);
                       setEditMode(true);
                     }}
-                    className="bg-purple-500 text-white px-2 py-1 text-xs rounded"
+                    className="px-3 py-1 text-xs rounded-md bg-slate-600 text-white hover:bg-slate-700 transition"
                   >
                     Edit
                   </button>
 
                   {remedy.status === "Pending" && (
-
                     <>
                       <button
                         onClick={() => updateStatus(remedy._id, "Approved")}
-                        className="bg-green-500 text-white px-2 py-1 text-xs rounded"
+                        className="px-3 py-1 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition"
                       >
                         Approve
                       </button>
 
                       <button
                         onClick={() => updateStatus(remedy._id, "Rejected")}
-                        className="bg-yellow-500 text-white px-2 py-1 text-xs rounded"
+                        className="px-3 py-1 text-xs rounded-md bg-amber-500 text-white hover:bg-amber-600 transition"
                       >
                         Reject
                       </button>
                     </>
-
                   )}
 
                   <button
                     onClick={() => deleteRemedy(remedy._id)}
-                    className="bg-red-500 text-white px-2 py-1 text-xs rounded"
+                    className="px-3 py-1 text-xs rounded-md bg-red-600 text-white hover:bg-red-700 transition"
                   >
                     Delete
                   </button>
@@ -303,6 +311,8 @@ const AdminRemedies = () => {
 
           <div className="bg-white w-full max-w-lg h-full overflow-y-auto p-6">
 
+            {/* HEADER */}
+
             <div className="flex justify-between items-center mb-4">
 
               <h3 className="text-lg font-semibold">
@@ -311,7 +321,7 @@ const AdminRemedies = () => {
 
               <button
                 onClick={() => setSelectedRemedy(null)}
-                className="text-gray-500"
+                className="text-gray-500 text-lg"
               >
                 ✕
               </button>
@@ -319,7 +329,7 @@ const AdminRemedies = () => {
             </div>
 
 
-            {/* DRAWER IMAGE */}
+            {/* IMAGE */}
 
             {selectedRemedy.image && (
 
@@ -332,11 +342,13 @@ const AdminRemedies = () => {
             )}
 
 
+            {/* EDIT MODE */}
+
             {editMode ? (
 
               <div className="space-y-3">
 
-                <label>Title</label>
+                <label className="font-medium">Title</label>
                 <input
                   className="border rounded px-3 py-2 w-full"
                   value={selectedRemedy.title}
@@ -348,7 +360,7 @@ const AdminRemedies = () => {
                   }
                 />
 
-                <label>Symptoms</label>
+                <label className="font-medium">Symptoms</label>
                 <textarea
                   className="border rounded px-3 py-2 w-full"
                   value={selectedRemedy.symptoms?.join(", ") || ""}
@@ -362,7 +374,7 @@ const AdminRemedies = () => {
 
                 <button
                   onClick={saveEdit}
-                  className="bg-green-600 text-white px-4 py-2 rounded w-full"
+                  className="bg-green-600 text-white px-4 py-2 rounded w-full hover:bg-green-700 transition"
                 >
                   Save Changes
                 </button>
@@ -381,7 +393,7 @@ const AdminRemedies = () => {
                 <div>
                   <h4 className="font-semibold">Symptoms</h4>
                   <ul className="list-disc ml-5">
-                    {selectedRemedy.symptoms?.map((s,i)=>(
+                    {selectedRemedy.symptoms?.map((s, i) => (
                       <li key={i}>{s}</li>
                     ))}
                   </ul>
@@ -390,7 +402,7 @@ const AdminRemedies = () => {
                 <div>
                   <h4 className="font-semibold">Ingredients</h4>
                   <ul className="list-disc ml-5">
-                    {selectedRemedy.ingredients?.map((i,idx)=>(
+                    {selectedRemedy.ingredients?.map((i, idx) => (
                       <li key={idx}>{i}</li>
                     ))}
                   </ul>
@@ -399,7 +411,7 @@ const AdminRemedies = () => {
                 <div>
                   <h4 className="font-semibold">Steps</h4>
                   <ol className="list-decimal ml-5">
-                    {selectedRemedy.steps?.map((s,idx)=>(
+                    {selectedRemedy.steps?.map((s, idx) => (
                       <li key={idx}>{s}</li>
                     ))}
                   </ol>
@@ -424,7 +436,6 @@ const AdminRemedies = () => {
         </div>
 
       )}
-
     </div>
 
   );

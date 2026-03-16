@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import API from "../../services/api";
 
@@ -21,6 +22,7 @@ export default function ManageSpecialists() {
   ========================= */
 
   const fetchSpecialists = async () => {
+
     try {
 
       const res = await API.get("/admin/specialists", {
@@ -31,8 +33,10 @@ export default function ManageSpecialists() {
       setLoading(false);
 
     } catch (error) {
+
       console.log("Fetch specialists error:", error);
       setLoading(false);
+
     }
   };
 
@@ -41,6 +45,7 @@ export default function ManageSpecialists() {
   ========================= */
 
   const handleApprove = async (id) => {
+
     try {
 
       await API.put(
@@ -52,7 +57,9 @@ export default function ManageSpecialists() {
       fetchSpecialists();
 
     } catch (error) {
+
       console.log("Approve error:", error);
+
     }
   };
 
@@ -61,6 +68,7 @@ export default function ManageSpecialists() {
   ========================= */
 
   const handleReject = async (id) => {
+
     try {
 
       await API.put(
@@ -72,9 +80,20 @@ export default function ManageSpecialists() {
       fetchSpecialists();
 
     } catch (error) {
+
       console.log("Reject error:", error);
+
     }
   };
+
+  /* =========================
+     STATS
+  ========================= */
+
+  const total = specialists.length;
+  const pending = specialists.filter(s => s.verificationStatus === "pending").length;
+  const approved = specialists.filter(s => s.verificationStatus === "approved").length;
+  const rejected = specialists.filter(s => s.verificationStatus === "rejected").length;
 
   /* =========================
      FILTER
@@ -83,12 +102,8 @@ export default function ManageSpecialists() {
   const filteredSpecialists = specialists
     .filter((sp) =>
       sp.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sp.professionalDetails?.specialization
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      sp.location?.city
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase())
+      sp.professionalDetails?.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sp.location?.city?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .filter((sp) =>
       filterStatus === "all"
@@ -102,15 +117,49 @@ export default function ManageSpecialists() {
 
       {/* HEADER */}
 
-      <div className="flex justify-between items-center mb-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        Specialist Management
+      </h2>
 
-        <h2 className="text-2xl font-bold text-gray-800">
-          Specialist Management
-        </h2>
+      {/* TOP STATS CARDS */}
 
-        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-          Total: {specialists.length}
-        </span>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+
+        <div
+          onClick={() => setFilterStatus("all")}
+          className={`p-4 rounded-xl cursor-pointer text-center shadow hover:shadow-lg transition
+          ${filterStatus === "all" ? "bg-green-600 text-white" : "bg-white"}`}
+        >
+          <h3 className="text-xl font-bold">{total}</h3>
+          <p className="text-sm">Total Specialists</p>
+        </div>
+
+        <div
+          onClick={() => setFilterStatus("pending")}
+          className={`p-4 rounded-xl cursor-pointer text-center shadow hover:shadow-lg transition
+          ${filterStatus === "pending" ? "bg-yellow-500 text-white" : "bg-white"}`}
+        >
+          <h3 className="text-xl font-bold">{pending}</h3>
+          <p className="text-sm">Pending</p>
+        </div>
+
+        <div
+          onClick={() => setFilterStatus("approved")}
+          className={`p-4 rounded-xl cursor-pointer text-center shadow hover:shadow-lg transition
+          ${filterStatus === "approved" ? "bg-green-500 text-white" : "bg-white"}`}
+        >
+          <h3 className="text-xl font-bold">{approved}</h3>
+          <p className="text-sm">Approved</p>
+        </div>
+
+        <div
+          onClick={() => setFilterStatus("rejected")}
+          className={`p-4 rounded-xl cursor-pointer text-center shadow hover:shadow-lg transition
+          ${filterStatus === "rejected" ? "bg-red-500 text-white" : "bg-white"}`}
+        >
+          <h3 className="text-xl font-bold">{rejected}</h3>
+          <p className="text-sm">Rejected</p>
+        </div>
 
       </div>
 
@@ -119,34 +168,10 @@ export default function ManageSpecialists() {
       <input
         type="text"
         placeholder="Search by name, specialization or city..."
-        className="w-full border rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-green-500"
+        className="w-full md:w-1/2 border rounded-lg px-4 py-2 mb-6 focus:ring-2 focus:ring-green-500"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
-
-      {/* FILTER TABS */}
-
-      <div className="flex gap-2 mb-6">
-
-        {["all", "pending", "approved", "rejected"].map((status) => (
-
-          <button
-            key={status}
-            onClick={() => setFilterStatus(status)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium
-              ${
-                filterStatus === status
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-100 hover:bg-gray-200"
-              }
-            `}
-          >
-            {status}
-          </button>
-
-        ))}
-
-      </div>
 
       {/* CONTENT */}
 
@@ -168,23 +193,19 @@ export default function ManageSpecialists() {
 
             <div
               key={sp._id}
-              className="bg-white rounded-xl shadow p-5 hover:shadow-lg transition"
+              className="bg-white rounded-xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 p-5 border"
             >
 
-              {/* PROFILE */}
-
-              <div className="flex items-center mb-4">
+              <div className="flex items-center gap-3 mb-4">
 
                 <img
-                  src={
-                    sp.profilePhoto ||
-                    "https://via.placeholder.com/60"
-                  }
+                  src={sp.profilePhoto || "https://via.placeholder.com/60"}
                   alt="profile"
-                  className="w-14 h-14 rounded-full object-cover mr-3"
+                  className="w-14 h-14 rounded-full object-cover border"
                 />
 
                 <div>
+
                   <h4 className="font-semibold text-gray-800">
                     {sp.fullName}
                   </h4>
@@ -192,37 +213,36 @@ export default function ManageSpecialists() {
                   <p className="text-sm text-gray-500">
                     {sp.professionalDetails?.specialization}
                   </p>
+
                 </div>
 
               </div>
 
               <p className="text-sm text-gray-500 mb-3">
-                {sp.location?.city}, {sp.location?.state}
+                📍 {sp.location?.city}, {sp.location?.state}
               </p>
 
-              {/* STATUS */}
-
               <span
-                className={`px-3 py-1 text-xs rounded-full
-                  ${
-                    sp.verificationStatus === "approved"
-                      ? "bg-green-100 text-green-700"
-                      : sp.verificationStatus === "rejected"
-                      ? "bg-red-100 text-red-600"
-                      : "bg-yellow-100 text-yellow-700"
-                  }
-                `}
+                className={`inline-block px-3 py-1 text-xs rounded-full
+                ${
+                  sp.verificationStatus === "approved"
+                    ? "bg-green-100 text-green-700"
+                    : sp.verificationStatus === "rejected"
+                    ? "bg-red-100 text-red-600"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
               >
                 {sp.verificationStatus}
               </span>
 
-              {/* ACTIONS */}
-
-              <div className="flex justify-between items-center mt-4">
+              <div className="flex justify-between items-center mt-5">
 
                 <button
                   onClick={() => setSelectedSpecialist(sp)}
-                  className="text-blue-600 text-sm font-medium hover:underline"
+                  className="px-4 py-1.5 text-sm rounded-md
+                  border border-blue-500 text-blue-600
+                  hover:bg-blue-500 hover:text-white
+                  transition"
                 >
                   View
                 </button>
@@ -231,16 +251,22 @@ export default function ManageSpecialists() {
 
                   <button
                     onClick={() => handleApprove(sp._id)}
-                    className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600"
+                    className="px-3 py-1.5 text-sm rounded-md
+                    border border-green-500 text-green-600
+                    hover:bg-green-500 hover:text-white
+                    transition"
                   >
-                    ✓
+                    Approve
                   </button>
 
                   <button
                     onClick={() => handleReject(sp._id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600"
+                    className="px-3 py-1.5 text-sm rounded-md
+                    border border-red-500 text-red-600
+                    hover:bg-red-500 hover:text-white
+                    transition"
                   >
-                    ✕
+                    Reject
                   </button>
 
                 </div>
@@ -255,11 +281,11 @@ export default function ManageSpecialists() {
 
       )}
 
-      {/* SIDE PANEL */}
+      {/* DRAWER */}
 
       {selectedSpecialist && (
 
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-end">
+        <div className="fixed inset-0 bg-black/40 flex justify-end">
 
           <div className="bg-white w-full max-w-md h-full p-6 overflow-y-auto">
 
@@ -278,15 +304,10 @@ export default function ManageSpecialists() {
 
             </div>
 
-            {/* PROFILE */}
-
             <div className="text-center mb-6">
 
               <img
-                src={
-                  selectedSpecialist.profilePhoto ||
-                  "https://via.placeholder.com/100"
-                }
+                src={selectedSpecialist.profilePhoto || "https://via.placeholder.com/100"}
                 className="w-24 h-24 rounded-full mx-auto object-cover mb-3"
                 alt="profile"
               />
@@ -301,27 +322,6 @@ export default function ManageSpecialists() {
 
             </div>
 
-            {/* INFO */}
-
-            <div className="space-y-2 text-sm">
-
-              <p><strong>Email:</strong> {selectedSpecialist.email}</p>
-              <p><strong>Phone:</strong> {selectedSpecialist.phone}</p>
-              <p><strong>City:</strong> {selectedSpecialist.location?.city}</p>
-              <p><strong>State:</strong> {selectedSpecialist.location?.state}</p>
-              <p><strong>Address:</strong> {selectedSpecialist.location?.address}</p>
-              <p><strong>Pincode:</strong> {selectedSpecialist.location?.pincode}</p>
-
-              <hr className="my-3" />
-
-              <p><strong>Experience:</strong> {selectedSpecialist.professionalDetails?.experience} years</p>
-              <p><strong>Qualification:</strong> {selectedSpecialist.professionalDetails?.qualification}</p>
-              <p><strong>Practice:</strong> {selectedSpecialist.professionalDetails?.practiceName}</p>
-              <p><strong>Consultation:</strong> {selectedSpecialist.professionalDetails?.consultationMode}</p>
-              <p><strong>Fees:</strong> ₹{selectedSpecialist.consultationFees}</p>
-
-            </div>
-
           </div>
 
         </div>
@@ -329,6 +329,6 @@ export default function ManageSpecialists() {
       )}
 
     </div>
-
   );
 }
+

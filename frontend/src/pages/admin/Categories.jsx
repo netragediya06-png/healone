@@ -4,7 +4,11 @@ import categoryService from "../../services/categoryService";
 function Categories() {
 
   const [categories, setCategories] = useState([]);
+  const [filteredCategories, setFilteredCategories] = useState([]);
+
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+
   const [showModal, setShowModal] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -21,40 +25,70 @@ function Categories() {
   }, []);
 
   const fetchCategories = async () => {
+
     try {
+
       const res = await categoryService.getCategoriesWithSubCount();
       setCategories(res.data);
+
     } catch (error) {
-      console.error("Fetch Categories Error:", error);
+
+      console.error(error);
+
     }
+
   };
 
+  // ============================
+  // FILTER + SEARCH
+  // ============================
+
+  useEffect(() => {
+
+    let data = [...categories];
+
+    if (statusFilter !== "All") {
+      data = data.filter((c) => c.status === (statusFilter === "Active"));
+    }
+
+    if (search) {
+      data = data.filter((c) =>
+        c.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    setFilteredCategories(data);
+
+  }, [categories, search, statusFilter]);
+
+
+  // ============================
+  // SAVE CATEGORY
+  // ============================
+
   const handleSubmit = async (e) => {
+
     e.preventDefault();
 
-    try {
+    const data = new FormData();
 
-      const data = new FormData();
-      data.append("name", formData.name);
-      data.append("description", formData.description);
-      data.append("status", formData.status);
+    data.append("name", formData.name);
+    data.append("description", formData.description);
+    data.append("status", formData.status);
 
-      if (formData.image) {
-        data.append("image", formData.image);
-      }
-
-      if (editId) {
-        await categoryService.updateCategory(editId, data);
-      } else {
-        await categoryService.createCategory(data);
-      }
-
-      fetchCategories();
-      closeModal();
-
-    } catch (error) {
-      console.error("Save Category Error:", error);
+    if (formData.image) {
+      data.append("image", formData.image);
     }
+
+    if (editId) {
+      await categoryService.updateCategory(editId, data);
+    } else {
+      await categoryService.createCategory(data);
+    }
+
+    fetchCategories();
+    closeModal();
+
   };
 
   const handleEdit = (cat) => {
@@ -69,18 +103,17 @@ function Categories() {
     });
 
     setShowModal(true);
+
   };
 
   const handleDelete = async (id) => {
 
     if (!window.confirm("Delete this category?")) return;
 
-    try {
-      await categoryService.deleteCategory(id);
-      fetchCategories();
-    } catch (error) {
-      console.error("Delete Error:", error);
-    }
+    await categoryService.deleteCategory(id);
+
+    fetchCategories();
+
   };
 
   const closeModal = () => {
@@ -95,76 +128,150 @@ function Categories() {
     });
 
     setShowModal(false);
+
   };
 
-  const filteredCategories = (categories || []).filter((cat) =>
-    cat.name.toLowerCase().includes(search.toLowerCase())
-  );
+
+  // ============================
+  // STATS
+  // ============================
+
+  const stats = {
+
+    total: categories.length,
+    active: categories.filter((c) => c.status === true).length,
+    inactive: categories.filter((c) => c.status === false).length
+
+  };
+
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+
+    <div className="p-6 space-y-6">
 
       {/* HEADER */}
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center">
 
         <div>
+
           <h2 className="text-2xl font-bold text-gray-800">
-            HealOne Categories
+            Category Management
           </h2>
 
-          <p className="text-gray-500 text-sm">
-            Manage product categories
+          <p className="text-sm text-gray-500">
+            Manage your store categories
           </p>
+
         </div>
+
+        {/* <button
+          onClick={() => setShowModal(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+        >
+          + Add Category
+        </button> */}
+
+      </div>
+
+
+      {/* TOP CARDS */}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        {[
+          { label: "Total", value: stats.total, key: "All", color: "bg-gray-100" },
+          { label: "Active", value: stats.active, key: "Active", color: "bg-green-100" },
+          { label: "Inactive", value: stats.inactive, key: "Inactive", color: "bg-red-100" },
+        ].map((card) => (
+
+          <div
+            key={card.key}
+            onClick={() => setStatusFilter(card.key)}
+            className={`p-4 rounded-lg cursor-pointer text-center
+            ${card.color}
+            ${statusFilter === card.key ? "ring-2 ring-green-500" : ""}
+            `}
+          >
+
+            <h4 className="text-xl font-bold">
+              {card.value}
+            </h4>
+
+            <span className="text-sm text-gray-600">
+              {card.label}
+            </span>
+
+          </div>
+
+        ))}
+
+      </div>
+
+
+      {/* SEARCH */}
+
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+
+        {/* Search Bar */}
+
+        <input
+          type="text"
+          placeholder="Search categories..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border rounded-lg px-4 py-2 w-full md:w-1/2 focus:ring-2 focus:ring-green-500"
+        />
+
+        {/* Add Category Button */}
 
         <button
           onClick={() => setShowModal(true)}
-          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+          className="bg-emerald-600 text-white px-5 py-2 rounded-lg
+               hover:bg-emerald-700 transition shadow-sm hover:shadow-md"
         >
-          Add Category
+          + Add Category
         </button>
 
       </div>
 
-      {/* SEARCH */}
-
-      <input
-        type="text"
-        placeholder="Search categories..."
-        className="w-full mb-6 p-3 border rounded-md"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
 
       {/* CATEGORY GRID */}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
         {filteredCategories.map((cat) => (
 
           <div
             key={cat._id}
-            className="bg-white rounded-xl shadow p-6 text-center"
+            className="bg-white rounded-xl shadow-md hover:shadow-xl
+            hover:-translate-y-2 transition-all duration-300
+            p-6 text-center"
           >
 
             {/* IMAGE */}
 
             {cat.image ? (
+
               <img
                 src={cat.image}
                 alt="category"
                 className="w-20 h-20 mx-auto rounded-full object-cover mb-3"
               />
+
             ) : (
+
               <div className="w-20 h-20 mx-auto rounded-full bg-gray-200 flex items-center justify-center mb-3">
                 🖼
               </div>
+
             )}
 
-            <h5 className="font-semibold text-lg">{cat.name}</h5>
+            <h5 className="font-semibold text-lg">
+              {cat.name}
+            </h5>
 
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-sm mb-2">
               {cat.description}
             </p>
 
@@ -172,28 +279,44 @@ function Categories() {
               {cat.subCategoryCount || 0} SubCategories
             </p>
 
+
+            {/* STATUS */}
+
             <span
-              className={`inline-block px-3 py-1 text-xs rounded-full mt-2 ${
-                cat.status
+              className={`inline-block px-3 py-1 text-xs rounded-full mt-2
+              ${cat.status
                   ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
+                  : "bg-red-100 text-red-700"}
+              `}
             >
               {cat.status ? "Active" : "Inactive"}
             </span>
 
-            <div className="flex justify-center gap-2 mt-4">
+
+            {/* BUTTONS */}
+
+            <div className="flex justify-center gap-3 mt-4">
+
+              {/* Edit Button */}
 
               <button
                 onClick={() => handleEdit(cat)}
-                className="border border-blue-500 text-blue-500 px-3 py-1 rounded"
+                className="px-4 py-1.5 text-xs font-medium rounded-md
+               border border-blue-500 text-blue-600
+               hover:bg-blue-500 hover:text-white
+               transition-all duration-200"
               >
                 Edit
               </button>
 
+              {/* Delete Button */}
+
               <button
                 onClick={() => handleDelete(cat._id)}
-                className="border border-red-500 text-red-500 px-3 py-1 rounded"
+                className="px-4 py-1.5 text-xs font-medium rounded-md
+               border border-red-500 text-red-600
+               hover:bg-red-500 hover:text-white
+               transition-all duration-200"
               >
                 Delete
               </button>
@@ -206,13 +329,14 @@ function Categories() {
 
       </div>
 
+
       {/* MODAL */}
 
       {showModal && (
 
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 
-          <div className="bg-white rounded-lg shadow-lg w-[400px] p-6">
+          <div className="bg-white rounded-xl shadow-xl w-[420px] p-6">
 
             <h3 className="text-lg font-semibold mb-4">
               {editId ? "Edit Category" : "Add Category"}
@@ -291,6 +415,7 @@ function Categories() {
       )}
 
     </div>
+
   );
 }
 

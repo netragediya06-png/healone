@@ -124,7 +124,7 @@ function Sidebar({ openSidebarToggle, OpenSidebar }) {
         <SidebarItem
           to="/admin/yoga"
           icon={Package}
-          label="Manage Orders"
+          label="Manage Yoga"
           active={isActive("/admin/yoga")}
           open={openSidebarToggle}
           menuItem={menuItem}
