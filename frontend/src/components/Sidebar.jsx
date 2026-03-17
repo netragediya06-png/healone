@@ -18,11 +18,12 @@ function Sidebar({ openSidebarToggle, OpenSidebar }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("adminEmail");
-    navigate("/login");
-  };
+const handleLogout = () => {
+  localStorage.clear(); // 🔥 remove everything
+
+  // 🔥 FORCE RESET (IMPORTANT)
+  window.location.href = "/admin/login";
+};
 
   const isActive = (path) => location.pathname.startsWith(path);
 

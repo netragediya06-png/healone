@@ -16,6 +16,8 @@ function AddProduct() {
     name: "",
     description: "",
     price: "",
+    originalPrice: "",   // ✅ NEW
+    badge: "",           // ✅ NEW
     stock: "",
     category: "",
     subCategory: "",
@@ -30,14 +32,10 @@ function AddProduct() {
     const fetchCategories = async () => {
 
       try {
-
         const res = await categoryService.getAllCategories();
         setCategories(res.data);
-
       } catch (error) {
-
         console.error("Category fetch error:", error);
-
       }
 
     };
@@ -52,14 +50,10 @@ function AddProduct() {
   const fetchSubCategories = async (categoryId) => {
 
     try {
-
       const res = await subCategoryService.getSubCategoriesByCategory(categoryId);
       setSubCategories(res.data);
-
     } catch (error) {
-
       console.error("SubCategory fetch error:", error);
-
     }
 
   };
@@ -133,6 +127,14 @@ function AddProduct() {
       data.append("name", formData.name);
       data.append("description", formData.description);
       data.append("price", Number(formData.price));
+
+      // ✅ NEW FIELDS
+      data.append(
+        "originalPrice",
+        Number(formData.originalPrice) || Number(formData.price)
+      );
+      data.append("badge", formData.badge);
+
       data.append("stock", Number(formData.stock) || 0);
       data.append("category", formData.category);
       data.append("subCategory", formData.subCategory);
@@ -148,12 +150,19 @@ function AddProduct() {
     } catch (error) {
 
       console.error("Create product error:", error);
-
       alert("Failed to create product");
 
     }
 
   };
+
+  // ✅ OPTIONAL: LIVE DISCOUNT PREVIEW
+  const discount =
+    formData.originalPrice && formData.originalPrice > formData.price
+      ? Math.round(
+          ((formData.originalPrice - formData.price) / formData.originalPrice) * 100
+        )
+      : 0;
 
   return (
 
@@ -182,10 +191,8 @@ function AddProduct() {
             />
           </div>
 
-
           {/* CATEGORY */}
           <div>
-
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Category
             </label>
@@ -197,25 +204,19 @@ function AddProduct() {
               required
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
             >
-
               <option value="">Select Category</option>
 
               {categories.map((cat) => (
-
                 <option key={cat._id} value={cat._id}>
                   {cat.name}
                 </option>
-
               ))}
 
             </select>
-
           </div>
-
 
           {/* SUBCATEGORY */}
           <div>
-
             <label className="block text-sm font-medium text-gray-700 mb-1">
               SubCategory
             </label>
@@ -227,25 +228,19 @@ function AddProduct() {
               required
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
             >
-
               <option value="">Select SubCategory</option>
 
               {subCategories.map((sub) => (
-
                 <option key={sub._id} value={sub._id}>
                   {sub.name}
                 </option>
-
               ))}
 
             </select>
-
           </div>
-
 
           {/* PRICE */}
           <div>
-
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Price
             </label>
@@ -258,13 +253,32 @@ function AddProduct() {
               required
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
             />
-
           </div>
 
+          {/* ✅ ORIGINAL PRICE */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Original Price (for discount)
+            </label>
+
+            <input
+              name="originalPrice"
+              type="number"
+              value={formData.originalPrice}
+              onChange={handleChange}
+              placeholder="e.g. 399"
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+            />
+
+            {discount > 0 && (
+              <p className="text-green-600 text-sm mt-1">
+                Discount: {discount}%
+              </p>
+            )}
+          </div>
 
           {/* STOCK */}
           <div>
-
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Stock
             </label>
@@ -276,13 +290,31 @@ function AddProduct() {
               onChange={handleChange}
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
             />
-
           </div>
 
+          {/* ✅ BADGE */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Product Tag
+            </label>
+
+            <select
+              name="badge"
+              value={formData.badge}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+            >
+              <option value="">No Tag</option>
+              <option value="Bestseller">Bestseller</option>
+              <option value="Popular">Popular</option>
+              <option value="Top Rated">Top Rated</option>
+              <option value="Best Value">Best Value</option>
+              <option value="New">New</option>
+            </select>
+          </div>
 
           {/* IMAGE */}
           <div>
-
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Product Image
             </label>
@@ -293,27 +325,21 @@ function AddProduct() {
               required
               className="w-full border rounded-lg px-3 py-2"
             />
-
           </div>
-
 
           {/* IMAGE PREVIEW */}
           {preview && (
             <div className="md:col-span-2">
-
               <img
                 src={preview}
                 alt="preview"
                 className="h-40 rounded-lg object-cover"
               />
-
             </div>
           )}
 
-
           {/* DESCRIPTION */}
           <div className="md:col-span-2">
-
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Description
             </label>
@@ -326,20 +352,16 @@ function AddProduct() {
               required
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
             />
-
           </div>
-
 
           {/* BUTTON */}
           <div className="md:col-span-2">
-
             <button
               type="submit"
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
             >
               Save Product
             </button>
-
           </div>
 
         </form>

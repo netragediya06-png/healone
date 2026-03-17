@@ -2,13 +2,19 @@ const express = require("express");
 const router = express.Router();
 
 const authController = require("../controllers/authController");
+const {
+  getProfile,
+  updateProfile,
+  changePassword
+} = require("../controllers/profileController");
+
 const upload = require("../middleware/upload");
+const { protect } = require("../middleware/authMiddleware");
 
 
 /* =========================
    REGISTER USER / SPECIALIST
 ========================= */
-
 router.post(
   "/register",
   upload.single("profilePhoto"),
@@ -17,9 +23,8 @@ router.post(
 
 
 /* =========================
-   LOGIN
+   USER + SPECIALIST LOGIN
 ========================= */
-
 router.post(
   "/login",
   authController.login
@@ -27,9 +32,17 @@ router.post(
 
 
 /* =========================
+   ADMIN LOGIN (NEW 🔥)
+========================= */
+router.post(
+  "/admin-login",
+  authController.adminLogin
+);
+
+
+/* =========================
    VERIFY EMAIL
 ========================= */
-
 router.get(
   "/verify-email/:token",
   authController.verifyEmail
@@ -39,7 +52,6 @@ router.get(
 /* =========================
    FORGOT PASSWORD
 ========================= */
-
 router.post(
   "/forgot-password",
   authController.forgotPassword
@@ -49,10 +61,36 @@ router.post(
 /* =========================
    RESET PASSWORD
 ========================= */
-
 router.post(
   "/reset-password/:token",
   authController.resetPassword
+);
+
+
+/* =========================
+   PROFILE ROUTES
+========================= */
+
+// 👉 Get logged-in user profile
+router.get(
+  "/profile",
+  protect,
+  getProfile
+);
+
+// 👉 Update profile
+router.put(
+  "/profile",
+  protect,
+  upload.single("profilePhoto"),
+  updateProfile
+);
+
+// 👉 Change password
+router.put(
+  "/change-password",
+  protect,
+  changePassword
 );
 
 

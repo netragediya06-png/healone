@@ -41,15 +41,6 @@ const userSchema = new mongoose.Schema(
     default: "",
   },
 
-  gender: {
-    type: String,
-    enum: ["male", "female", "other"],
-  },
-
-  dateOfBirth: {
-    type: Date,
-  },
-
   role: {
     type: String,
     enum: ["admin", "specialist", "user"],
@@ -57,7 +48,7 @@ const userSchema = new mongoose.Schema(
   },
 
   // ========================
-  // GOOGLE AUTH (OPTIONAL)
+  // GOOGLE AUTH
   // ========================
 
   googleId: {
@@ -78,7 +69,7 @@ const userSchema = new mongoose.Schema(
   verificationStatus: {
     type: String,
     enum: ["pending", "approved", "rejected"],
-    default: "approved",
+    default: "pending",
   },
 
   // ========================
@@ -91,31 +82,64 @@ const userSchema = new mongoose.Schema(
   },
 
   // ========================
-  // PASSWORD RESET SYSTEM
+  // PASSWORD RESET
   // ========================
 
   resetToken: String,
-
   resetTokenExpire: Date,
 
   // ========================
-  // SPECIALIST DETAILS
+  // 🏛️ AYURVEDA ORGANIZATION DETAILS
   // ========================
 
-  professionalDetails: {
+  organizationDetails: {
 
-    specialization: String,
+    organizationName: {
+      type: String,
+      required: function () {
+        return this.role === "specialist";
+      }
+    },
 
-    experience: Number,
+    organizationType: {
+      type: String,
+      enum: ["academy", "clinic", "panchakarma_center", "sanstha"],
+    },
 
-    qualification: String,
+    establishedYear: Number,
 
-    practiceName: String,
+    registrationNumber: String,
+
+    practitionersCount: Number, // number of doctors/therapists
+
+    experienceYears: Number, // total experience of org
+
+    servicesOffered: [String], // Panchakarma, Detox, Skin, etc.
 
     consultationMode: {
       type: String,
       enum: ["online", "offline", "both"],
     },
+
+    // Pricing
+    pricing: {
+      online: Number,
+      offline: Number,
+    },
+
+    // Stats for UI
+    rating: {
+      type: Number,
+      default: 0,
+    },
+
+    totalPatientsServed: {
+      type: Number,
+      default: 0,
+    },
+
+    // Media
+    gallery: [String], // center images
 
   },
 
@@ -124,15 +148,10 @@ const userSchema = new mongoose.Schema(
   // ========================
 
   location: {
-
     state: String,
-
     city: String,
-
     address: String,
-
     pincode: String,
-
   },
 
   // ========================
@@ -140,24 +159,22 @@ const userSchema = new mongoose.Schema(
   // ========================
 
   documents: {
-
     idProof: String,
-
     certificationProof: String,
-
+    registrationCertificate: String,
   },
 
   // ========================
-  // WELLNESS PROFILE
+  // AYURVEDA PROFILE CONTENT
   // ========================
 
-  bio: String,
+  bio: String, // About organization
 
   expertiseSummary: String,
 
-  treatmentApproach: String,
+  treatmentApproach: String, // holistic healing etc
 
-  consultationFees: Number,
+  facilities: [String], // steam, massage rooms etc
 
   availableTimeSlots: String,
 
@@ -166,7 +183,6 @@ const userSchema = new mongoose.Schema(
 },
 { timestamps: true }
 );
-
 
 
 // ========================
@@ -178,11 +194,9 @@ userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
 
   const salt = await bcrypt.genSalt(10);
-
   this.password = await bcrypt.hash(this.password, salt);
 
 });
-
 
 
 // ========================
@@ -190,31 +204,25 @@ userSchema.pre("save", async function () {
 // ========================
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
-
   return await bcrypt.compare(enteredPassword, this.password);
-
 };
 
 
-
 // ========================
-// GENERATE EMAIL TOKEN
+// EMAIL TOKEN
 // ========================
 
 userSchema.methods.generateVerificationToken = function () {
 
   const token = crypto.randomBytes(32).toString("hex");
-
   this.verificationToken = token;
 
   return token;
-
 };
 
 
-
 // ========================
-// GENERATE RESET PASSWORD TOKEN
+// RESET TOKEN
 // ========================
 
 userSchema.methods.generateResetToken = function () {
@@ -222,13 +230,10 @@ userSchema.methods.generateResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString("hex");
 
   this.resetToken = resetToken;
-
   this.resetTokenExpire = Date.now() + 10 * 60 * 1000;
 
   return resetToken;
-
 };
-
 
 
 module.exports = mongoose.model("User", userSchema);

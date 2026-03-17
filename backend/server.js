@@ -43,7 +43,6 @@ const programRoutes = require("./routes/programRoutes");
 const subscriptionRoutes = require("./routes/subscriptionRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-const adminProfileRoutes = require("./routes/adminProfile");
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
@@ -51,7 +50,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/remedies", remedyRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/admin/profile", adminProfileRoutes);
 app.use("/api/specialists", specialistRoutes);
 app.use("/api/yoga", yogaRoutes);
 

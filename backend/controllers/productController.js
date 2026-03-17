@@ -191,9 +191,8 @@ exports.getActiveProducts = async (req, res) => {
 
     const {
       search = "",
-      subCategory,
-      page = 1,
-      limit = 10
+      category,        // ✅ NEW
+      subcategory,
     } = req.query;
 
     const query = {
@@ -201,30 +200,28 @@ exports.getActiveProducts = async (req, res) => {
       stock: { $gt: 0 }
     };
 
+    // 🔍 SEARCH
     if (search) {
       query.name = { $regex: search, $options: "i" };
     }
 
-    if (subCategory) {
-      query.subCategory = subCategory;
+    // ✅ CATEGORY FILTER
+    // ✅ CATEGORY FILTER (ObjectId safe)
+    if (category && mongoose.Types.ObjectId.isValid(category)) {
+      query.category = new mongoose.Types.ObjectId(category);
+    }
+
+    // ✅ SUBCATEGORY FILTER (ObjectId safe)
+    if (subcategory && mongoose.Types.ObjectId.isValid(subcategory)) {
+      query.subCategory = new mongoose.Types.ObjectId(subcategory);
     }
 
     const products = await Product.find(query)
       .populate("category", "name")
       .populate("subCategory", "name")
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit))
       .sort({ createdAt: -1 });
 
-    const total = await Product.countDocuments(query);
-
-    res.json({
-      success: true,
-      total,
-      page: Number(page),
-      totalPages: Math.ceil(total / Number(limit)),
-      products
-    });
+    res.json(products);
 
   } catch (error) {
 

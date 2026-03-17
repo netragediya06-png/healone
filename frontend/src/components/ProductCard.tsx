@@ -2,24 +2,41 @@ import { useState } from 'react';
 import { Star, ShoppingCart, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/lib/cart-context';
-import { Product } from '@/lib/products-data';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
-const ProductCard = ({ product }: { product: Product }) => {
+type ProductType = {
+  _id: string;
+  name: string;
+  price: number;
+  originalPrice: number;
+  image: string;
+  category?: {
+    name: string;
+  };
+  rating?: number;
+  reviews?: number;
+  badge?: string;
+};
+
+const ProductCard = ({ product }: { product: ProductType }) => {
   const { addToCart } = useCart();
   const [saved, setSaved] = useState(false);
-  const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
-
+  const discount =
+  product.originalPrice && product.originalPrice > product.price
+    ? Math.round(
+        ((product.originalPrice - product.price) / product.originalPrice) * 100
+      )
+    : 0;
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart({
-      id: product.id,
+      id: product._id,
       name: product.name,
       price: product.price,
       image: product.image,
-      category: product.category,
+      category: product.category?.name||"",
     });
     toast.success(`${product.name} added to cart!`);
   };
@@ -32,15 +49,15 @@ const ProductCard = ({ product }: { product: Product }) => {
   };
 
   return (
-    <Link to={`/products/${product.id}`} className="group block">
+    <Link to={`/products/${product._id}`} className="group block">
       <div className="bg-card rounded-xl overflow-hidden border hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
-        <div className="relative aspect-square overflow-hidden bg-secondary">
+        <div className="relative aspect-[1/1] overflow-hidden bg-secondary">
           <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           {product.badge && (
             <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs font-bold px-2.5 py-1 rounded-full">{product.badge}</span>
           )}
-          <button onClick={handleToggleSave} className={`absolute top-3 right-3 h-8 w-8 rounded-full flex items-center justify-center transition-all ${saved ? 'bg-destructive text-destructive-foreground' : 'bg-background/80 text-foreground/60 hover:bg-background hover:text-destructive'}`}>
-            <Heart className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
+          <button onClick={handleToggleSave} className={`absolute top-3 right-3 h-8 w-8 rounded-full flex items-center justify-center transition-all ${saved ? 'bg-red-500 text-white' : 'bg-background/80 text-foreground/60 hover:bg-background hover:text-destructive'}`}>
+            <Heart className={`h-4 w-4 ${saved ? 'fill-red-500 text-white' : ''}`} />
           </button>
           {discount > 0 && (
             <span className="absolute bottom-3 left-3 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">-{discount}%</span>
@@ -48,7 +65,9 @@ const ProductCard = ({ product }: { product: Product }) => {
         </div>
 
         <div className="p-4">
-          <p className="text-xs text-muted-foreground mb-1">{product.category}</p>
+          <p className="text-xs text-muted-foreground mb-1">
+  {product.category?.name}
+</p>
           <h3 className="font-display font-semibold text-card-foreground group-hover:text-primary transition-colors line-clamp-1">{product.name}</h3>
 
           <div className="flex items-center gap-1 mt-2">

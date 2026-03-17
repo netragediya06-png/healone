@@ -1,70 +1,70 @@
-const express = require("express");
-const router = express.Router();
+  const express = require("express");
+  const router = express.Router();
 
-const {
-  createCategory,
-  getCategories,
-  updateCategory,
-  deleteCategory,
-  getCategoriesWithSubCount
-} = require("../controllers/categoryController");
+  const {
+    createCategory,
+    getCategories,
+    updateCategory,
+    deleteCategory,
+    getCategoriesWithSubCount
+  } = require("../controllers/categoryController");
 
-const upload = require("../middleware/upload");
-const { protect, authorize } = require("../middleware/authMiddleware");
-
-
-// ==========================
-// CREATE CATEGORY (ADMIN)
-// ==========================
-router.post(
-  "/",
-  protect,
-  authorize("admin"),
-  upload.single("image"),
-  createCategory
-);
+  const upload = require("../middleware/upload");
+  const { protect, authorize } = require("../middleware/authMiddleware");
 
 
-// ==========================
-// GET ALL CATEGORIES
-// ==========================
-router.get(
-  "/",
-  getCategories
-);
+  // ==========================
+  // CREATE CATEGORY (ADMIN)
+  // ==========================
+  router.post(
+    "/",
+    protect,
+    authorize("admin"),
+    upload.single("image"),
+    createCategory
+  );
 
 
-// ==========================
-// GET CATEGORIES WITH SUBCATEGORY COUNT
-// ==========================
-router.get(
-  "/with-subcount",
-  protect,
-  authorize("admin"),
-  getCategoriesWithSubCount
-);
+  // ==========================
+  // GET ALL CATEGORIES
+  // ==========================
+  router.get(
+    "/",
+    getCategories
+  );
 
 
-// ==========================
-// UPDATE CATEGORY (ADMIN)
-// ==========================
-router.put(
-  "/:id",
-  protect,
-  authorize("admin"),
-  upload.single("image"),
-  updateCategory
-);
+  // ==========================
+  // GET CATEGORIES WITH SUBCATEGORY COUNT
+  // ==========================
+  router.get(
+    "/with-subcount",
+    protect,
+    authorize("admin"),
+    getCategoriesWithSubCount
+  );
 
 
-// ==========================
-// DELETE CATEGORY (ADMIN)
-// ==========================
-router.delete(
-  "/:id",
-  protect,
-  authorize("admin"),
-  deleteCategory
-);
+  // ==========================
+  // UPDATE CATEGORY (ADMIN)
+  // ==========================
+  router.put(
+    "/:id",
+    protect,
+    authorize("admin"),
+    upload.single("image"),
+    updateCategory
+  );
 
-module.exports = router;
+
+  // ==========================
+  // DELETE CATEGORY (ADMIN)
+  // ==========================
+  router.delete(
+    "/:id",
+    protect,
+    authorize("admin"),
+    deleteCategory
+  );
+
+  module.exports = router;

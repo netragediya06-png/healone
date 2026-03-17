@@ -16,6 +16,8 @@ function EditProduct() {
     name: "",
     description: "",
     price: "",
+    originalPrice: "",   // ✅ NEW
+    badge: "",           // ✅ NEW
     stock: "",
     category: "",
     subCategory: "",
@@ -28,7 +30,6 @@ function EditProduct() {
   // FETCH CATEGORIES
   // ==========================
   useEffect(() => {
-
     const fetchCategories = async () => {
       try {
         const res = await categoryService.getAllCategories();
@@ -37,9 +38,7 @@ function EditProduct() {
         console.error("Category fetch error:", error);
       }
     };
-
     fetchCategories();
-
   }, []);
 
   // ==========================
@@ -58,6 +57,8 @@ function EditProduct() {
           name: product.name,
           description: product.description,
           price: product.price,
+          originalPrice: product.originalPrice || "", // ✅ NEW
+          badge: product.badge || "",                 // ✅ NEW
           stock: product.stock,
           category: product.category?._id || product.category,
           subCategory: product.subCategory?._id || product.subCategory,
@@ -84,18 +85,12 @@ function EditProduct() {
   // LOAD SUBCATEGORIES
   // ==========================
   const loadSubCategories = async (categoryId) => {
-
     try {
-
       const res = await subCategoryService.getSubCategoriesByCategory(categoryId);
       setSubCategories(res.data);
-
     } catch (error) {
-
       console.error("Subcategory fetch error:", error);
-
     }
-
   };
 
   // ==========================
@@ -150,7 +145,28 @@ function EditProduct() {
 
     try {
 
-      await productService.updateProduct(id, formData);
+      const data = new FormData();
+
+      data.append("name", formData.name);
+      data.append("description", formData.description);
+      data.append("price", Number(formData.price));
+
+      // ✅ NEW
+      data.append(
+        "originalPrice",
+        Number(formData.originalPrice) || Number(formData.price)
+      );
+      data.append("badge", formData.badge);
+
+      data.append("stock", Number(formData.stock) || 0);
+      data.append("category", formData.category);
+      data.append("subCategory", formData.subCategory);
+
+      if (formData.image instanceof File) {
+        data.append("image", formData.image);
+      }
+
+      await productService.updateProduct(id, data);
 
       navigate("/admin/products");
 
@@ -161,6 +177,14 @@ function EditProduct() {
     }
 
   };
+
+  // ✅ LIVE DISCOUNT PREVIEW
+  const discount =
+    formData.originalPrice && formData.originalPrice > formData.price
+      ? Math.round(
+          ((formData.originalPrice - formData.price) / formData.originalPrice) * 100
+        )
+      : 0;
 
   return (
 
@@ -207,17 +231,13 @@ function EditProduct() {
                   required
                   className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
                 >
-
                   <option value="">Select Category</option>
 
                   {categories.map((cat) => (
-
                     <option key={cat._id} value={cat._id}>
                       {cat.name}
                     </option>
-
                   ))}
-
                 </select>
               </div>
 
@@ -234,17 +254,13 @@ function EditProduct() {
                   required
                   className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
                 >
-
                   <option value="">Select Sub Category</option>
 
                   {subCategories.map((sub) => (
-
                     <option key={sub._id} value={sub._id}>
                       {sub.name}
                     </option>
-
                   ))}
-
                 </select>
               </div>
 
@@ -264,6 +280,27 @@ function EditProduct() {
                 />
               </div>
 
+              {/* ✅ ORIGINAL PRICE */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Original Price
+                </label>
+
+                <input
+                  name="originalPrice"
+                  type="number"
+                  value={formData.originalPrice}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                />
+
+                {discount > 0 && (
+                  <p className="text-green-600 text-sm mt-1">
+                    Discount: {discount}%
+                  </p>
+                )}
+              </div>
+
               {/* STOCK */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -279,9 +316,29 @@ function EditProduct() {
                 />
               </div>
 
+              {/* ✅ BADGE */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Tag
+                </label>
+
+                <select
+                  name="badge"
+                  value={formData.badge}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                >
+                  <option value="">No Tag</option>
+                  <option value="Bestseller">Bestseller</option>
+                  <option value="Popular">Popular</option>
+                  <option value="Top Rated">Top Rated</option>
+                  <option value="Best Value">Best Value</option>
+                  <option value="New">New</option>
+                </select>
+              </div>
+
               {/* DESCRIPTION */}
               <div className="md:col-span-2">
-
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Description
                 </label>
@@ -294,7 +351,6 @@ function EditProduct() {
                   required
                   className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
                 />
-
               </div>
 
               {/* IMAGE */}
@@ -312,26 +368,20 @@ function EditProduct() {
 
             </div>
 
-
             {/* IMAGE PREVIEW */}
             <div className="flex flex-col items-center">
-
               <div className="w-full bg-gray-100 rounded-xl p-4 flex flex-col items-center">
 
                 {preview ? (
-
                   <img
                     src={preview}
                     alt="preview"
                     className="rounded-lg object-cover w-full h-64"
                   />
-
                 ) : (
-
                   <div className="h-64 w-full flex items-center justify-center text-gray-400">
                     No Image
                   </div>
-
                 )}
 
                 <p className="text-sm text-gray-500 mt-3">
@@ -339,7 +389,6 @@ function EditProduct() {
                 </p>
 
               </div>
-
             </div>
 
           </div>

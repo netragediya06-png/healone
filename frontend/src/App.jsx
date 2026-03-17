@@ -1,10 +1,13 @@
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 
 /* ---------------- AUTH ---------------- */
-import Login from "./pages/auth/Login.jsx";
+import Login from "./pages/user/UserLogin.jsx"; // ✅ FIXED
 import Register from "./pages/user/Register.js";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 import ResetPassword from "./pages/auth/ResetPassword.jsx";
+
+/* ---------------- ADMIN AUTH ---------------- */
+import AdminLogin from "./pages/auth/AdminLogin.jsx";
 
 /* ---------------- ADMIN ---------------- */
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -73,7 +76,7 @@ function UserLayout() {
   );
 }
 
-/* ---------------- AUTH LAYOUT (Navbar Only) ---------------- */
+/* ---------------- AUTH LAYOUT ---------------- */
 function AuthLayout() {
   return (
     <>
@@ -81,6 +84,11 @@ function AuthLayout() {
       <Outlet />
     </>
   );
+}
+
+/* ---------------- ADMIN AUTH LAYOUT ---------------- */
+function AdminAuthLayout() {
+  return <Outlet />;
 }
 
 function App() {
@@ -109,18 +117,23 @@ function App() {
         {/* ================= AUTH ROUTES ================= */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
+           {/* user login */}
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
-           {/* EMAIL VERIFICATION */}
-  <Route path="/verify-email/:token" element={<VerifyEmail />} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        </Route>
+
+        {/* ================= ADMIN LOGIN ================= */}
+        <Route element={<AdminAuthLayout />}>
+          <Route path="/admin/login" element={<AdminLogin />} />
         </Route>
 
         {/* ================= ADMIN ROUTES ================= */}
         <Route
           path="/admin"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["admin"]}>
               <DashboardLayout />
             </ProtectedRoute>
           }
@@ -155,12 +168,10 @@ function App() {
           <Route path="add-remedy" element={<AddRemedy />} />
           <Route path="edit-remedy/:id" element={<EditRemedy />} />
 
-          {/* YOGA */}
           <Route path="yoga" element={<MyYogaList />} />
           <Route path="add-yoga" element={<AddYoga />} />
           <Route path="edit-yoga/:id" element={<EditYoga />} />
 
-          {/* PROGRAMS */}
           <Route path="programs" element={<MyPrograms />} />
           <Route path="create-program" element={<CreateProgram />} />
           <Route path="edit-program/:id" element={<EditProgram />} />

@@ -5,13 +5,19 @@ import API from "./api";
 // USER REGISTER
 // ===============================
 export const registerUser = async (data: FormData) => {
-  const res = await API.post("/auth/register", data, {
-    headers: {
-      "Content-Type": "multipart/form-data"
-    }
-  });
+  try {
 
-  return res.data;
+    const res = await API.post("/auth/register", data, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+
+    return res.data;
+
+  } catch (error: any) {
+    throw error;
+  }
 };
 
 
@@ -19,13 +25,23 @@ export const registerUser = async (data: FormData) => {
 // USER LOGIN
 // ===============================
 export const loginUser = async (data: any) => {
-  const res = await API.post("/auth/login", data);
+  try {
 
-  if (res.data.token) {
-    localStorage.setItem("token", res.data.token);
+    const res = await API.post("/auth/login", data);
+
+    if (res.data?.token) {
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("role", res.data.user.role);
+      localStorage.setItem("userId", res.data.user.id);
+      localStorage.setItem("email", res.data.user.email);
+      localStorage.setItem("name", res.data.user.fullName);
+    }
+
+    return res.data;
+
+  } catch (error: any) {
+    throw error;
   }
-
-  return res.data;
 };
 
 
@@ -33,7 +49,7 @@ export const loginUser = async (data: any) => {
 // LOGOUT
 // ===============================
 export const logoutUser = () => {
-  localStorage.removeItem("token");
+  localStorage.clear(); // ✅ FIXED (important)
 };
 
 
@@ -41,6 +57,13 @@ export const logoutUser = () => {
 // GET USER PROFILE
 // ===============================
 export const getProfile = async () => {
-  const res = await API.get("/auth/profile");
-  return res.data;
+  try {
+
+    const res = await API.get("/auth/profile");
+
+    return res.data;
+
+  } catch (error: any) {
+    throw error;
+  }
 };

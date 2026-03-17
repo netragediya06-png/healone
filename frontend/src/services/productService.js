@@ -3,10 +3,9 @@ import API from "./api";
 // ===============================
 // GET PUBLIC PRODUCTS (FOR USERS)
 // ===============================
-const getProducts = () => {
-  return API.get("/products");
+const getProducts = (params = "") => {
+  return API.get(`/products${params}`);
 };
-
 // ===============================
 // GET ADMIN PRODUCTS
 // ===============================
