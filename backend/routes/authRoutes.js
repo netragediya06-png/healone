@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const authController = require("../controllers/authController");
+
 const {
   getProfile,
   updateProfile,
@@ -13,54 +14,41 @@ const { protect } = require("../middleware/authMiddleware");
 
 
 /* =========================
-   REGISTER USER / SPECIALIST
+   AUTH ROUTES
 ========================= */
+
+// ✅ Register (User + Specialist)
 router.post(
   "/register",
   upload.single("profilePhoto"),
   authController.register
 );
 
-
-/* =========================
-   USER + SPECIALIST LOGIN
-========================= */
+// ✅ Login (User + Specialist)
 router.post(
   "/login",
   authController.login
 );
 
-
-/* =========================
-   ADMIN LOGIN (NEW 🔥)
-========================= */
+// ✅ Admin Login
 router.post(
   "/admin-login",
   authController.adminLogin
 );
 
-
-/* =========================
-   VERIFY EMAIL
-========================= */
+// ✅ Verify Email
 router.get(
   "/verify-email/:token",
   authController.verifyEmail
 );
 
-
-/* =========================
-   FORGOT PASSWORD
-========================= */
+// ✅ Forgot Password
 router.post(
   "/forgot-password",
   authController.forgotPassword
 );
 
-
-/* =========================
-   RESET PASSWORD
-========================= */
+// ✅ Reset Password
 router.post(
   "/reset-password/:token",
   authController.resetPassword
@@ -68,10 +56,22 @@ router.post(
 
 
 /* =========================
-   PROFILE ROUTES
+   🔥 SPECIALIST UPGRADE (IMPORTANT)
 ========================= */
 
-// 👉 Get logged-in user profile
+// 👉 User → Become Specialist
+router.post(
+  "/become-specialist",
+  protect,
+  authController.becomeSpecialist
+);
+
+
+/* =========================
+   PROFILE ROUTES (PROTECTED)
+========================= */
+
+// 👉 Get logged-in profile
 router.get(
   "/profile",
   protect,

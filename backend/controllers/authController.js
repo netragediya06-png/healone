@@ -116,7 +116,7 @@ exports.register = async (req, res) => {
       newUser.location = {
         state,
         city,
-        address: area
+        address
       };
     }
 
@@ -146,8 +146,6 @@ exports.register = async (req, res) => {
       newUser.bio = bio;
       newUser.expertiseSummary = expertiseSummary;
       newUser.treatmentApproach = treatmentApproach;
-
-      newUser.consultationFees = consultationFees;
       newUser.availableTimeSlots = availableTimeSlots;
       newUser.languagesSpoken = languagesSpoken;
 
@@ -217,7 +215,72 @@ exports.register = async (req, res) => {
 
 };
 
+/* =========================
+   🔥 BECOME SPECIALIST (NEW)
+========================= */
+exports.becomeSpecialist = async (req, res) => {
+  try {
 
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role === "specialist") {
+      return res.status(400).json({
+        message: "Already a specialist"
+      });
+    }
+
+    const {
+      organizationName,
+      organizationType,
+      experienceYears,
+      practitionersCount,
+      servicesOffered,
+      consultationMode,
+      onlineFees,
+      offlineFees,
+      bio,
+      expertiseSummary,
+      treatmentApproach,
+      availableTimeSlots,
+      languagesSpoken
+    } = req.body;
+
+    user.role = "specialist";
+    user.verificationStatus = "pending";
+
+    user.organizationDetails = {
+      organizationName,
+      organizationType,
+      experienceYears,
+      practitionersCount,
+      servicesOffered,
+      consultationMode,
+      pricing: {
+        online: onlineFees,
+        offline: offlineFees
+      }
+    };
+
+    user.bio = bio;
+    user.expertiseSummary = expertiseSummary;
+    user.treatmentApproach = treatmentApproach;
+    user.availableTimeSlots = availableTimeSlots;
+    user.languagesSpoken = languagesSpoken;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Specialist request submitted"
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 /* =========================
    VERIFY EMAIL
 ========================= */
