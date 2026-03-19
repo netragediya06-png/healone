@@ -5,7 +5,6 @@ const bcrypt = require("bcryptjs");
 const sendEmail = require("../utils/sendEmail");
 const uploadImage = require("../utils/uploadImage"); // ✅ added
 
-
 /* =========================
    GENERATE JWT TOKEN
 ========================= */
@@ -14,20 +13,18 @@ const generateToken = (user) => {
   return jwt.sign(
     {
       id: user._id,
-      role: user.role
+      role: user.role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "7d" },
   );
 };
-
 
 /* =========================
    REGISTER
 ========================= */
 
 exports.register = async (req, res) => {
-
   try {
     const {
       fullName,
@@ -35,15 +32,13 @@ exports.register = async (req, res) => {
       password,
       phone,
       role,
-      gender,
-      dateOfBirth,
 
       // LOCATION
       state,
       city,
       address,
 
-      // SPECIALIST (ORG)
+      // SPECIALIST - ORG
       organizationName,
       organizationType,
       experienceYears,
@@ -52,258 +47,194 @@ exports.register = async (req, res) => {
       consultationMode,
       onlineFees,
       offlineFees,
+      specialization,
+
+      // PROFESSIONAL
+      qualification,
+      university,
+      yearOfCompletion,
 
       // PROFILE
       bio,
       expertiseSummary,
       treatmentApproach,
-      availableTimeSlots,
-      languagesSpoken
+      languagesSpoken,
+
+      // AVAILABILITY
+      days,
+      startTime,
+      endTime,
     } = req.body;
 
-
-    /* VALIDATION */
+    // ========================
+    // BASIC VALIDATION
+    // ========================
 
     if (!fullName || !email || !password) {
       return res.status(400).json({
-        message: "Full name, email and password are required"
+        message: "Full name, email and password are required",
       });
     }
-
-
-    /* CHECK EXISTING USER */
 
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(400).json({
-        message: "Email already exists"
+        message: "Email already exists",
       });
     }
-    /* =========================
-       PROFILE PHOTO (FIXED)
-    ========================= */
+
+    // ========================
+    // PROFILE PHOTO
+    // ========================
 
     let profilePhoto = "";
 
     if (req.file) {
-      profilePhoto = await uploadImage(
-        req.file.buffer,
-        "healone/users"
-      );
+      profilePhoto = await uploadImage(req.file.buffer, "healone/users");
     } else {
-      profilePhoto = `https://ui-avatars.com/api/?name=${fullName}&background=175C1A&color=fff`;
+      profilePhoto = `https://ui-avatars.com/api/?name=${fullName}`;
     }
-    /* =========================
-       USER OBJECT
-    ========================= */
+
+    // ========================
+    // BASE USER
+    // ========================
 
     let newUser = {
       fullName,
       email,
       password,
       phone,
-      gender,
-      dateOfBirth,
+      role: role || "user",
       profilePhoto,
-      role: role || "user"
-    };
 
-
-    /* LOCATION */
-
-    if (state || city || area) {
-      newUser.location = {
+      location: {
         state,
         city,
-        address
-      };
-    }
+        address,
+      },
+    };
 
-
-    /* =========================
-       SPECIALIST LOGIC
-    ========================= */
+    // ========================
+    // SPECIALIST LOGIC
+    // ========================
 
     if (role === "specialist") {
+      newUser.verification = {
+        status: "pending",
+      };
 
-      newUser.verificationStatus = "pending";
-      newUser.isVerified = false;
+      newUser.isActive = false;
 
       newUser.organizationDetails = {
         organizationName,
         organizationType,
         experienceYears,
         practitionersCount,
-        servicesOffered,
+        servicesOffered: servicesOffered
+          ? Array.isArray(servicesOffered)
+            ? servicesOffered
+            : [servicesOffered]
+          : [],
+
+        specialization: specialization
+          ? Array.isArray(specialization)
+            ? specialization
+            : [specialization]
+          : [],
         consultationMode,
         pricing: {
           online: onlineFees,
-          offline: offlineFees
-        }
+          offline: offlineFees,
+        },
+      };
+
+      newUser.professionalDetails = {
+        qualification,
+        university,
+        yearOfCompletion,
+        experienceYears,
       };
 
       newUser.bio = bio;
       newUser.expertiseSummary = expertiseSummary;
       newUser.treatmentApproach = treatmentApproach;
-      newUser.availableTimeSlots = availableTimeSlots;
       newUser.languagesSpoken = languagesSpoken;
 
+      newUser.availability = {
+        days,
+        startTime,
+        endTime,
+      };
     } else {
-
-      newUser.verificationStatus = "approved";
-      newUser.isVerified = false; // email verification required
-
+      newUser.verification = {
+        status: "approved",
+      };
+      newUser.isActive = true;
     }
-    /* =========================
-       CREATE USER
-    ========================= */
+
+    // ========================
+    // CREATE USER
+    // ========================
+
+    const token = crypto.randomBytes(32).toString("hex");
+
+    newUser.verificationToken = token;
+
     const user = await User.create(newUser);
-    /* =========================
-       EMAIL VERIFICATION TOKEN
-    ========================= */
 
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-
-    user.verificationToken = verificationToken;
-    await user.save();
-    /* =========================
-       SEND VERIFICATION EMAIL
-    ========================= */
-
-    const verifyLink = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
+    const verifyLink = `${process.env.CLIENT_URL}/verify-email/${token}`;
 
     await sendEmail(
       user.email,
       "Verify your HealOne account",
-      `
-      <h2>Welcome to HealOne 🌿</h2>
-      <p>Please verify your email to activate your account.</p>
-      <a href="${verifyLink}">Verify Email</a>
-      `
+      `<h2>Verify Email</h2><a href="${verifyLink}">Click here</a>`,
     );
-    /* =========================
-       RESPONSE
-    ========================= */
+
+    // ========================
+    // RESPONSE
+    // ========================
 
     res.status(201).json({
-
       message:
         role === "specialist"
-          ? "Specialist registration submitted. Waiting for admin approval."
-          : "Registration successful. Please verify your email.",
+          ? "Registration submitted. Please verify email and wait for admin approval."
+          : "Registration successful. Please verify your email",
 
       user: {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
         role: user.role,
-        profilePhoto: user.profilePhoto
-      }
-
+      },
     });
-
   } catch (error) {
-
     console.error("REGISTER ERROR:", error);
-
-    res.status(500).json({
-      message: "Server error"
-    });
-
-  }
-
-};
-
-/* =========================
-   🔥 BECOME SPECIALIST (NEW)
-========================= */
-exports.becomeSpecialist = async (req, res) => {
-  try {
-
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    if (user.role === "specialist") {
-      return res.status(400).json({
-        message: "Already a specialist"
-      });
-    }
-
-    const {
-      organizationName,
-      organizationType,
-      experienceYears,
-      practitionersCount,
-      servicesOffered,
-      consultationMode,
-      onlineFees,
-      offlineFees,
-      bio,
-      expertiseSummary,
-      treatmentApproach,
-      availableTimeSlots,
-      languagesSpoken
-    } = req.body;
-
-    user.role = "specialist";
-    user.verificationStatus = "pending";
-
-    user.organizationDetails = {
-      organizationName,
-      organizationType,
-      experienceYears,
-      practitionersCount,
-      servicesOffered,
-      consultationMode,
-      pricing: {
-        online: onlineFees,
-        offline: offlineFees
-      }
-    };
-
-    user.bio = bio;
-    user.expertiseSummary = expertiseSummary;
-    user.treatmentApproach = treatmentApproach;
-    user.availableTimeSlots = availableTimeSlots;
-    user.languagesSpoken = languagesSpoken;
-
-    await user.save();
-
-    res.status(200).json({
-      message: "Specialist request submitted"
-    });
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server error" });
   }
 };
+
 /* =========================
    VERIFY EMAIL
 ========================= */
 
 exports.verifyEmail = async (req, res) => {
-
   try {
-
     const { token } = req.params;
 
     const user = await User.findOne({
-      verificationToken: token
+      verificationToken: token,
     });
 
     if (!user) {
       return res.status(400).json({
-        message: "Invalid or expired verification link"
+        message: "Invalid or expired verification link",
       });
     }
 
     if (user.isVerified) {
       return res.status(200).json({
-        message: "Account already verified"
+        message: "Account already verified",
       });
     }
 
@@ -313,13 +244,11 @@ exports.verifyEmail = async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: "Email verified successfully"
+      message: "Email verified successfully",
     });
-
   } catch (error) {
-
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
   }
 };
@@ -328,70 +257,68 @@ exports.verifyEmail = async (req, res) => {
 ========================= */
 
 exports.login = async (req, res) => {
-
   try {
-
     const { email, password } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
-        message: "Email and password required"
+        message: "Email and password required",
       });
     }
-
 
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
       return res.status(404).json({
-        message: "User not found"
+        message: "User not found",
       });
     }
     if (user.role === "admin") {
-  return res.status(403).json({
-    message: "Invalid credentials"
-  });
-}
+      return res.status(403).json({
+        message: "Invalid credentials",
+      });
+    }
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(400).json({
-        message: "Invalid credentials"
+        message: "Invalid credentials",
       });
     }
-
 
     if (!user.isVerified) {
       return res.status(403).json({
-        message: "Please verify your email first"
+        message: "Please verify your email first",
       });
     }
 
-
     if (user.isBlocked) {
       return res.status(403).json({
-        message: "Your account is blocked by admin"
+        message: "Your account is blocked by admin",
       });
     }
 
     if (user.role === "specialist") {
-
-      if (user.verificationStatus === "pending") {
+      if (user.verification?.status === "pending") {
         return res.status(403).json({
-          message: "Your specialist account is under admin review"
+          message: "Your specialist account is under admin review",
         });
       }
 
-      if (user.verificationStatus === "rejected") {
+      if (user.verification?.status === "rejected") {
         return res.status(403).json({
-          message: "Your specialist request was rejected"
+          message: "Your specialist request was rejected",
         });
       }
 
+      if (!user.isActive) {
+        return res.status(403).json({
+          message: "Your account is not approved by admin yet",
+        });
+      }
     }
 
     res.status(200).json({
-
       message: "Login successful",
 
       user: {
@@ -399,37 +326,30 @@ exports.login = async (req, res) => {
         fullName: user.fullName,
         email: user.email,
         role: user.role,
-        profilePhoto: user.profilePhoto
+        profilePhoto: user.profilePhoto,
       },
 
-      token: generateToken(user)
-
+      token: generateToken(user),
     });
-
   } catch (error) {
-
     console.error("LOGIN ERROR:", error);
 
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
-
   }
-
 };
 /* =========================
    ADMIN LOGIN
 ========================= */
 
 exports.adminLogin = async (req, res) => {
-
   try {
-
     const { email, password } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
-        message: "Email and password required"
+        message: "Email and password required",
       });
     }
 
@@ -438,7 +358,7 @@ exports.adminLogin = async (req, res) => {
     // 🚨 Only admin allowed
     if (!user || user.role !== "admin") {
       return res.status(403).json({
-        message: "Access denied"
+        message: "Access denied",
       });
     }
 
@@ -446,13 +366,18 @@ exports.adminLogin = async (req, res) => {
 
     if (!isMatch) {
       return res.status(400).json({
-        message: "Invalid credentials"
+        message: "Invalid credentials",
       });
     }
 
     if (user.isBlocked) {
       return res.status(403).json({
-        message: "Admin account blocked"
+        message: "Admin account blocked",
+      });
+    }
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: "Admin email not verified",
       });
     }
 
@@ -462,47 +387,39 @@ exports.adminLogin = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        role: user.role
+        role: user.role,
       },
-      token: generateToken(user)
+      token: generateToken(user),
     });
-
   } catch (error) {
-
     console.error("ADMIN LOGIN ERROR:", error);
 
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
-
   }
-
 };
 /* =========================
    FORGOT PASSWORD
 ========================= */
 
 exports.forgotPassword = async (req, res) => {
-
   try {
-
     const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({
-        message: "Email is required"
+        message: "Email is required",
       });
     }
-
 
     const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(404).json({
-        message: "User with this email does not exist"
+        message: "User with this email does not exist",
       });
     }
-
 
     const resetToken = crypto.randomBytes(32).toString("hex");
 
@@ -510,7 +427,6 @@ exports.forgotPassword = async (req, res) => {
     user.resetTokenExpire = Date.now() + 3600000;
 
     await user.save();
-
 
     const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
@@ -521,57 +437,46 @@ exports.forgotPassword = async (req, res) => {
       <h2>Reset Your Password</h2>
       <p>Click below to reset your password:</p>
       <a href="${resetLink}">Reset Password</a>
-      `
+      `,
     );
 
-
     res.status(200).json({
-      message: "Password reset email sent"
+      message: "Password reset email sent",
     });
-
   } catch (error) {
-
     console.error("FORGOT PASSWORD ERROR:", error);
 
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
-
   }
-
 };
-
 
 /* =========================
    RESET PASSWORD
 ========================= */
 
 exports.resetPassword = async (req, res) => {
-
   try {
-
     const { token } = req.params;
     const { password } = req.body;
 
     if (!password) {
       return res.status(400).json({
-        message: "Password is required"
+        message: "Password is required",
       });
     }
-
 
     const user = await User.findOne({
       resetToken: token,
-      resetTokenExpire: { $gt: Date.now() }
+      resetTokenExpire: { $gt: Date.now() },
     });
-
 
     if (!user) {
       return res.status(400).json({
-        message: "Invalid or expired reset token"
+        message: "Invalid or expired reset token",
       });
     }
-
 
     user.password = password;
     user.resetToken = undefined;
@@ -579,15 +484,13 @@ exports.resetPassword = async (req, res) => {
 
     await user.save();
 
-
     res.status(200).json({
-      message: "Password reset successful"
+      message: "Password reset successful",
     });
-
   } catch (error) {
     console.error("RESET PASSWORD ERROR:", error);
     res.status(500).json({
-      message: "Server error"
+      message: "Server error",
     });
   }
 };

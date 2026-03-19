@@ -104,7 +104,8 @@ const specialistApprovedOnly = (req, res, next) => {
   if (
     !req.user ||
     req.user.role !== "specialist" ||
-    req.user.verificationStatus !== "approved"
+    req.user.verification?.status !== "approved" ||
+    !req.user.isActive
   ) {
 
     return res.status(403).json({

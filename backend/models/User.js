@@ -45,6 +45,7 @@ const userSchema = new mongoose.Schema(
     type: String,
     enum: ["admin", "specialist", "user"],
     default: "user",
+    index: true,
   },
 
   // ========================
@@ -66,11 +67,29 @@ const userSchema = new mongoose.Schema(
 
   verificationToken: String,
 
+  // 🔥 NEW (ADVANCED ADMIN VERIFICATION SYSTEM)
+  verification: {
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    reviewedAt: Date,
+    adminNote: String,
+  },  
+
   verificationStatus: {
     type: String,
     enum: ["pending", "approved", "rejected"],
     default: "pending",
   },
+
+  
+  
 
   // ========================
   // ACCOUNT STATUS
@@ -80,6 +99,11 @@ const userSchema = new mongoose.Schema(
     type: Boolean,
     default: false,
   },
+  isActive: {
+  type: Boolean,
+  default: false,
+},
+  
 
   // ========================
   // PASSWORD RESET
@@ -103,7 +127,7 @@ const userSchema = new mongoose.Schema(
 
     organizationType: {
       type: String,
-      enum: ["academy", "clinic", "panchakarma_center", "sanstha"],
+      enum: ["academy", "clinic", "panchakarma_center", "sanstha", "hospital"],
     },
 
     establishedYear: Number,
@@ -115,6 +139,9 @@ const userSchema = new mongoose.Schema(
     experienceYears: Number, // total experience of org
 
     servicesOffered: [String], // Panchakarma, Detox, Skin, etc.
+
+    // 🔥 NEW
+    specialization: [String],
 
     consultationMode: {
       type: String,
@@ -143,6 +170,18 @@ const userSchema = new mongoose.Schema(
 
   },
 
+    // ========================
+  // 👨‍⚕️ PROFESSIONAL DETAILS (NEW)
+  // ========================
+
+  professionalDetails: {
+    qualification: String,
+    university: String,
+    yearOfCompletion: Number,
+    registrationNumber: String,
+    experienceYears: Number,
+  },
+
   // ========================
   // LOCATION
   // ========================
@@ -155,27 +194,43 @@ const userSchema = new mongoose.Schema(
   },
 
   // ========================
-  // DOCUMENTS
+  // DOCUMENTS (UPGRADED)
   // ========================
 
-  documents: {
-    idProof: String,
-    certificationProof: String,
-    registrationCertificate: String,
-  },
-
+ documents: [
+  {
+    url: {
+      type: String,
+      required: function () {
+        return this.role === "specialist";
+      }
+    },
+    verified: {
+      type: Boolean,
+      default: false
+    }
+  }
+],
   // ========================
   // AYURVEDA PROFILE CONTENT
   // ========================
 
-  bio: String, // About organization
+  bio: String,
 
   expertiseSummary: String,
 
-  treatmentApproach: String, // holistic healing etc
+  treatmentApproach: String,
 
-  facilities: [String], // steam, massage rooms etc
+  facilities: [String],
 
+  // 🔥 UPDATED
+  availability: {
+    days: [String],
+    startTime: String,
+    endTime: String,
+  },
+
+  // OLD field (kept safe)
   availableTimeSlots: String,
 
   languagesSpoken: [String],
@@ -196,6 +251,16 @@ userSchema.pre("save", async function () {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 
+});
+
+// ========================
+// SYNC VERIFICATION STATUS
+// ========================
+
+userSchema.pre("save", function () {
+  if (this.verification?.status) {
+    this.verificationStatus = this.verification.status;
+  }
 });
 
 
@@ -235,5 +300,9 @@ userSchema.methods.generateResetToken = function () {
   return resetToken;
 };
 
+// ========================
+// INDEX FOR FAST QUERY
+// ========================
 
+userSchema.index({ role: 1, "verification.status": 1 });
 module.exports = mongoose.model("User", userSchema);

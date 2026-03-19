@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  enrollProgram,
+  subscribeProgram,            // ✅ FIXED
   getUserSubscriptions,
   getAllSubscriptions,
   checkProgramAccess
@@ -11,19 +11,21 @@ const {
 const { protect, authorize } = require("../middleware/authMiddleware");
 
 /* ===============================
-   USER ENROLL PROGRAM
+   USER SUBSCRIBE PROGRAM
+   POST /api/subscriptions
 ================================ */
 
 router.post(
   "/",
   protect,
   authorize("user"),
-  enrollProgram
+  subscribeProgram
 );
 
 
 /* ===============================
    USER SUBSCRIPTIONS
+   GET /api/subscriptions/my
 ================================ */
 
 router.get(
@@ -36,6 +38,7 @@ router.get(
 
 /* ===============================
    CHECK PROGRAM ACCESS
+   GET /api/subscriptions/access/:programId
 ================================ */
 
 router.get(
@@ -48,6 +51,7 @@ router.get(
 
 /* ===============================
    ADMIN ALL SUBSCRIPTIONS
+   GET /api/subscriptions/admin/all
 ================================ */
 
 router.get(
@@ -57,4 +61,4 @@ router.get(
   getAllSubscriptions
 );
 
-module.exports = router;
+module.exports = router;  

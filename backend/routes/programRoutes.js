@@ -19,7 +19,7 @@ const {
   specialistOnly
 } = require("../middleware/authMiddleware");
 
-const upload = require("../middleware/upload");
+const { uploadProgramImage } = require("../middleware/upload");
 
 
 /* ======================================================
@@ -31,7 +31,7 @@ router.post(
   "/create",
   protect,
   specialistOnly,
-  upload.single("image"),
+  uploadProgramImage,
   createProgram
 );
 
@@ -82,7 +82,7 @@ router.put(
   "/update/:id",
   protect,
   specialistOnly,
-  upload.single("image"),
+  uploadProgramImage,
   updateProgram
 );
 
@@ -108,6 +108,7 @@ router.put(
 router.delete(
   "/delete/:id",
   protect,
+  adminOnly,
   deleteProgram
 );
 

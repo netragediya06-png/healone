@@ -296,7 +296,7 @@ const Navbar = () => {
 
             {/* CTA */}
             <Link
-              to="/specialist/signup"
+              to="/become-specialist"
               className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition"
             >
               Join Specialist

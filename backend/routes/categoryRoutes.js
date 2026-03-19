@@ -9,7 +9,7 @@
     getCategoriesWithSubCount
   } = require("../controllers/categoryController");
 
-  const upload = require("../middleware/upload");
+  const { uploadCategoryImage } = require("../middleware/upload");
   const { protect, authorize } = require("../middleware/authMiddleware");
 
 
@@ -20,7 +20,7 @@
     "/",
     protect,
     authorize("admin"),
-    upload.single("image"),
+    uploadCategoryImage,
     createCategory
   );
 
@@ -52,7 +52,7 @@
     "/:id",
     protect,
     authorize("admin"),
-    upload.single("image"),
+    uploadCategoryImage,
     updateCategory
   );
 

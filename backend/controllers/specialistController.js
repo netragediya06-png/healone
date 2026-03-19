@@ -1,130 +1,226 @@
 const User = require("../models/User");
+const uploadImage = require("../utils/uploadImage");
 
-/* ===================================
-   📌 GET ALL APPROVED SPECIALISTS (PUBLIC)
-=================================== */
-exports.getApprovedSpecialists = async (req, res) => {
+/* =========================
+   🔥 BECOME SPECIALIST (NEW)
+========================= */
+exports.becomeSpecialist = async (req, res) => {
   try {
-    const specialists = await User.find({
-      role: "specialist",
-      verificationStatus: "approved",
-    })
-      .select("-password -documents -verificationToken -resetToken -resetTokenExpire")
-      .sort({ createdAt: -1 });
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role === "specialist") {
+      return res.status(400).json({
+        message: "Already a specialist",
+      });
+    }
+
+    // =========================
+    // 🔥 PARSE BODY
+    // =========================
+    const {
+      organizationName,
+      organizationType,
+      experienceYears,
+      practitionersCount,
+      servicesOffered,
+      specialization,
+      consultationMode,
+      onlineFees,
+      offlineFees,
+      qualification,
+      university,
+      yearOfCompletion,
+      bio,
+      expertiseSummary,
+      treatmentApproach,
+      startTime,
+      endTime,
+      languagesSpoken,
+      days,
+    } = req.body;
+
+    // 🔥 FIX ARRAY
+    const parsedDays = typeof days === "string" ? JSON.parse(days) : days || [];
+
+    // =========================
+    // 🔥 FILES
+    // =========================
+    const profilePhotoFile = req.files?.profilePhoto?.[0];
+    const documentFiles = req.files?.documents || [];
+
+    let profilePhotoUrl = user.profilePhoto;
+
+    // 👉 Upload profile image
+    if (profilePhotoFile) {
+      profilePhotoUrl = await uploadImage(
+        profilePhotoFile.buffer,
+        "healone/users",
+      );
+    }
+
+    // 👉 Upload documents
+    const documentUrls = [];
+    for (const file of documentFiles) {
+      const url = await uploadImage(file.buffer, "healone/documents");
+      documentUrls.push(url);
+    }
+
+    // =========================
+    // 🔥 UPDATE USER
+    // =========================
+    user.role = "specialist";
+
+    user.verification = {
+      status: "pending",
+    };
+
+    user.documents = documentUrls.map((url) => ({
+      url,
+      uploadedAt: new Date(),
+    }));
+
+    user.isActive = false;
+
+    user.profilePhoto = profilePhotoUrl;
+
+    user.professionalDetails = {
+      qualification,
+      university,
+      yearOfCompletion,
+      experienceYears,
+    };
+
+    user.organizationDetails = {
+      organizationName,
+      organizationType,
+      experienceYears,
+      practitionersCount,
+
+      // ✅ FIX ARRAY ISSUE
+      servicesOffered: servicesOffered
+        ? Array.isArray(servicesOffered)
+          ? servicesOffered
+          : [servicesOffered]
+        : [],
+
+      specialization: specialization
+        ? Array.isArray(specialization)
+          ? specialization
+          : [specialization]
+        : [],
+
+      consultationMode,
+      pricing: {
+        online: onlineFees,
+        offline: offlineFees,
+      },
+    };
+
+    user.bio = bio;
+    user.expertiseSummary = expertiseSummary;
+    user.treatmentApproach = treatmentApproach;
+
+    user.availability = {
+      days: parsedDays,
+      startTime,
+      endTime,
+    };
+
+    user.languagesSpoken = languagesSpoken;
+
+    console.log("🔥 BEFORE SAVE:", user);
+
+    const savedUser = await user.save();
+
+    console.log("✅ AFTER SAVE:", savedUser);
 
     res.status(200).json({
-      success: true,
-      count: specialists.length,
-      data: specialists,
+      message: "Specialist request submitted successfully",
     });
-
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.error("BECOME SPECIALIST ERROR:", error);
+    res.status(500).json({ message: error.message });
   }
 };
+/* =========================
+   GET ALL SPECIALISTS
+========================= */
+exports.getSpecialists = async (req, res) => {
+  try {
+    const { status } = req.query;
 
+    let filter = { role: "specialist" };
 
-/* ===================================
-   📌 GET SINGLE SPECIALIST DETAILS
-=================================== */
+    if (status) {
+      filter["verification.status"] = status;
+    }
+
+    const specialists = await User.find(filter)
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(specialists);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+/* =========================
+   GET SINGLE SPECIALIST
+========================= */
 exports.getSingleSpecialist = async (req, res) => {
   try {
-    const specialist = await User.findById(req.params.id)
-      .select("-password -resetToken -resetTokenExpire");
+    const specialist = await User.findById(req.params.id).select("-password");
 
     if (!specialist || specialist.role !== "specialist") {
       return res.status(404).json({
-        success: false,
         message: "Specialist not found",
       });
     }
 
-    res.status(200).json({
-      success: true,
-      data: specialist,
-    });
-
+    res.status(200).json(specialist);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
-
-
-/* ===================================
-   📌 UPDATE SPECIALIST PROFILE
-=================================== */
+/* =========================
+   UPDATE SPECIALIST PROFILE
+========================= */
 exports.updateSpecialistProfile = async (req, res) => {
   try {
-    const specialist = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id);
 
-    if (!specialist || specialist.role !== "specialist") {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied",
-      });
+    if (!user || user.role !== "specialist") {
+      return res.status(403).json({ message: "Access denied" });
     }
 
-    // Update basic fields
-    specialist.fullName = req.body.fullName || specialist.fullName;
-    specialist.phone = req.body.phone || specialist.phone;
-    specialist.profilePhoto = req.body.profilePhoto || specialist.profilePhoto;
+    user.fullName = req.body.fullName || user.fullName;
+    user.phone = req.body.phone || user.phone;
+    user.bio = req.body.bio || user.bio;
+    user.languagesSpoken = req.body.languagesSpoken || user.languagesSpoken;
 
-    // Update organization details
-    if (req.body.organizationDetails) {
-      specialist.organizationDetails = {
-        ...specialist.organizationDetails,
-        ...req.body.organizationDetails,
-      };
-    }
-
-    // Update other fields
-    specialist.bio = req.body.bio || specialist.bio;
-    specialist.expertiseSummary = req.body.expertiseSummary || specialist.expertiseSummary;
-    specialist.treatmentApproach = req.body.treatmentApproach || specialist.treatmentApproach;
-    specialist.availableTimeSlots = req.body.availableTimeSlots || specialist.availableTimeSlots;
-    specialist.languagesSpoken = req.body.languagesSpoken || specialist.languagesSpoken;
-
-    // Location
-    if (req.body.location) {
-      specialist.location = {
-        ...specialist.location,
-        ...req.body.location,
-      };
-    }
-
-    await specialist.save();
+    await user.save();
 
     res.status(200).json({
-      success: true,
       message: "Profile updated successfully",
-      data: specialist,
+      user,
     });
-
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
-
-
-/* ===================================
-   📌 DELETE SPECIALIST (ADMIN)
-=================================== */
+/* =========================
+   DELETE SPECIALIST
+========================= */
 exports.deleteSpecialist = async (req, res) => {
   try {
     const specialist = await User.findById(req.params.id);
 
     if (!specialist || specialist.role !== "specialist") {
       return res.status(404).json({
-        success: false,
         message: "Specialist not found",
       });
     }
@@ -132,96 +228,81 @@ exports.deleteSpecialist = async (req, res) => {
     await specialist.deleteOne();
 
     res.status(200).json({
-      success: true,
       message: "Specialist deleted successfully",
     });
-
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
-
-
-/* ===================================
-   📌 ADMIN: APPROVE / REJECT SPECIALIST
-=================================== */
-exports.updateVerificationStatus = async (req, res) => {
+/* =========================
+   APPROVE SPECIALIST
+========================= */
+exports.approveSpecialist = async (req, res) => {
   try {
-    const { status } = req.body; // approved / rejected
-
     const specialist = await User.findById(req.params.id);
 
     if (!specialist || specialist.role !== "specialist") {
-      return res.status(404).json({
-        success: false,
-        message: "Specialist not found",
-      });
+      return res.status(404).json({ message: "Specialist not found" });
     }
 
-    specialist.verificationStatus = status;
+    specialist.verification.status = "approved";
+    specialist.isActive = true;
+
     await specialist.save();
 
-    res.status(200).json({
-      success: true,
-      message: `Specialist ${status} successfully`,
-      data: specialist,
-    });
-
+    res.json({ message: "Approved successfully" });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
-
-
-/* ===================================
-   📌 GET SPECIALISTS WITH FILTER (ADVANCED)
-=================================== */
-exports.getFilteredSpecialists = async (req, res) => {
+/* =========================
+   REJECT SPECIALIST
+========================= */
+exports.rejectSpecialist = async (req, res) => {
   try {
-    const { city, service, minRating } = req.query;
+    const specialist = await User.findById(req.params.id);
 
-    let query = {
-      role: "specialist",
-      verificationStatus: "approved",
-    };
-
-    // Filter by city
-    if (city) {
-      query["location.city"] = city;
+    if (!specialist || specialist.role !== "specialist") {
+      return res.status(404).json({ message: "Specialist not found" });
     }
 
-    // Filter by services (Ayurveda treatments)
+    specialist.verification.status = "rejected";
+    specialist.isActive = false;
+
+    await specialist.save();
+
+    res.json({ message: "Rejected successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+/* =========================
+   FILTER SPECIALISTS
+========================= */
+exports.getFilteredSpecialists = async (req, res) => {
+  try {
+    const { city, service } = req.query;
+
+    let filter = {
+      role: "specialist",
+      "verification.status": "approved",
+      isActive: true,
+    };
+
+    if (city) {
+      filter["location.city"] = city;
+    }
+
     if (service) {
-      query["organizationDetails.servicesOffered"] = {
+      filter["organizationDetails.servicesOffered"] = {
         $in: [service],
       };
     }
 
-    // Filter by rating
-    if (minRating) {
-      query["organizationDetails.rating"] = { $gte: Number(minRating) };
-    }
+    const specialists = await User.find(filter);
 
-    const specialists = await User.find(query)
-      .select("-password")
-      .sort({ "organizationDetails.rating": -1 });
-
-    res.status(200).json({
-      success: true,
-      count: specialists.length,
-      data: specialists,
-    });
-
+    res.json(specialists);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };

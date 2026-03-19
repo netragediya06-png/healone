@@ -3,7 +3,7 @@ import { Clock, ChefHat, ArrowRight } from 'lucide-react';
 import { Remedy, remedyCategories } from '@/lib/remedies-data';
 
 interface RemedyCardProps {
-  remedy: Remedy;
+  remedy: any;
   index: number;
   onViewDetail: (remedy: Remedy) => void;
 }
@@ -37,12 +37,12 @@ const RemedyCard = ({ remedy, index, onViewDetail }: RemedyCardProps) => {
         <div className="absolute bottom-3 left-3 right-3">
           <div className="flex items-center gap-2">
             <img
-              src={remedy.specialist.image}
-              alt={remedy.specialist.name}
+              src={remedy.specialist?.profileImage || "/default-user.png"}
+              alt={remedy.specialist?.fullName || "Specialist"}
               className="w-6 h-6 rounded-full border-2 border-background/50 object-cover"
             />
             <span className="text-background text-xs font-medium truncate">
-              {remedy.specialist.name}
+              {remedy.specialist?.fullName || "Unknown Specialist"}
             </span>
           </div>
         </div>
@@ -59,7 +59,7 @@ const RemedyCard = ({ remedy, index, onViewDetail }: RemedyCardProps) => {
         <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{remedy.description}</p>
 
         <div className="flex flex-wrap gap-1.5 mt-3">
-          {remedy.doshaAffinity.map(dosha => (
+          {remedy.doshaAffinity?.map((dosha: string) => (
             <span
               key={dosha}
               className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground"

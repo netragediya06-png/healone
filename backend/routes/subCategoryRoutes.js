@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const SubCategory = require("../models/SubCategory");
-const upload = require("../middleware/upload");
+const { uploadCategoryImage } = require("../middleware/upload");
 const cloudinary = require("../config/cloudinary");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
@@ -15,7 +15,7 @@ router.post(
   "/",
   protect,
   authorize("admin"),
-  upload.single("image"),
+  uploadCategoryImage,
   async (req, res) => {
 
     try {
@@ -117,7 +117,7 @@ router.put(
   "/:id",
   protect,
   authorize("admin"),
-  upload.single("image"),
+  uploadCategoryImage,
   async (req, res) => {
 
     try {

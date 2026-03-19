@@ -5,6 +5,7 @@ import Login from "./pages/user/UserLogin.jsx"; // ✅ FIXED
 import Register from "./pages/user/Register.js";
 import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
 import ResetPassword from "./pages/auth/ResetPassword.jsx";
+import SpecialistRegister from "./pages/specialist/specialist-register/SpecialistRegister.js";
 
 /* ---------------- ADMIN AUTH ---------------- */
 import AdminLogin from "./pages/auth/AdminLogin.jsx";
@@ -20,7 +21,7 @@ import AddProduct from "./pages/admin/products/AddProduct";
 import EditProduct from "./pages/admin/products/EditProduct";
 import ManageSpecialists from "./pages/admin/ManageSpecialists";
 import AdminUsers from "./pages/admin/AdminUsers";
-import AdminRemedies from "./pages/admin/AdminRemedies";
+import AdminRemedies from "./pages/admin/AdminRemedies.js";
 import AdminYogaServices from "./pages/admin/AdminYogaServices";
 import AdminProgramList from "./pages/admin/programs/AdminProgramList";
 import AdminProgramDetail from "./pages/admin/programs/AdminProgramDetail";
@@ -31,9 +32,9 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import SpecialistRoute from "./pages/specialist/SpecialistRoute";
 import SpecialistDashboardLayout from "./pages/specialist/layout/SpecialistDashboardLayout";
 import SpecialistDashboard from "./pages/specialist/dashboard/SpecialistDashboard";
-import MyRemedies from "./pages/specialist/remedies/MyRemedies";
-import AddRemedy from "./pages/specialist/remedies/AddRemedy";
-import EditRemedy from "./pages/specialist/remedies/EditRemedy";
+import MyRemedies from "./pages/specialist/remedies/MyRemedies.js";
+import AddRemedy from "./pages/specialist/remedies/AddRemedy.js";
+import EditRemedy from "./pages/specialist/remedies/EditRemedy.js";
 import AddYoga from "./pages/specialist/Yoga/AddYoga.jsx";
 import MyYogaList from "./pages/specialist/Yoga/MyYogaList";
 import EditYoga from "./pages/specialist/Yoga/EditYoga";
@@ -122,6 +123,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/verify-email/:token" element={<VerifyEmail />} />
+          <Route path="/become-specialist" element={<SpecialistRegister />} />
         </Route>
 
         {/* ================= ADMIN LOGIN ================= */}

@@ -1,140 +1,81 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Clock, Award, MapPin, Phone, Mail, Calendar, Users, CheckCircle, Heart, ArrowRight, Video, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import API from '@/services/api';
 import specialistsHero from '@/assets/specialists-hero.jpg';
-
-import drPriya from '@/assets/specialists/dr-priya.jpg';
-import drRajesh from '@/assets/specialists/dr-rajesh.jpg';
-import drAnita from '@/assets/specialists/dr-anita.jpg';
-import drSanjay from '@/assets/specialists/dr-sanjay.jpg';
-import drKavita from '@/assets/specialists/dr-kavita.jpg';
-import drVikram from '@/assets/specialists/dr-vikram.jpg';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
   visible: (i: number = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.6 } }),
 };
 
-const specialists = [
-  {
-    id: 'dr-priya',
-    name: 'Dr. Priya Sharma',
-    image: drPriya,
-    specialization: 'Panchakarma & Detox Therapy',
-    experience: '15+ years',
-    rating: 4.9,
-    consultations: 5200,
-    location: 'Mumbai, India',
-    languages: ['Hindi', 'English', 'Marathi'],
-    education: 'BAMS, MD (Ayurveda) - Mumbai University',
-    about: 'Dr. Priya is a renowned Panchakarma specialist who has helped thousands of patients achieve holistic wellness through traditional detox therapies and personalized treatment protocols.',
-    expertise: ['Panchakarma Therapy', 'Detox Programs', 'Chronic Disease Management', 'Women\'s Health', 'Skin Disorders'],
-    availability: ['Mon-Fri: 10AM-6PM', 'Sat: 10AM-2PM'],
-    consultFee: '₹800',
-    onlineFee: '₹500',
-  },
-  {
-    id: 'dr-rajesh',
-    name: 'Dr. Rajesh Gupta',
-    image: drRajesh,
-    specialization: 'Herbal Medicine & Rasayana',
-    experience: '20+ years',
-    rating: 4.9,
-    consultations: 8400,
-    location: 'Delhi, India',
-    languages: ['Hindi', 'English', 'Sanskrit'],
-    education: 'BAMS, PhD (Dravyaguna) - BHU Varanasi',
-    about: 'Dr. Rajesh is one of India\'s leading experts in herbal medicine with deep knowledge of Rasayana (rejuvenation) therapies. His research on medicinal herbs has been published internationally.',
-    expertise: ['Herbal Formulations', 'Rasayana Therapy', 'Immunity Enhancement', 'Digestive Disorders', 'Diabetes Management'],
-    availability: ['Mon-Sat: 9AM-5PM'],
-    consultFee: '₹1,200',
-    onlineFee: '₹700',
-  },
-  {
-    id: 'dr-anita',
-    name: 'Dr. Anita Verma',
-    image: drAnita,
-    specialization: 'Yoga Therapy & Mind-Body Wellness',
-    experience: '12+ years',
-    rating: 4.8,
-    consultations: 3600,
-    location: 'Rishikesh, India',
-    languages: ['Hindi', 'English'],
-    education: 'BAMS, Certified Yoga Therapist - SVYASA',
-    about: 'Dr. Anita combines Ayurvedic principles with therapeutic yoga to address stress, anxiety, and chronic pain. She runs popular wellness retreats in Rishikesh.',
-    expertise: ['Yoga Therapy', 'Stress & Anxiety', 'Pain Management', 'Pranayama', 'Meditation Guidance'],
-    availability: ['Tue-Sat: 8AM-4PM'],
-    consultFee: '₹600',
-    onlineFee: '₹400',
-  },
-  {
-    id: 'dr-sanjay',
-    name: 'Dr. Sanjay Patel',
-    image: drSanjay,
-    specialization: 'Dosha Analysis & Nadi Pariksha',
-    experience: '18+ years',
-    rating: 4.9,
-    consultations: 6800,
-    location: 'Jaipur, India',
-    languages: ['Hindi', 'English', 'Gujarati'],
-    education: 'BAMS, MD (Rog Nidan) - Gujarat Ayurved University',
-    about: 'Dr. Sanjay specializes in traditional Nadi Pariksha (pulse diagnosis) and comprehensive Dosha analysis to create highly personalized treatment plans.',
-    expertise: ['Nadi Pariksha', 'Dosha Balancing', 'Personalized Medicine', 'Joint Disorders', 'Cardiac Wellness'],
-    availability: ['Mon-Fri: 9AM-6PM', 'Sat: 9AM-1PM'],
-    consultFee: '₹1,000',
-    onlineFee: '₹600',
-  },
-  {
-    id: 'dr-kavita',
-    name: 'Dr. Kavita Iyer',
-    image: drKavita,
-    specialization: 'Ayurvedic Nutrition & Diet Therapy',
-    experience: '10+ years',
-    rating: 4.8,
-    consultations: 2900,
-    location: 'Bangalore, India',
-    languages: ['Hindi', 'English', 'Kannada', 'Tamil'],
-    education: 'BAMS, MSc Nutrition - Manipal University',
-    about: 'Dr. Kavita is a pioneer in Ayurvedic nutrition who creates personalized diet plans based on Prakriti (body constitution) analysis for optimal health outcomes.',
-    expertise: ['Ayurvedic Nutrition', 'Weight Management', 'Gut Health', 'Sports Nutrition', 'Child Nutrition'],
-    availability: ['Mon-Sat: 10AM-7PM'],
-    consultFee: '₹700',
-    onlineFee: '₹450',
-  },
-  {
-    id: 'dr-vikram',
-    name: 'Dr. Vikram Rao',
-    image: drVikram,
-    specialization: 'Panchakarma & Marma Therapy',
-    experience: '22+ years',
-    rating: 4.9,
-    consultations: 9200,
-    location: 'Kerala, India',
-    languages: ['Hindi', 'English', 'Malayalam'],
-    education: 'BAMS, MD (Kayachikitsa) - Kerala University',
-    about: 'Dr. Vikram is a master practitioner of traditional Kerala Ayurveda with expertise in Marma therapy and advanced Panchakarma procedures for deep healing.',
-    expertise: ['Marma Therapy', 'Kerala Panchakarma', 'Neurological Disorders', 'Spine Care', 'Rejuvenation'],
-    availability: ['Mon-Fri: 8AM-5PM'],
-    consultFee: '₹1,500',
-    onlineFee: '₹800',
-  },
-];
-
 const Specialists = () => {
+
+  const [specialists, setSpecialists] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
   const [filter, setFilter] = useState('All');
 
-  const specializations = ['All', ...new Set(specialists.map(s => s.specialization.split(' & ')[0]))];
-  const filtered = filter === 'All' ? specialists : specialists.filter(s => s.specialization.includes(filter));
+  /* ================= FETCH ================= */
+  useEffect(() => {
+    fetchSpecialists();
+  }, []);
 
+  const fetchSpecialists = async () => {
+    try {
+      const res = await API.get("/specialists?status=approved");
+      setSpecialists(res.data);
+      setLoading(false);
+    } catch (err) {
+      console.log(err);
+      setLoading(false);
+    }
+  };
+
+    /* ================= FORMAT DATA ================= */
+  const formattedSpecialists = specialists.map((sp) => ({
+    id: sp._id,
+    name: sp.fullName,
+    image: sp.profilePhoto,
+    specialization: sp.organizationDetails?.specialization?.join(" & "),
+    experience: `${sp.organizationDetails?.experienceYears || 0}+ years`,
+    rating: 4.8,
+    consultations: 1000,
+    location: `${sp.location?.city}, ${sp.location?.state}`,
+    languages: sp.languagesSpoken || [],
+    education: sp.professionalDetails?.qualification || "",
+    about: sp.bio,
+    expertise: sp.organizationDetails?.servicesOffered || [],
+    availability: sp.availability?.days?.map(
+      (d: string) =>
+        `${d}: ${sp.availability?.startTime}-${sp.availability?.endTime}`
+    ) || [],
+    consultFee: `₹${sp.organizationDetails?.pricing?.offline || 0}`,
+    onlineFee: `₹${sp.organizationDetails?.pricing?.online || 0}`,
+  }));
+
+/* ================= FILTER ================= */
+  const specializations = [
+    'All',
+    ...new Set(
+      formattedSpecialists.map(s => s.specialization?.split(' & ')[0])
+    )
+  ];
+
+  const filtered =
+    filter === "All"
+      ? formattedSpecialists
+      : formattedSpecialists.filter((s) =>
+          s.specialization?.includes(filter)
+        );
+
+  /* ================= BOOK ================= */
   const handleBook = (name: string, type: string) => {
-    toast.success(`${type} consultation booked with ${name}!`, {
-      description: 'You will receive a confirmation email with appointment details.',
-    });
+    toast.success(`${type} consultation booked with ${name}!`);
   };
 
   return (

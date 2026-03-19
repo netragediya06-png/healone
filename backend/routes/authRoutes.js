@@ -9,8 +9,9 @@ const {
   changePassword
 } = require("../controllers/profileController");
 
-const upload = require("../middleware/upload");
 const { protect } = require("../middleware/authMiddleware");
+// ✅ YOUR EXISTING MULTER FILE
+const { uploadProfilePhoto, uploadSpecialist } = require("../middleware/upload");
 
 
 /* =========================
@@ -20,7 +21,7 @@ const { protect } = require("../middleware/authMiddleware");
 // ✅ Register (User + Specialist)
 router.post(
   "/register",
-  upload.single("profilePhoto"),
+  uploadProfilePhoto,
   authController.register
 );
 
@@ -55,16 +56,6 @@ router.post(
 );
 
 
-/* =========================
-   🔥 SPECIALIST UPGRADE (IMPORTANT)
-========================= */
-
-// 👉 User → Become Specialist
-router.post(
-  "/become-specialist",
-  protect,
-  authController.becomeSpecialist
-);
 
 
 /* =========================
@@ -82,7 +73,7 @@ router.get(
 router.put(
   "/profile",
   protect,
-  upload.single("profilePhoto"),
+  uploadProfilePhoto,
   updateProfile
 );
 

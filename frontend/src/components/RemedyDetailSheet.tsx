@@ -6,12 +6,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Remedy } from '@/lib/remedies-data';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 
 interface RemedyDetailSheetProps {
-  remedy: Remedy | null;
+  remedy: any | null;
   onClose: () => void;
 }
 
@@ -125,7 +124,7 @@ Difficulty: ${remedy.difficulty} | Duration: ${remedy.duration}
                   <span className="bg-background/90 text-foreground text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
                     <ChefHat className="h-3 w-3" /> {remedy.difficulty}
                   </span>
-                  {remedy.doshaAffinity.map(d => (
+                  {remedy.doshaAffinity?.map(d => (
                     <span key={d} className="bg-secondary/80 backdrop-blur-sm text-secondary-foreground text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full">
                       {d}
                     </span>
@@ -140,10 +139,10 @@ Difficulty: ${remedy.difficulty} | Duration: ${remedy.duration}
             <ScrollArea className="flex-1">
               <div className="p-6 space-y-8">
                 <div className="flex items-center gap-3 bg-card rounded-xl p-4 border">
-                  <img src={remedy.specialist.image} alt={remedy.specialist.name} className="w-12 h-12 rounded-full object-cover border-2 border-primary/30" />
+                  <img src={remedy.specialist?.profileImage || "/default-user.png"} alt={remedy.specialist?.fullName || "Specialist"} className="w-12 h-12 rounded-full object-cover border-2 border-primary/30" />
                   <div className="flex-1">
-                    <p className="font-semibold text-sm">{remedy.specialist.name}</p>
-                    <p className="text-xs text-muted-foreground">{remedy.specialist.title}</p>
+                    <p className="font-semibold text-sm">{remedy.specialist?.fullName || "Unknown Specialist"}</p>
+                    <p className="text-xs text-muted-foreground">✔️Verified Specialist</p>
                   </div>
                   <Link to="/specialists">
                     <Button variant="outline" size="sm" className="text-xs">View Profile</Button>
@@ -159,7 +158,7 @@ Difficulty: ${remedy.difficulty} | Duration: ${remedy.duration}
                     <Leaf className="h-5 w-5 text-primary" /> Ingredients
                   </h3>
                   <div className="space-y-2">
-                    {remedy.ingredients.map((ing, i) => (
+                    {remedy.ingredients?.map((ing, i) => (
                       <div key={i} className="flex items-start gap-3 bg-card rounded-lg p-3 border">
                         <span className="bg-primary/10 text-primary font-bold text-xs rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
                         <div className="flex-1 min-w-0">
@@ -179,7 +178,7 @@ Difficulty: ${remedy.difficulty} | Duration: ${remedy.duration}
                     <CheckCircle2 className="h-5 w-5 text-primary" /> Step-by-Step Preparation
                   </h3>
                   <div className="space-y-3">
-                    {remedy.steps.map((step, i) => (
+                    {remedy.steps?.map((step, i) => (
                       <div key={i} className="flex gap-3">
                         <div className="flex flex-col items-center">
                           <span className="bg-primary text-primary-foreground font-bold text-xs rounded-full w-7 h-7 flex items-center justify-center shrink-0">{i + 1}</span>
@@ -196,7 +195,7 @@ Difficulty: ${remedy.difficulty} | Duration: ${remedy.duration}
                     <Sparkles className="h-5 w-5 text-primary" /> Benefits
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {remedy.benefits.map((benefit, i) => (
+                    {remedy.benefits?.map((benefit, i) => (
                       <div key={i} className="flex items-start gap-2 bg-primary/5 rounded-lg p-3">
                         <Heart className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                         <span className="text-sm">{benefit}</span>
@@ -210,7 +209,7 @@ Difficulty: ${remedy.difficulty} | Duration: ${remedy.duration}
                     <AlertTriangle className="h-5 w-5 text-destructive" /> Precautions & Warnings
                   </h3>
                   <div className="bg-destructive/5 rounded-xl p-4 space-y-2 border border-destructive/20">
-                    {remedy.precautions.map((precaution, i) => (
+                    {remedy.precautions?.map((precaution, i) => (
                       <div key={i} className="flex items-start gap-2">
                         <span className="text-destructive text-xs mt-1">⚠</span>
                         <p className="text-sm text-muted-foreground">{precaution}</p>
@@ -227,7 +226,7 @@ Difficulty: ${remedy.difficulty} | Duration: ${remedy.duration}
                   <div>
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tags</span>
                     <div className="flex flex-wrap gap-1.5 mt-1.5">
-                      {remedy.tags.map(tag => (
+                      {remedy.tags?.map(tag => (
                         <span key={tag} className="bg-secondary text-secondary-foreground text-xs px-2.5 py-1 rounded-full">#{tag}</span>
                       ))}
                     </div>
@@ -236,7 +235,7 @@ Difficulty: ${remedy.difficulty} | Duration: ${remedy.duration}
 
                 <div className="bg-gradient-to-r from-primary/10 via-secondary/20 to-primary/10 rounded-xl p-6 text-center">
                   <p className="font-display font-bold text-base mb-2">Need personalized guidance?</p>
-                  <p className="text-sm text-muted-foreground mb-4">Consult {remedy.specialist.name} for remedies tailored to your constitution.</p>
+                  <p className="text-sm text-muted-foreground mb-4">Consult {remedy.specialist?.fullName} for remedies tailored to your constitution.</p>
                   <Link to="/specialists">
                     <Button size="sm" className="gap-2">Book Consultation</Button>
                   </Link>

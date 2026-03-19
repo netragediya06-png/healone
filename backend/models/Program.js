@@ -151,6 +151,12 @@ const programSchema = new mongoose.Schema(
     type: Number,
     default: 0
   },
+  enrolledUsers: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  }
+],
 
   rating: {
     type: Number,
@@ -160,9 +166,27 @@ const programSchema = new mongoose.Schema(
   reviewCount: {
     type: Number,
     default: 0
-  }
-
+  },
+// =============================
+// VISIBILITY CONTROL
+// =============================
+isPublished: {
+  type: Boolean,
+  default: false
 },
+
+mode: {
+  type: String,
+  enum: ["online", "offline", "both"],
+  default: "online"
+},
+
+isActive: {
+  type: Boolean,
+  default: true
+}
+},
+
 {
   timestamps: true
 });

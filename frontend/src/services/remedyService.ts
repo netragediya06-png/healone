@@ -5,33 +5,27 @@ const API_URL = "http://localhost:5000/api/remedies";
 /* =====================================
    AUTH HEADER
 ===================================== */
-
-const authHeader = (token) => ({
+const authHeader = (token: string) => ({
   headers: {
     Authorization: `Bearer ${token}`
   }
 });
-
 
 /* =====================================
    SPECIALIST
 ===================================== */
 
 // Get remedies created by specialist
-const getMyRemedies = async (token) => {
-
+const getMyRemedies = async (token: string) => {
   const res = await axios.get(
     `${API_URL}/my`,
     authHeader(token)
   );
-
   return res.data;
 };
 
-
-// Create remedy (specialist)
-const createRemedy = async (data, token) => {
-
+// Create remedy
+const createRemedy = async (data: FormData, token: string) => {
   const res = await axios.post(
     `${API_URL}/specialist`,
     data,
@@ -42,14 +36,11 @@ const createRemedy = async (data, token) => {
       }
     }
   );
-
   return res.data;
 };
 
-
 // Update remedy
-const updateRemedy = async (id, data, token) => {
-
+const updateRemedy = async (id: string, data: FormData, token: string) => {
   const res = await axios.put(
     `${API_URL}/${id}`,
     data,
@@ -60,124 +51,113 @@ const updateRemedy = async (id, data, token) => {
       }
     }
   );
-
   return res.data;
 };
 
-
 // Delete remedy
-const deleteRemedy = async (id, token) => {
-
+const deleteRemedy = async (id: string, token: string) => {
   const res = await axios.delete(
     `${API_URL}/${id}`,
     authHeader(token)
   );
-
   return res.data;
 };
-
 
 
 /* =====================================
    ADMIN
 ===================================== */
 
-// Get all remedies (admin)
-const getAllRemedies = async (token) => {
-
+// Get all remedies
+const getAllRemedies = async (token: string) => {
   const res = await axios.get(
     `${API_URL}`,
     authHeader(token)
   );
-
   return res.data;
 };
 
-
-// Update remedy status
-const updateRemedyStatus = async (id, status, token) => {
-
+// Approve / Reject remedy
+const updateRemedyStatus = async (
+  id: string,
+  status: string,
+  token: string
+) => {
   const res = await axios.put(
     `${API_URL}/${id}/status`,
     { status },
     authHeader(token)
   );
-
   return res.data;
 };
-
 
 
 /* =====================================
    PUBLIC / USER
 ===================================== */
 
-// Get approved remedies
+// Get all approved remedies
 const getApprovedRemedies = async () => {
-
-  const res = await axios.get(
-    `${API_URL}/approved`
-  );
-
+  const res = await axios.get(`${API_URL}/approved`);
   return res.data;
 };
 
+// Get single remedy (DETAIL PAGE)
+const getSingleRemedy = async (id: string) => {
+  const res = await axios.get(`${API_URL}/${id}`);
+  return res.data;
+};
 
-// Search remedies by symptom
-const searchRemedies = async (symptom) => {
-
+// Search remedies
+const searchRemedies = async (symptom: string) => {
   const res = await axios.get(
     `${API_URL}/search?symptom=${symptom}`
   );
-
   return res.data;
 };
 
-
 // Save remedy
-const saveRemedy = async (id, token) => {
-
+const saveRemedy = async (id: string, token: string) => {
   const res = await axios.post(
     `${API_URL}/save/${id}`,
     {},
     authHeader(token)
   );
-
   return res.data;
 };
 
-
 // Unsave remedy
-const unsaveRemedy = async (id, token) => {
-
+const unsaveRemedy = async (id: string, token: string) => {
   const res = await axios.delete(
     `${API_URL}/save/${id}`,
     authHeader(token)
   );
-
   return res.data;
 };
 
-
 // Get saved remedies
-const getSavedRemedies = async (token) => {
-
+const getSavedRemedies = async (token: string) => {
   const res = await axios.get(
     `${API_URL}/saved`,
     authHeader(token)
   );
-
   return res.data;
 };
 
+// Increment download count
+const incrementDownload = async (id: string) => {
+  const res = await axios.post(
+    `${API_URL}/download/${id}`
+  );
+  return res.data;
+};
 
 
 /* =====================================
    EXPORT
 ===================================== */
 
-export default {
-
+const remedyService = {
   // specialist
   getMyRemedies,
   createRemedy,
@@ -190,9 +170,12 @@ export default {
 
   // public/user
   getApprovedRemedies,
+  getSingleRemedy,
   searchRemedies,
   saveRemedy,
   unsaveRemedy,
-  getSavedRemedies
-
+  getSavedRemedies,
+  incrementDownload
 };
+
+export default remedyService;

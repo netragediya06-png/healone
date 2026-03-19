@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const upload = require("../middleware/upload");
+const { uploadProductImage } = require("../middleware/upload");
 
 const {
   createProduct,
@@ -23,7 +23,7 @@ router.post(
   "/",
   protect,
   authorize("admin"),
-  upload.single("image"),
+  uploadProductImage,
   createProduct
 );
 
@@ -64,7 +64,7 @@ router.put(
   "/:id",
   protect,
   authorize("admin"),
-  upload.single("image"),   // ✅ FIX ADDED
+  uploadProductImage,   // ✅ FIX ADDED
   updateProduct
 );
 

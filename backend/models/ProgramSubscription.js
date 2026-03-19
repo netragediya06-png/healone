@@ -12,17 +12,23 @@ const programSubscriptionSchema = new mongoose.Schema(
     // Program subscribed
     program: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "WellnessProgram",
+      ref: "Program",
       required: true,
     },
-
+    plan: {
+      name: String,
+      price: Number,
+    },
     // Payment status
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "failed"],
       default: "pending",
     },
-
+    amountPaid: {
+      type: Number,
+      default: 0,
+    },
     // Subscription dates
     startDate: {
       type: Date,
@@ -41,13 +47,17 @@ const programSubscriptionSchema = new mongoose.Schema(
       default: "active",
     },
 
-    // Amount paid (important for admin analytics)
-    amountPaid: {
-      type: Number,
-      default: 0,
-    },
   },
-  { timestamps: true }
+  { timestamps: true },
+);
+// ✅ prevent duplicate subscription
+programSubscriptionSchema.index(
+  { user: 1, program: 1 },
+  { unique: true }
 );
 
-module.exports = mongoose.model("ProgramSubscription", programSubscriptionSchema);
+
+module.exports = mongoose.model(
+  "ProgramSubscription",
+  programSubscriptionSchema,
+);

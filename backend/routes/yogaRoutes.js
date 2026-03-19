@@ -21,7 +21,7 @@ const {
   specialistApprovedOnly
 } = require("../middleware/authMiddleware");
 
-const upload = require("../middleware/upload");
+const { uploadProgramImage } = require("../middleware/upload");
 
 
 /* ======================================================
@@ -32,7 +32,7 @@ router.post(
   "/specialist",
   protect,
   specialistApprovedOnly,
-  upload.single("image"),
+  uploadProgramImage,
   createYoga
 );
 
@@ -45,7 +45,7 @@ router.post(
   "/admin",
   protect,
   authorize("admin"),
-  upload.single("image"),
+  uploadProgramImage,
   createYoga
 );
 
@@ -138,7 +138,7 @@ router.put(
   "/:id",
   protect,
   authorize("admin", "specialist"),
-  upload.single("image"),
+  uploadProgramImage,
   updateYoga
 );
 

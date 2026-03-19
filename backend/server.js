@@ -35,7 +35,7 @@ const userRoutes = require("./routes/userRoutes");
 const remedyRoutes = require("./routes/remedyRoutes");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const specialistRoutes = require("./routes/specialistRoutes");
+const specialistsRoutes = require("./routes/specialistsRoutes");
 const yogaRoutes = require("./routes/yogaRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const subCategoryRoutes = require("./routes/subCategoryRoutes");
@@ -50,7 +50,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/remedies", remedyRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/specialists", specialistRoutes);
+app.use("/api/specialists", specialistsRoutes);
 app.use("/api/yoga", yogaRoutes);
 
 

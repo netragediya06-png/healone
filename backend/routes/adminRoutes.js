@@ -6,12 +6,15 @@ const {
   getPendingSpecialists,
   approveSpecialist,
   rejectSpecialist,
+  getSpecialistStats,
+  getApprovedSpecialists
 } = require("../controllers/adminController");
 
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
+
 /* ===============================
-   GET ALL SPECIALISTS (ALL STATUS)
+   GET ALL APPROVED SPECIALISTS (PUBLIC LIST)
 =============================== */
 router.get(
   "/specialists",
@@ -19,6 +22,7 @@ router.get(
   adminOnly,
   getAllSpecialists
 );
+
 
 /* ===============================
    GET ALL PENDING SPECIALISTS
@@ -30,6 +34,18 @@ router.get(
   getPendingSpecialists
 );
 
+
+/* ===============================
+   GET ONLY APPROVED (FOR ADMIN VIEW)
+=============================== */
+router.get(
+  "/specialists/approved",
+  protect,
+  adminOnly,
+  getApprovedSpecialists
+);
+
+
 /* ===============================
    APPROVE SPECIALIST
 =============================== */
@@ -39,6 +55,7 @@ router.put(
   adminOnly,
   approveSpecialist
 );
+
 
 /* ===============================
    REJECT SPECIALIST
@@ -50,4 +67,14 @@ router.put(
   rejectSpecialist
 );
 
+
+/* ===============================
+   SPECIALIST STATS
+=============================== */
+router.get(
+  "/specialists/stats",
+  protect,
+  adminOnly,
+  getSpecialistStats
+);
 module.exports = router;
