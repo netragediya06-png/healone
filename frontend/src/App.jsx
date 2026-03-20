@@ -64,7 +64,9 @@ import Checkout from "./pages/user/Checkout";
 import DoshaQuiz from "./pages/user/DoshaQuiz";
 import VerifyEmail from "./pages/user/VerifyEmail";
 import NotFound from "./pages/user/NotFound";
-
+import SubscribePage from "./pages/user/SubscribePage.js";
+import MySubscriptions from "./pages/user/MySubscriptions.js"
+import ProgramDetail from "./pages/user/ProgramDetail.js";
 /* ---------------- USER LAYOUT ---------------- */
 function UserLayout() {
   return (
@@ -113,6 +115,9 @@ function App() {
           <Route path="/specialists" element={<Specialists />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/dosha-quiz" element={<DoshaQuiz />} />
+          <Route path="/subscribe/:programId" element={<SubscribePage />} />
+          <Route path="/my-subscriptions" element={<MySubscriptions />} />
+          <Route path="/program/:programId" element={<ProgramDetail />} />
         </Route>
 
         {/* ================= AUTH ROUTES ================= */}

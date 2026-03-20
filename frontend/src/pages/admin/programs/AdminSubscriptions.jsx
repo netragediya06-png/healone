@@ -155,6 +155,8 @@ const AdminSubscriptions = () => {
                 <th>User</th>
                 <th>Email</th>
                 <th>Program</th>
+                <th>Plan</th>
+                <th>Payment</th>
                 <th>Price</th>
                 <th>Start</th>
                 <th>End</th>
@@ -184,8 +186,11 @@ const AdminSubscriptions = () => {
                     <td>{sub.user?.email || "N/A"}</td>
 
                     <td>{sub.program?.title || "N/A"}</td>
+                    <td>{sub.plan?.name || "N/A"}</td>
 
-                    <td>₹{sub.program?.price || 0}</td>
+                    <td>{sub.paymentMethod || "N/A"}</td>
+
+                    <td>₹{sub.amountPaid || sub.plan?.price || 0}</td>
 
                     <td>
                       {sub.startDate

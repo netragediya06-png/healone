@@ -43,7 +43,7 @@ exports.createProgram = async (req, res) => {
       plans,
       linkedRemedies,
       linkedYoga,
-      mode, // ✅ NEW
+      mode,
     } = req.body;
 
     let imageUrl = "";
@@ -62,9 +62,20 @@ exports.createProgram = async (req, res) => {
       endDate,
       seatsLimit,
 
-      benefits: typeof benefits === "string" ? JSON.parse(benefits) : benefits,
+      // ✅ SAFE PARSE ADD
+      benefits:
+        benefits
+          ? typeof benefits === "string"
+            ? JSON.parse(benefits)
+            : benefits
+          : [],
 
-      plans: typeof plans === "string" ? JSON.parse(plans) : plans,
+      plans:
+        plans
+          ? typeof plans === "string"
+            ? JSON.parse(plans)
+            : plans
+          : [],
 
       linkedRemedies,
       linkedYoga,
@@ -72,9 +83,9 @@ exports.createProgram = async (req, res) => {
       coverImage: imageUrl,
 
       specialist: req.user._id,
-      mode: mode || "online", // ✅ NEW
-      isPublished: false, // ✅ NEW
-      isActive: true, // ✅ NEW
+      mode: mode || "online",
+      isPublished: false,
+      isActive: true,
       status: "pending",
     });
 
@@ -96,10 +107,9 @@ exports.createProgram = async (req, res) => {
 
 exports.getAllPrograms = async (req, res) => {
   try {
-    const programs = await Program.find().populate(
-      "specialist",
-      "fullName email",
-    );
+    const programs = await Program.find()
+      .populate("specialist", "fullName email")
+      .sort({ createdAt: -1 }); // ✅ ADD
 
     res.json(programs);
   } catch (error) {
@@ -117,9 +127,11 @@ exports.getApprovedPrograms = async (req, res) => {
   try {
     const programs = await Program.find({
       status: "approved",
-      isPublished: true, // ✅ NEW
-      isActive: true, // ✅ NEW
-    });
+      isPublished: true,
+      isActive: true,
+    })
+      .populate("specialist", "fullName") // ✅ ADD
+      .sort({ createdAt: -1 }); // ✅ ADD
 
     res.json(programs);
   } catch (error) {
@@ -162,7 +174,7 @@ exports.getMyPrograms = async (req, res) => {
   try {
     const programs = await Program.find({
       specialist: req.user._id,
-    });
+    }).sort({ createdAt: -1 }); // ✅ ADD
 
     res.json(programs);
   } catch (error) {
@@ -204,13 +216,15 @@ exports.updateProgram = async (req, res) => {
     if (title) program.title = title;
     if (description) program.description = description;
     if (category) program.category = category;
-    if (durationDays) program.durationDays = durationDays;
+
+    // ✅ FIX (IMPORTANT)
+    if (durationDays !== undefined) program.durationDays = durationDays;
+    if (seatsLimit !== undefined) program.seatsLimit = seatsLimit;
+
     if (programLevel) program.programLevel = programLevel;
 
     if (startDate) program.startDate = startDate;
     if (endDate) program.endDate = endDate;
-
-    if (seatsLimit) program.seatsLimit = seatsLimit;
 
     if (benefits)
       program.benefits =
@@ -224,7 +238,6 @@ exports.updateProgram = async (req, res) => {
 
     if (req.file) {
       const imageUrl = await uploadImage(req.file.buffer, "healone_programs");
-
       program.coverImage = imageUrl;
     }
 
@@ -252,17 +265,23 @@ exports.updateProgramStatus = async (req, res) => {
       });
     }
 
+    // ✅ VALIDATION ADD
+    const allowedStatus = ["pending", "approved", "rejected"];
+    if (!allowedStatus.includes(req.body.status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
     program.status = req.body.status;
 
-    // ✅ AUTO CONTROL VISIBILITY
     if (req.body.status === "approved") {
       program.isPublished = true;
       program.isActive = true;
     }
+
     if (req.body.status === "rejected") {
       program.isPublished = false;
     }
-    // ✅ ADMIN NOTE
+
     if (req.body.adminFeedback) {
       program.adminFeedback = req.body.adminFeedback;
     }
@@ -314,12 +333,13 @@ exports.enrollProgram = async (req, res) => {
         message: "Program ID required",
       });
     }
-    // ✅ CHECK LOGIN
+
     if (!req.user) {
       return res.status(401).json({
         message: "Unauthorized",
       });
     }
+
     const program = await Program.findById(req.params.id);
 
     if (!program) {
@@ -327,38 +347,42 @@ exports.enrollProgram = async (req, res) => {
         message: "Program not found",
       });
     }
-    // ✅ ADD THIS BLOCK HERE 👇
+
+    // ✅ NEW CHECK
+    if (program.status !== "approved") {
+      return res.status(400).json({
+        message: "Program not approved yet",
+      });
+    }
+
     if (!program.enrolledUsers) {
       program.enrolledUsers = [];
     }
 
-    if (
-      program.enrolledUsers.some(
-        (id) => id.toString() === req.user._id.toString(),
-      )
-    ) {
+    // ✅ OPTIMIZED CHECK
+    if (program.enrolledUsers.includes(req.user._id)) {
       return res.status(400).json({
         message: "You already enrolled in this program",
       });
     }
-    // ✅ CHECK PROGRAM IS AVAILABLE
+
     if (!program.isPublished || !program.isActive) {
       return res.status(400).json({
         message: "Program not available",
       });
     }
-    // ✅ SEAT CHECK (ONLY IF LIMIT EXISTS)
+
     if (program.seatsLimit > 0 && program.seatsBooked >= program.seatsLimit) {
       return res.status(400).json({
         message: "Program seats full",
       });
     }
-    // ✅ UPDATE COUNTS
+
     program.seatsBooked += 1;
     program.totalEnrollments += 1;
 
-    // ✅ ADD THIS
     program.enrolledUsers.push(req.user._id);
+
     await program.save();
 
     res.json({

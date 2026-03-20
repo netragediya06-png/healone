@@ -43,6 +43,7 @@ const programRoutes = require("./routes/programRoutes");
 const subscriptionRoutes = require("./routes/subscriptionRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
@@ -52,7 +53,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/specialists", specialistsRoutes);
 app.use("/api/yoga", yogaRoutes);
-
+app.use("/api/payment", paymentRoutes);
 
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/subcategories", subCategoryRoutes);

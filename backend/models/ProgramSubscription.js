@@ -46,13 +46,17 @@ const programSubscriptionSchema = new mongoose.Schema(
       enum: ["active", "expired"],
       default: "active",
     },
-
+   paymentMethod: {
+  type: String,
+  enum: ["Razorpay", "UPI", "GPay", "PhonePe"],
+  default: "UPI",
+},
   },
   { timestamps: true },
 );
 // ✅ prevent duplicate subscription
 programSubscriptionSchema.index(
-  { user: 1, program: 1 },
+  { user: 1, program: 1, status: 1 },
   { unique: true }
 );
 

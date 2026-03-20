@@ -7,7 +7,13 @@ const Program = require("../models/Program");
 
 exports.subscribeProgram = async (req, res) => {
   try {
-    const { programId, plan } = req.body;
+    const { programId, plan, paymentMethod } = req.body;
+
+    if (!paymentMethod) {
+      return res.status(400).json({
+        message: "Payment method required",
+      });
+    }
 
     const program = await Program.findById(programId);
 
@@ -15,7 +21,6 @@ exports.subscribeProgram = async (req, res) => {
       return res.status(404).json({ message: "Program not found" });
     }
 
-    // ✅ prevent duplicate active subscription
     const existing = await ProgramSubscription.findOne({
       user: req.user._id,
       program: programId,
@@ -24,30 +29,21 @@ exports.subscribeProgram = async (req, res) => {
 
     if (existing) {
       return res.status(400).json({
-        message: "You already have an active subscription for this program",
+        message: "Already subscribed",
       });
     }
 
-    // ✅ check plans exist
-    if (!program.plans || program.plans.length === 0) {
-      return res.status(400).json({
-        message: "No plans available for this program",
-      });
-    }
-
-    // ✅ validate selected plan
     const selectedPlan = program.plans.find(
       (p) => p.name === plan
     );
 
     if (!selectedPlan) {
       return res.status(400).json({
-        message: "Invalid plan selected",
+        message: "Invalid plan",
       });
     }
 
     const startDate = new Date();
-
     const endDate = new Date();
     endDate.setDate(startDate.getDate() + program.durationDays);
 
@@ -58,14 +54,14 @@ exports.subscribeProgram = async (req, res) => {
         name: selectedPlan.name,
         price: selectedPlan.price,
       },
-      paymentStatus: "paid", // 💡 simple for now
+      paymentMethod, // 🔥 SAVE HERE
+      paymentStatus: "paid",
       amountPaid: selectedPlan.price,
       startDate,
       endDate,
       status: "active",
     });
 
-    // ✅ update program analytics
     await Program.findByIdAndUpdate(programId, {
       $inc: {
         seatsBooked: 1,
@@ -75,7 +71,6 @@ exports.subscribeProgram = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Program subscribed successfully",
       subscription,
     });
 
@@ -171,3 +166,4 @@ exports.checkProgramAccess = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
