@@ -1,137 +1,137 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMySubscriptions } from "@/services/subscriptionService";
-
+import { Leaf } from 'lucide-react';
 const MySubscriptions = () => {
-  const [subs, setSubs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+    const [subs, setSubs] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  // ================= FETCH DATA =================
-  useEffect(() => {
-    fetchSubscriptions();
-  }, []);
+    // ================= FETCH DATA =================
+    useEffect(() => {
+        fetchSubscriptions();
+    }, []);
 
-  const fetchSubscriptions = async () => {
-    try {
-      const res = await getMySubscriptions();
+    const fetchSubscriptions = async () => {
+        try {
+            const res = await getMySubscriptions();
 
-      // safety check
-      setSubs(res.data?.subscriptions || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+            // safety check
+            setSubs(res.data?.subscriptions || []);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ================= LOADING =================
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p className="text-lg">Loading your programs...</p>
+            </div>
+        );
     }
-  };
 
-  // ================= LOADING =================
-  if (loading) {
+    // ================= EMPTY =================
+    if (subs.length === 0) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center">
+                <h2 className="text-xl font-semibold mb-3">
+                    No Subscriptions Yet 😢
+                </h2>
+
+                <button
+                    onClick={() => navigate("/programs")}
+                    className="bg-green-600 text-white px-4 py-2 rounded"
+                >
+                    Browse Programs
+                </button>
+            </div>
+        );
+    }
+
+    // ================= UI =================
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg">Loading your programs...</p>
-      </div>
-    );
-  }
+        <div className="min-h-screen bg-sucess text-black px-6 py-8">
 
-  // ================= EMPTY =================
-  if (subs.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <h2 className="text-xl font-semibold mb-3">
-          No Subscriptions Yet 😢
-        </h2>
+            {/* TITLE */}
+            <h1 className="text-3xl font-bold mb-8 flex items-center gap-2">
+                My Programs
+                <Leaf size={40} className="text-green-500" />
+            </h1>
 
-        <button
-          onClick={() => navigate("/programs")}
-          className="bg-green-600 text-white px-4 py-2 rounded"
-        >
-          Browse Programs
-        </button>
-      </div>
-    );
-  }
+            {/* GRID */}
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
-  // ================= UI =================
-  return (
-    <div className="min-h-screen bg-black text-white px-6 py-8">
+                {subs.map((sub) => (
+                    <div
+                        key={sub._id}
+                        className="bg-gray-100 rounded-lg overflow-hidden shadow hover:scale-105 transition duration-300"
+                    >
+                        {/* IMAGE */}
+                        <img
+                            src={
+                                sub.program?.coverImage ||
+                                "https://via.placeholder.com/400x250"
+                            }
+                            alt={sub.program?.title}
+                            className="w-full h-40 object-cover"
+                        />
 
-      {/* TITLE */}
-      <h1 className="text-3xl font-bold mb-8">
-        My Programs 🎬
-      </h1>
+                        {/* CONTENT */}
+                        <div className="p-4">
 
-      {/* GRID */}
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            <h2 className="text-lg font-semibold">
+                                {sub.program?.title}
+                            </h2>
 
-        {subs.map((sub) => (
-          <div
-            key={sub._id}
-            className="bg-gray-900 rounded-lg overflow-hidden shadow hover:scale-105 transition duration-300"
-          >
-            {/* IMAGE */}
-            <img
-              src={
-                sub.program?.coverImage ||
-                "https://via.placeholder.com/400x250"
-              }
-              alt={sub.program?.title}
-              className="w-full h-40 object-cover"
-            />
+                            <p className="text-sm text-gray-800 mt-1">
+                                Plan: {sub.plan?.name}
+                            </p>
+                            <p className="text-sm text-gray-800">
+                                Payment: {sub.paymentMethod || "N/A"}
+                            </p>
+                            <p className="text-sm text-gray-800">
+                                Paid: ₹{sub.amountPaid}
+                            </p>
 
-            {/* CONTENT */}
-            <div className="p-4">
+                            <p className="text-sm text-gray-800">
+                                Valid till:
+                                {" "}
+                                {new Date(sub.endDate).toLocaleDateString()}
+                            </p>
 
-              <h2 className="text-lg font-semibold">
-                {sub.program?.title}
-              </h2>
+                            {/* STATUS */}
+                            <span
+                                className={`inline-block mt-2 px-2 py-1 text-xs rounded ${sub.status === "active"
+                                    ? "bg-green-600"
+                                    : "bg-red-600"
+                                    }`}
+                            >
+                                {sub.status}
+                            </span>
 
-              <p className="text-sm text-gray-400 mt-1">
-                Plan: {sub.plan?.name}
-              </p>
-<p className="text-sm text-gray-400">
-  Payment: {sub.paymentMethod || "N/A"}
-</p>
-              <p className="text-sm text-gray-400">
-                Paid: ₹{sub.amountPaid}
-              </p>
+                            {/* BUTTON */}
+                            <button
+                                onClick={() =>
+                                    navigate(`/program/${sub.program?._id}`)
+                                }
+                                className="mt-4 w-full bg-green-600 hover:bg-green-700 py-2 rounded text-sm"
+                            >
+                                Continue
+                            </button>
 
-              <p className="text-sm text-gray-400">
-                Valid till:
-                {" "}
-                {new Date(sub.endDate).toLocaleDateString()}
-              </p>
-
-              {/* STATUS */}
-              <span
-                className={`inline-block mt-2 px-2 py-1 text-xs rounded ${
-                  sub.status === "active"
-                    ? "bg-green-600"
-                    : "bg-red-600"
-                }`}
-              >
-                {sub.status}
-              </span>
-
-              {/* BUTTON */}
-              <button
-                onClick={() =>
-                  navigate(`/program/${sub.program?._id}`)
-                }
-                className="mt-4 w-full bg-green-600 hover:bg-green-700 py-2 rounded text-sm"
-              >
-                Continue
-              </button>
+                        </div>
+                    </div>
+                ))}
 
             </div>
-          </div>
-        ))}
 
-      </div>
-
-    </div>
-  );
+        </div>
+    );
 };
 
 export default MySubscriptions;

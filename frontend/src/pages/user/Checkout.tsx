@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, ShoppingBag, Truck, CreditCard, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { createOrder } from "../../services/orderService";
 
 const Checkout = () => {
   const { items, totalPrice, clearCart, totalItems } = useCart();
@@ -23,19 +24,68 @@ const Checkout = () => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handlePlaceOrder = () => {
-    if (!form.name || !form.email || !form.phone || !form.address || !form.city || !form.pincode) {
-      toast.error('Please fill all required fields');
+ const handlePlaceOrder = async () => {
+  try {
+    // ✅ LOGIN CHECK
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+
+    if (!user?.token) {
+      alert("⚠️ Please login first");
       return;
     }
 
-    const id = `HO${Date.now().toString().slice(-8)}`;
-    setOrderId(id);
-    setOrderPlaced(true);
-    clearCart();
-    toast.success('Order placed successfully!');
-  };
+    // ✅ VALIDATION
+    if (
+      !form.name ||
+      !form.phone ||
+      !form.address ||
+      !form.city ||
+      !form.pincode
+    ) {
+      alert("Please fill all required fields");
+      return;
+    }
 
+    const paymentMap: any = {
+      cod: "COD",
+      upi: "UPI",
+      card: "CARD",
+      netbanking: "NETBANKING",
+    };
+
+    const orderData = {
+      products: items.map((item: any) => ({
+        product: item._id,
+        quantity: item.quantity,
+      })),
+      totalAmount: grandTotal,
+      paymentMethod: paymentMap[form.payment],
+      shippingAddress: {
+        fullName: form.name,
+        phone: form.phone,
+        address: form.address,
+        city: form.city,
+        state: form.state,
+        pincode: form.pincode,
+      },
+    };
+
+    console.log("ORDER DATA:", orderData);
+
+    const res = await createOrder(orderData);
+
+    console.log("SUCCESS:", res);
+
+    setOrderId(res.order._id);
+    clearCart();
+    setOrderPlaced(true);
+
+  } catch (error: any) {
+    console.log("FINAL ERROR:", error);
+
+    alert(error.message || "Order failed");
+  }
+};
   if (items.length === 0 && !orderPlaced) {
     return (
       <div className="min-h-screen flex items-center justify-center">
