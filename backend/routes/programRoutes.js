@@ -156,10 +156,35 @@ router.get("/approved/top", async (req, res) => {
    MUST BE LAST ROUTE
 ====================================================== */
 
-router.get(
-  "/:id",
-  getProgram
-);
+/* ...all other imports and middleware... */
 
+/* TOP APPROVED PROGRAMS */
+router.get("/approved/top", async (req, res) => {
+  try {
+    const Program = require("../models/Program");
+    const limit = parseInt(req.query.limit) || 8;
+
+    const programs = await Program.find({
+      status: "approved",
+      isActive: true
+    })
+      .populate("specialist", "fullName profilePhoto")
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    res.json({
+      success: true,
+      data: programs,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* GET SINGLE PROGRAM - MUST BE LAST */
+router.get("/:id", getProgram);
 
 module.exports = router;
+
+

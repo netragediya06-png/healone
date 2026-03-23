@@ -52,7 +52,7 @@ import CartDrawer from "./components/CartDrawer";
 /* USER PAGES */
 import Index from "./pages/user/Index";
 import Products from "./pages/user/Products";
-import ProductDetail from "./pages/user/ProductDetail";
+// import ProductDetail from "./pages/user/ProductDetail";
 import About from "./pages/user/About";
 import Contact from "./pages/user/Contact";
 import FAQ from "./pages/user/FAQ";
@@ -71,6 +71,7 @@ import MySubscriptions from "./pages/user/MySubscriptions.js"
 import ProgramDetail from "./pages/user/ProgramDetail.js";
 import ProfileView from "./components/ProfileView"; // ✅ path adjusted
 import ProfileEdit from "./components/ProfileEdit"; // ✅ path adjusted
+import ProductDetail  from "./pages/user/ProductDetail";
 /* ---------------- USER LAYOUT ---------------- */
 function UserLayout() {
   return (
@@ -124,6 +125,7 @@ function App() {
           <Route path="/program/:programId" element={<ProgramDetail />} />
           <Route path="/profile" element={<ProfileView />} />
         <Route path="/profile/edit" element={<ProfileEdit />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
         </Route>
 
         {/* ================= AUTH ROUTES ================= */}

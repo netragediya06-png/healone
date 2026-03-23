@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
 export interface CartItem {
-  _id: string;
-  id: string;
+  id: string;        // ✅ only id
   name: string;
   price: number;
   image: string;

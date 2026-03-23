@@ -11,6 +11,9 @@ interface RemedyCardProps {
 const RemedyCard = ({ remedy, index, onViewDetail }: RemedyCardProps) => {
   const categoryLabel = remedyCategories.find(c => c.id === remedy.category)?.label;
 
+  console.log("SPECIALIST:", remedy.specialist);
+  console.log("IMAGE:", remedy.specialist?.profilePhoto); // ✅ FIX
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -26,6 +29,7 @@ const RemedyCard = ({ remedy, index, onViewDetail }: RemedyCardProps) => {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
+
         <div className="absolute top-3 left-3 flex gap-2">
           <span className="bg-background/90 backdrop-blur-sm text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
             <ChefHat className="h-3 w-3" /> {remedy.difficulty}
@@ -34,10 +38,15 @@ const RemedyCard = ({ remedy, index, onViewDetail }: RemedyCardProps) => {
             <Clock className="h-3 w-3" /> {remedy.duration}
           </span>
         </div>
+
         <div className="absolute bottom-3 left-3 right-3">
           <div className="flex items-center gap-2">
             <img
-              src={remedy.specialist?.profileImage || "/default-user.png"}
+              src={
+                remedy.specialist?.profilePhoto
+                  ? remedy.specialist.profilePhoto   // ✅ FIX
+                  : "/default-user.png"
+              }
               alt={remedy.specialist?.fullName || "Specialist"}
               className="w-6 h-6 rounded-full border-2 border-background/50 object-cover"
             />
@@ -52,11 +61,18 @@ const RemedyCard = ({ remedy, index, onViewDetail }: RemedyCardProps) => {
         <span className="text-xs font-semibold text-primary uppercase tracking-wider">
           {categoryLabel}
         </span>
+
         <h3 className="font-display font-bold text-lg mt-1 group-hover:text-primary transition-colors">
           {remedy.title}
         </h3>
-        <p className="text-xs text-muted-foreground mt-0.5 italic">{remedy.subtitle}</p>
-        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{remedy.description}</p>
+
+        <p className="text-xs text-muted-foreground mt-0.5 italic">
+          {remedy.subtitle}
+        </p>
+
+        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+          {remedy.description}
+        </p>
 
         <div className="flex flex-wrap gap-1.5 mt-3">
           {remedy.doshaAffinity?.map((dosha: string) => (

@@ -7,21 +7,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import programsHero from '@/assets/programs-hero.jpg';
 
-import {
-  getPrograms,
-  subscribeProgram
-} from '@/services/programService';
-
-import { useNavigate } from "react-router-dom";
+import { getPrograms } from '@/services/programService';
 
 const Programs = () => {
   const [programs, setPrograms] = useState<any[]>([]);
-  const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   // ================= FETCH =================
   useEffect(() => {
@@ -33,7 +29,6 @@ const Programs = () => {
       setLoading(true);
       const res = await getPrograms();
 
-      // ✅ IMPORTANT: Safety filter (only approved)
       const approvedPrograms = (res.data || []).filter(
         (p: any) =>
           p.status === "approved" &&
@@ -51,8 +46,6 @@ const Programs = () => {
     }
   };
 
-
-  const navigate = useNavigate();
   // ================= CATEGORY =================
   const categories = [
     { id: "all", name: "All" },
@@ -69,28 +62,10 @@ const Programs = () => {
     ),
   ];
 
-  // ✅ FILTER ALSO SAFE
   const filtered =
     filter === "all"
       ? programs
       : programs.filter((p) => p.category?._id === filter);
-
-  // ================= ENROLL =================
-  const handleEnroll = async (program: any, plan: any) => {
-    try {
-      await subscribeProgram({
-        programId: program._id,
-        plan: plan.name,
-      });
-
-      toast.success(`Enrolled in ${program.title}`, {
-        description: `${plan.name} plan activated`,
-      });
-    } catch (err) {
-      console.error(err);
-      toast.error("Enrollment failed");
-    }
-  };
 
   return (
     <div className="min-h-screen">
@@ -181,7 +156,8 @@ const Programs = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-white rounded-xl shadow hover:shadow-lg overflow-hidden"
+                className="bg-white rounded-xl shadow hover:shadow-lg overflow-hidden cursor-pointer"
+                onClick={() => navigate(`/program/${program._id}`)}
               >
 
                 {/* IMAGE */}
@@ -197,7 +173,7 @@ const Programs = () => {
                     </Badge>
 
                     <Badge variant="secondary">
-                      {program.category || "General"}
+                      {program.category?.name || "General"}
                     </Badge>
                   </div>
                 </div>
@@ -244,44 +220,10 @@ const Programs = () => {
                       </p>
                     </div>
 
-                    <Button
-                      size="sm"
-                      onClick={() =>
-                        setSelectedProgram(
-                          selectedProgram === program._id
-                            ? null
-                            : program._id
-                        )
-                      }
-                    >
-                      View Plans
+                    <Button size="sm">
+                      View Details
                     </Button>
                   </div>
-
-                  {selectedProgram === program._id && (
-                    <div className="mt-4 space-y-2">
-                      {program.plans?.map((plan: any) => (
-                        <div key={plan.name} className="border rounded-lg p-3">
-                          <div className="flex justify-between">
-                            <span>{plan.name}</span>
-                            <span>₹{plan.price}</span>
-                          </div>
-
-                          <Button
-  size="sm"
-  className="w-full mt-2"
-  onClick={() =>
-    navigate(`/subscribe/${program._id}`, {
-      state: { program, plan }
-    })
-  }
->
-  Enroll Now
-</Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
 
                 </div>
               </motion.div>

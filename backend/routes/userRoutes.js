@@ -56,18 +56,19 @@ router.delete(
 
 
 
-router.get("/specialists", async (req, res) => {
-  try {
-    const specialists = await User.find({
-      role: "specialist",
-      verificationStatus: "approved",
-      isBlocked: false,
-    });
 
-    res.json({
-      success: true,
-      data: specialists,
-    });
+
+// routes/userRoutes.js
+router.get("/specialists/top", async (req, res) => {
+  try {
+    const User = require("../models/User");
+    const limit = parseInt(req.query.limit) || 8;
+
+    const specialists = await User.find({ role: "specialist", isActive: true })
+      .limit(limit)
+      .select("fullName profilePhoto professionalDetails");
+
+    res.json(specialists);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

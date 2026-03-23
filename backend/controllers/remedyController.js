@@ -117,7 +117,7 @@ exports.getAllRemedies = async (req, res) => {
   try {
     const remedies = await Remedy.find()
       .populate("createdBy", "fullName email")
-      .populate("specialist", "fullName profileImage")
+      .populate("specialist", "fullName profilePhoto")
       .lean();
 
     res.json(remedies);
@@ -133,10 +133,9 @@ exports.getAllRemedies = async (req, res) => {
 
 exports.getApprovedRemedies = async (req, res) => {
   try {
-    const remedies = await Remedy.find({ status: "Approved" }).populate(
-      "specialist",
-      "fullName profileImage",
-    )
+    const remedies = await Remedy.find({ status: "Approved" }).populate
+    ("specialist", "fullName profilePhoto")
+   
     .lean();
 
     res.json(remedies);
@@ -149,10 +148,8 @@ exports.getApprovedRemedies = async (req, res) => {
 ====================================================== */
 exports.getSingleRemedy = async (req, res) => {
   try {
-    const remedy = await Remedy.findById(req.params.id).populate(
-      "specialist",
-      "fullName profileImage email",
-    );
+    const remedy = await Remedy.findById(req.params.id).populate
+    ("specialist", "fullName profilePhoto");
 
     if (!remedy) {
       return res.status(404).json({ message: "Remedy not found" });

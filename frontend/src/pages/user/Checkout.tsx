@@ -6,6 +6,7 @@ import { ArrowLeft, CheckCircle, ShoppingBag, Truck, CreditCard, MapPin } from '
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import API from '@/services/api'; // axios instance
+import { useNavigate } from 'react-router-dom';
 
 const Checkout = () => {
   const { items, totalPrice, clearCart, totalItems } = useCart();
@@ -19,12 +20,23 @@ const Checkout = () => {
   const shipping = totalPrice > 500 ? 0 : 50;
   const tax = Math.round(totalPrice * 0.05);
   const grandTotal = totalPrice + shipping + tax;
-
+const navigate = useNavigate();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
  const handlePlaceOrder = async () => {
+
+  // ✅ ADD HERE (FIRST LINE)
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    toast.error("Please login first");
+    navigate("/login");   // 🚀 redirect
+    return;
+  }
+
+  // ⬇️ baki validation niche rehse
   if (!form.name || !form.email || !form.phone || !form.address || !form.city || !form.pincode) {
     toast.error('Please fill all required fields');
     return;
@@ -37,9 +49,12 @@ const Checkout = () => {
 
   try {
     const orderData = {
-      products: items.map(item => ({ product: item._id || item.id, quantity: item.quantity })),
+      products: items.map(item => ({
+        product: item.id,
+        quantity: item.quantity
+      })),
       totalAmount: grandTotal,
-      paymentMethod: form.payment.toUpperCase(), // ⚡ IMPORTANT
+      paymentMethod: form.payment.toUpperCase(),
       shippingAddress: {
         fullName: form.name,
         phone: form.phone,
@@ -51,9 +66,6 @@ const Checkout = () => {
       },
     };
 
-    console.log("Order Data Sent:", orderData); // debug
-
-    const token = localStorage.getItem("token");
     const res = await API.post("/orders", orderData, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -62,12 +74,11 @@ const Checkout = () => {
     setOrderPlaced(true);
     clearCart();
     toast.success('Order placed successfully!');
+
   } catch (error: any) {
-    console.error("ORDER ERROR:", error.response?.data || error.message);
     toast.error(error.response?.data?.message || 'Failed to place order');
   }
 };
-
   if (items.length === 0 && !orderPlaced) {
     return (
       <div className="min-h-screen flex items-center justify-center">

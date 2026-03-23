@@ -1,5 +1,5 @@
 const User = require("../models/User");
-
+const cloudinary = require("../config/cloudinary");
 /* ===========================================
    GET ALL NORMAL USERS (ADMIN)
 =========================================== */
@@ -54,6 +54,22 @@ const blockUser = async (req, res) => {
 };
 
 
+const uploadProfileImage = (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "healone_profiles",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
+
+    stream.end(fileBuffer);
+  });
+};
+
 /* ===========================================
    DELETE USER (ADMIN)
 =========================================== */
@@ -87,9 +103,28 @@ const deleteUser = async (req, res) => {
 };
 const registerUser = async (req, res) => {
   try {
-    res.status(200).json({
-      message: "Register working"
+    const { fullName, email, password, phone } = req.body;
+
+    let profilePhoto = "";
+
+    // 🔥 IMAGE UPLOAD
+    if (req.file) {
+      profilePhoto = await uploadProfileImage(req.file.buffer);
+    }
+
+    const user = await User.create({
+      fullName,
+      email,
+      password,
+      phone,
+      profilePhoto, // ✅ IMPORTANT
     });
+
+    res.status(201).json({
+      message: "User registered successfully",
+      user,
+    });
+
   } catch (error) {
     res.status(500).json({
       message: error.message
@@ -98,9 +133,34 @@ const registerUser = async (req, res) => {
 };
 
 
+
+/* ===========================================
+   GET SPECIALISTS (PUBLIC)
+=========================================== */
+const getSpecialists = async (req, res) => {
+  try {
+    const specialists = await User.find({
+      role: "specialist",
+      isBlocked: false,
+      verificationStatus: "approved", // optional but recommended
+    })
+      .select("-password")
+      .limit(parseInt(req.query.limit) || 8)
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(specialists);
+
+  } catch (error) {
+    console.error("Get specialists error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 module.exports = {
   registerUser,
   getAllUsers,
   blockUser,
-  deleteUser
+  deleteUser,
+  getSpecialists
 };

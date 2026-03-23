@@ -1,9 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Filter, Leaf, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import ProductCard from "@/components/ProductCard";
 import productsHero from "@/assets/products-hero.jpg";
 import productService from "@/services/productService";
@@ -13,8 +12,10 @@ import subCategoryService from "@/services/subCategoryService";
 const Products = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const initialCategory = searchParams.get("category") || "";
-  const [selectedType, setSelectedType] = useState(initialCategory);
+
+  const category = searchParams.get("category");
+  const subcategory = searchParams.get("subcategory");
+
   const [selectedHealth, setSelectedHealth] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -22,9 +23,6 @@ const Products = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const category = searchParams.get("category");
-  const subcategory = searchParams.get("subcategory");
 
   useEffect(() => {
     fetchProducts();
@@ -37,8 +35,8 @@ const Products = () => {
 
       let query = "";
 
-      if (category) query = `?category=${category}`;
-      if (subcategory) query = `?subCategory=${subcategory}`;
+      if (category) query += `?category=${category}`;
+      if (subcategory) query += `${query ? "&" : "?"}subCategory=${subcategory}`;
 
       const res = await productService.getProducts(query);
       setProducts(res.data);
@@ -61,160 +59,83 @@ const Products = () => {
     }
   };
 
+  // ✅ SAFE FILTER
   const filtered = useMemo(() => {
     return products.filter((p) => {
-      if (
-        selectedType &&
-        p.category !== selectedType &&
-        p.healthCategory !== selectedType
-      )
-        return false;
-      if (selectedHealth && p.healthCategory !== selectedHealth) return false;
+      if (selectedHealth) {
+        const catName =
+          typeof p.category === "object" ? p.category?.name : p.category;
+
+        if (catName !== selectedHealth) return false;
+      }
       return true;
     });
-  }, [selectedType, selectedHealth]);
+  }, [products, selectedHealth]);
 
   return (
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative min-h-[50vh] flex items-center overflow-hidden">
-        <img
-          src={productsHero}
-          alt="Ayurvedic products"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        <img src={productsHero} className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/85 via-foreground/60 to-foreground/30" />
+
         <div className="container mx-auto px-4 relative z-10 py-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl"
-          >
-            <span className="inline-flex items-center gap-2 bg-primary/20 text-primary-foreground px-4 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm mb-6">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 bg-primary/20 px-4 py-1.5 rounded-full text-sm mb-6">
               <Leaf className="h-4 w-4" /> 100% Natural & Ayurvedic
             </span>
-            <h1 className="text-4xl lg:text-5xl font-display font-bold text-background leading-tight">
+
+            <h1 className="text-4xl font-bold text-white">
               Our <span className="text-primary">Products</span>
             </h1>
-            <p className="text-lg text-background/70 mt-4 max-w-lg leading-relaxed">
-              100% natural Ayurvedic products for your wellness needs, crafted
-              with ancient wisdom and modern science.
-            </p>
-            <div className="flex flex-wrap gap-4 mt-6">
+
+            <div className="flex gap-4 mt-6">
               <Link to="/remedies">
-                <Button size="lg" className="gap-2">
-                  Browse Remedies <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="/specialists">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="gap-2 border-background/30 text-background hover:bg-background/10"
-                >
-                  Consult Expert
-                </Button>
+                <Button>Browse Remedies</Button>
               </Link>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters sidebar */}
-          <div
-            className={`lg:w-64 shrink-0 ${showFilters ? "block" : "hidden lg:block"}`}
-          >
-            <div className="bg-card rounded-xl border p-5 sticky top-24">
-              <h3 className="font-display font-semibold mb-4">Product Type</h3>
-              <div className="space-y-1.5">
-                <button
-                  onClick={() => navigate("/products")}
-                  className={`block w-full text-left text-sm px-3 py-2 rounded-md ${
-                    !category && !subcategory
-                      ? "bg-primary text-white"
-                      : "hover:bg-secondary"
-                  }`}
-                >
-                  All Products
-                </button>
-                {subCategories.map((item: any) => (
-                  <button
-                    key={item._id}
-                    onClick={() =>
-                      navigate(`/products?subcategory=${item._id}`)
-                    }
-                    className={`block w-full text-left text-sm px-3 py-2 rounded-md transition
-                      ${subcategory === item._id ? "bg-primary text-white" : "hover:bg-secondary"}
-                    `}
-                  >
-                    {item.name}
-                  </button>
-                ))}
-              </div>
+      <div className="container mx-auto px-4 py-8 flex gap-8">
+        {/* Filters */}
+        <div className={`w-64 ${showFilters ? "block" : "hidden lg:block"}`}>
+          <div className="bg-card p-5 rounded-xl">
+            <h3 className="font-semibold mb-4">Categories</h3>
 
-              <h3 className="font-display font-semibold mb-4 mt-6">
-                Health Concern
-              </h3>
-              <div className="space-y-1.5">
-                <button
-                  onClick={() => setSelectedHealth("")}
-                  className={`block w-full text-left text-sm px-3 py-2 rounded-md transition-colors ${!selectedHealth ? "bg-primary text-primary-foreground" : "hover:bg-secondary"}`}
-                >
-                  All Concerns
-                </button>
-                {categories.map((item: any) => (
-                  <button
-                    key={item._id}
-                    onClick={() => navigate(`/products?category=${item._id}`)}
-                    className={`block w-full text-left text-sm px-3 py-2 rounded-md transition
-                      ${category === item._id ? "bg-primary text-white" : "hover:bg-secondary"}
-                    `}
-                  >
-                    {item.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Products grid - 4 columns */}
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-muted-foreground">
-                {products.length} products found
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="lg:hidden gap-2"
-                onClick={() => setShowFilters(!showFilters)}
+            {categories.map((c: any) => (
+              <button
+                key={c._id}
+                onClick={() => navigate(`/products?category=${c._id}`)}
+                className="block w-full text-left py-2"
               >
-                <Filter className="h-4 w-4" /> Filters
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
-              {products.map((product, i) => (
-                <motion.div
-                  key={product._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  <ProductCard product={product} />
-                </motion.div>
-              ))}
-            </div>
-            {products.length === 0 && !loading && (
-              <div className="text-center py-20 text-muted-foreground">
-                <p className="font-display text-lg">No products found</p>
-                <p className="text-sm mt-1">Try adjusting your filters</p>
-                {loading && (
-                  <p className="text-center py-10">Loading products...</p>
-                )}
-              </div>
-            )}
+                {c.name}
+              </button>
+            ))}
+
+            <h3 className="font-semibold mt-6 mb-4">SubCategories</h3>
+
+            {subCategories.map((s: any) => (
+              <button
+                key={s._id}
+                onClick={() => navigate(`/products?subcategory=${s._id}`)}
+                className="block w-full text-left py-2"
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Products */}
+        <div className="flex-1">
+          <p>{filtered.length} products found</p>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+            {filtered.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
           </div>
         </div>
       </div>

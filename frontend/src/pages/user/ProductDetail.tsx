@@ -1,113 +1,196 @@
 import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { Star, ShoppingCart, ArrowLeft, CheckCircle, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/lib/cart-context';
-import { products } from '@/lib/products-data';
 import ProductCard from '@/components/ProductCard';
 import { toast } from 'sonner';
-
+import productService from '@/services/productService';
+import { useNavigate } from 'react-router-dom';
 const ProductDetail = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
-  const product = products.find(p => p.id === id);
 
-  if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="font-display text-2xl font-bold">Product Not Found</h2>
-          <Link to="/products"><Button className="mt-4">Back to Products</Button></Link>
-        </div>
-      </div>
-    );
-  }
+  const [product, setProduct] = useState<any>(null);
+  const [related, setRelated] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+const navigate = useNavigate();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
 
-  const related = products.filter(p => p.id !== product.id && (p.category === product.category || p.healthCategory === product.healthCategory)).slice(0, 4);
-  const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+        const res = await productService.getSingleProduct(id);
+        const prod = res.data.product;
+        setProduct(prod);
+
+        const all = await productService.getProducts();
+
+        const rel = all.data.filter((p: any) =>
+          p._id !== id &&
+          (
+            p.category?._id === prod.category?._id ||
+            p.subCategory?._id === prod.subCategory?._id
+          )
+        ).slice(0, 4);
+
+        setRelated(rel);
+
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchData();
+  }, [id]);
 
   const handleAddToCart = () => {
-    addToCart({ id: product.id, name: product.name, price: product.price, image: product.image, category: product.category });
+     addToCart({
+    id: product._id,   // ✅ mapping here
+    name: product.name,
+    price: product.price,
+    image: product.image,
+    category:
+      typeof product.category === "object"
+        ? product.category?.name
+        : product.category
+  });
+
     toast.success(`${product.name} added to cart!`);
   };
 
+  const handleBuyNow = () => {
+  addToCart({
+    id: product._id,
+    name: product.name,
+    price: product.price,
+    image: product.image,
+    category:
+      typeof product.category === "object"
+        ? product.category?.name
+        : product.category
+  });
+
+  navigate('/checkout'); // 🚀 redirect
+};
+
+  if (loading) return <div className="text-center py-20">Loading...</div>;
+
+  if (!product) return <div>Product Not Found</div>;
+
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        <Link to="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
-          <ArrowLeft className="h-4 w-4" /> Back to Products
-        </Link>
+  <div className="container mx-auto px-4 py-10">
+    
+    {/* Back */}
+    <Link to="/products" className="flex items-center gap-2 mb-6 text-gray-500 hover:text-black">
+      <ArrowLeft size={18}/> Back
+    </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* Image */}
-          <div className="bg-secondary rounded-2xl overflow-hidden aspect-square">
-            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-          </div>
+    <div className="grid lg:grid-cols-2 gap-12">
+      
+      {/* LEFT - IMAGE */}
+      <div>
+        <div className="bg-gray-100 rounded-2xl p-6">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-[400px] object-contain"
+          />
+        </div>
 
-          {/* Details */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              {product.badge && <span className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">{product.badge}</span>}
-              <span className="text-sm text-muted-foreground">{product.category}</span>
-            </div>
-            <h1 className="text-3xl lg:text-4xl font-display font-bold">{product.name}</h1>
+        {/* thumbnails (optional) */}
+        <div className="flex gap-2 mt-4">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="w-16 h-16 bg-gray-100 rounded-lg"></div>
+          ))}
+        </div>
+      </div>
 
-            <div className="flex items-center gap-2 mt-3">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'fill-accent text-accent' : 'text-border'}`} />
-                ))}
+      {/* RIGHT - DETAILS */}
+      <div>
+
+        <h1 className="text-3xl font-bold">{product.name}</h1>
+
+        {/* Rating */}
+        <div className="flex items-center gap-2 mt-2">
+          <Star className="text-green-600 fill-green-600 w-4 h-4"/>
+          <span className="text-sm text-gray-600">4.9 (8908 reviews)</span>
+        </div>
+
+        {/* Price */}
+        <div className="mt-4 flex items-center gap-3">
+          <span className="text-3xl font-bold text-green-700">₹{product.price}</span>
+          <span className="line-through text-gray-400">₹{product.price + 200}</span>
+        </div>
+
+        {/* Tags */}
+        <div className="flex flex-wrap gap-3 mt-4 text-sm text-gray-600">
+          <span className="flex items-center gap-1"><Leaf size={14}/> Natural</span>
+          <span className="flex items-center gap-1"><CheckCircle size={14}/> Ayurvedic</span>
+        </div>
+
+        {/* Benefits */}
+        {product.benefits && (
+          <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
+            {product.benefits.map((b: any) => (
+              <div key={b} className="flex items-center gap-2">
+                <CheckCircle className="text-green-600 w-4 h-4"/>
+                {b}
               </div>
-              <span className="text-sm text-muted-foreground">{product.rating} ({product.reviews} reviews)</span>
-            </div>
+            ))}
+          </div>
+        )}
 
-            <div className="flex items-baseline gap-3 mt-5">
-              <span className="text-4xl font-display font-bold text-primary">₹{product.price}</span>
-              <span className="text-xl text-muted-foreground line-through">₹{product.originalPrice}</span>
-              <span className="bg-accent/20 text-accent-foreground text-sm font-bold px-2 py-0.5 rounded">Save {discount}%</span>
-            </div>
-
-            <p className="text-foreground/80 mt-5 leading-relaxed">{product.description}</p>
-
-            <Button size="lg" className="gap-2 mt-8 w-full sm:w-auto px-12" onClick={handleAddToCart}>
-              <ShoppingCart className="h-5 w-5" /> Add to Cart
-            </Button>
-
-            {/* Benefits */}
-            <div className="mt-8 p-5 bg-secondary rounded-xl">
-              <h3 className="font-display font-semibold flex items-center gap-2"><Leaf className="h-5 w-5 text-primary" /> Key Benefits</h3>
-              <ul className="mt-3 space-y-2">
-                {product.benefits.map(b => (
-                  <li key={b} className="flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4 text-primary shrink-0" />{b}</li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Ingredients */}
-            <div className="mt-5">
-              <h3 className="font-display font-semibold mb-2">Ingredients</h3>
-              <p className="text-sm text-muted-foreground">{product.ingredients.join(', ')}</p>
-            </div>
-
-            {/* Usage */}
-            <div className="mt-5">
-              <h3 className="font-display font-semibold mb-2">How to Use</h3>
-              <p className="text-sm text-muted-foreground">{product.usage}</p>
-            </div>
+        {/* Quantity */}
+        <div className="mt-6 flex items-center gap-4">
+          <span className="text-sm">Quantity</span>
+          <div className="flex border rounded-lg overflow-hidden">
+            <button className="px-3">-</button>
+            <span className="px-4">1</span>
+            <button className="px-3">+</button>
           </div>
         </div>
 
-        {/* Related Products */}
-        {related.length > 0 && (
-          <div className="mt-20">
-            <h2 className="text-2xl font-display font-bold mb-8">You May Also Like</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {related.map(p => <ProductCard key={p.id} product={p} />)}
-            </div>
-          </div>
-        )}
+        {/* Buttons */}
+        <div className="flex gap-4 mt-6">
+          <Button className="flex-1 bg-orange-500 hover:bg-orange-600" onClick={handleAddToCart}>
+            <ShoppingCart className="mr-2"/> Add to Cart
+          </Button>
+
+          <Button
+  className="flex-1 bg-green-700 hover:bg-green-800 text-white"
+  onClick={handleBuyNow}
+>
+  Buy Now
+</Button>
+        </div>
+
+        {/* Description */}
+        <div className="mt-8">
+          <h3 className="font-semibold text-lg mb-2">Product Description</h3>
+          <p className="text-gray-600">{product.description}</p>
+        </div>
+
       </div>
     </div>
-  );
+
+    {/* RELATED */}
+    {related.length > 0 && (
+      <div className="mt-16">
+        <h2 className="text-2xl font-bold mb-6">You May Also Like</h2>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {related.map((p: any) => (
+            <ProductCard key={p._id} product={p} />
+          ))}
+        </div>
+      </div>
+    )}
+
+  </div>
+);
 };
 
 export default ProductDetail;

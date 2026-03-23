@@ -8,21 +8,17 @@ import {
   Brain,
   Shield,
   Sparkles,
-  Star,
-  CheckCircle,
-  Send,
-  Flame,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
 import heroBg from "@/assets/hero-bg.jpg";
 
 // API helper
-import API from "@/services/api"; // make sure this is your axios instance
+import API from "@/services/api";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: (i: number = 0) => ({
+  visible: (i = 0) => ({
     opacity: 1,
     y: 0,
     transition: { delay: i * 0.1, duration: 0.6 },
@@ -36,30 +32,31 @@ const Index = () => {
   const [trendingPrograms, setTrendingPrograms] = useState([]);
 
   useEffect(() => {
-    // Fetch Featured Products
+    // Featured Products
     API.get("/products?featured=true&limit=8")
       .then((res) => setFeaturedProducts(res.data))
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Products error:", err));
 
-    // Fetch Categories
+    // Categories
     API.get("/categories")
       .then((res) => setCategories(res.data))
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Categories error:", err));
 
-    // Fetch Specialists (role = specialist)
-    API.get("/users?role=specialist&limit=8")
+    // Top Specialists
+    API.get("/users/specialists/top?limit=4")
       .then((res) => setSpecialists(res.data))
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Specialists error:", err));
 
-    // Fetch Trending Programs
-    API.get("/programs?status=approved&limit=8")
-      .then((res) => setTrendingPrograms(res.data))
-      .catch((err) => console.error(err));
+    // Top Trending Programs
+    // ⚠ Make sure backend is mounted as /api/program
+     API.get("/programs/approved/top?limit=4") // <-- /programs to match backend
+      .then((res) => setTrendingPrograms(res.data.data))
+      .catch((err) => console.error("Programs error:", err));
   }, []);
 
   return (
     <div>
-      {/* Hero */}
+      {/* Hero Section */}
       <section className="relative min-h-[70vh] flex items-center overflow-hidden">
         <img
           src={heroBg}
@@ -167,33 +164,32 @@ const Index = () => {
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            {Array.isArray(categories) &&
-              categories.slice(0, 8).map((cat) => (
-                <motion.div
-                  key={cat._id}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={fadeUp}
+            {categories.slice(0, 8).map((cat) => (
+              <motion.div
+                key={cat._id}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={fadeUp}
+              >
+                <Link
+                  to={`/products?category=${cat.name}`}
+                  className="group block rounded-lg overflow-hidden relative aspect-[4/3] shadow-card hover:shadow-elevated transition-all hover:-translate-y-0.5"
                 >
-                  <Link
-                    to={`/products?category=${cat.name}`}
-                    className="group block rounded-lg overflow-hidden relative aspect-[4/3] shadow-card hover:shadow-elevated transition-all hover:-translate-y-0.5"
-                  >
-                    <img
-                      src={cat.image}
-                      alt={cat.name}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-foreground/20 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <span className="font-display font-bold text-sm text-background drop-shadow-md">
-                        {cat.name}
-                      </span>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-foreground/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <span className="font-display font-bold text-sm text-background drop-shadow-md">
+                      {cat.name}
+                    </span>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -221,48 +217,37 @@ const Index = () => {
             </Link>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {featuredProducts?.length > 0 ? (
-              featuredProducts.slice(0, 8).map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))
-            ) : (
-              <p>No featured products found</p>
-            )}
+            {featuredProducts.slice(0, 8).map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Trending Programs */}
-     {/* Trending Programs */}
-{/* Trending Programs */}
-{/* Trending Programs */}
-<section className="py-14">
-  <div className="container mx-auto px-4">
-    <div className="flex items-center justify-between mb-8">
-      <div>
-        <h2 className="text-2xl lg:text-3xl font-display font-bold">
-          Trending <span className="text-gradient-primary">Programs</span>
-        </h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Most popular wellness transformations
-        </p>
-      </div>
-      <Link to="/programs">
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 hidden sm:flex text-xs"
-        >
-          All Programs <ArrowRight className="h-3.5 w-3.5" />
-        </Button>
-      </Link>
-    </div>
-
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      {trendingPrograms.length > 0
-        ? trendingPrograms
-            .slice(0, 8) // <-- only top 8 programs
-            .map((program, i) => (
+      {/* Top Trending Programs */}
+       <section className="py-14">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl lg:text-3xl font-display font-bold">
+                Trending <span className="text-gradient-primary">Programs</span>
+              </h2>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Most popular wellness transformations
+              </p>
+            </div>
+            <Link to="/programs">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 hidden sm:flex text-xs"
+              >
+                All Programs <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {trendingPrograms.map((program, i) => (
               <motion.div
                 key={program._id}
                 initial="hidden"
@@ -272,7 +257,6 @@ const Index = () => {
                 custom={i}
                 className="bg-card rounded-lg overflow-hidden border hover:shadow-elevated transition-all group"
               >
-                {/* Program Cover */}
                 <div className="relative h-36 overflow-hidden">
                   <img
                     src={program.coverImage}
@@ -280,15 +264,11 @@ const Index = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-
-                {/* Program Details */}
                 <div className="p-4">
                   <h3 className="font-display text-base font-bold">{program.title}</h3>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                     {program.description}
                   </p>
-
-                  {/* Specialist Info */}
                   {program.specialist && (
                     <div className="flex items-center gap-2 mt-3">
                       <img
@@ -305,8 +285,6 @@ const Index = () => {
                       </span>
                     </div>
                   )}
-
-                  {/* Price & Enroll */}
                   <div className="flex items-center justify-between mt-3 pt-3 border-t">
                     <span className="text-lg font-display font-bold text-primary">
                       ₹{program.plans[0]?.price || 0}
@@ -319,95 +297,71 @@ const Index = () => {
                   </div>
                 </div>
               </motion.div>
-            ))
-        : Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-card rounded-lg h-36 flex items-center justify-center text-muted-foreground"
-            >
-              Program not available
-            </div>
-          ))}
-    </div>
-  </div>
-</section>
+            ))}
+          </div>
+        </div>
+      </section>
+
 
       {/* Top Specialists */}
-     {/* Top Specialists */}
-<section className="py-14 bg-nature">
-  <div className="container mx-auto px-4">
-    <div className="flex items-center justify-between mb-8">
-      <div>
-        <h2 className="text-2xl lg:text-3xl font-display font-bold">
-          Our Top <span className="text-gradient-primary">Specialists</span>
-        </h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Experienced Ayurvedic practitioners
-        </p>
-      </div>
-      <Link to="/specialists">
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 hidden sm:flex text-xs"
-        >
-          View All <ArrowRight className="h-3.5 w-3.5" />
-        </Button>
-      </Link>
-    </div>
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {specialists.length > 0
-  ? specialists.slice(0, 8).map((doc, i) => (
-      <motion.div
-        key={doc._id}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={fadeUp}
-        custom={i}
-        className="bg-card rounded-lg overflow-hidden border hover:shadow-elevated transition-all group flex flex-col"
-      >
-        {/* Image */}
-        <div className="relative w-full h-32 sm:h-36 flex-shrink-0">
-          <img
-            src={doc.profilePhoto?.startsWith("http") ? doc.profilePhoto : `${process.env.REACT_APP_API_URL}${doc.profilePhoto}`}
-            alt={doc.fullName}
-            className="w-24 h-24 rounded-full object-cover border-2 border-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-          />
+      <section className="py-14 bg-nature">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl lg:text-3xl font-display font-bold">
+                Our Top <span className="text-gradient-primary">Specialists</span>
+              </h2>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Experienced Ayurvedic practitioners
+              </p>
+            </div>
+            <Link to="/specialists">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 hidden sm:flex text-xs"
+              >
+                View All <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {specialists.map((doc, i) => (
+              <motion.div
+                key={doc._id}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={fadeUp}
+                custom={i}
+                className="bg-card rounded-lg overflow-hidden border hover:shadow-elevated transition-all group flex flex-col items-center text-center p-4"
+              >
+                <img
+                  src={
+                    doc.profilePhoto?.startsWith("http")
+                      ? doc.profilePhoto
+                      : `${process.env.REACT_APP_API_URL}${doc.profilePhoto}`
+                  }
+                  alt={doc.fullName}
+                  className="w-24 h-24 rounded-full object-cover border-2 border-primary mb-3"
+                />
+                <h3 className="font-display font-semibold text-sm">{doc.fullName}</h3>
+                <p className="text-xs text-primary font-medium mt-1">
+                  {doc.professionalDetails?.qualification || "Ayurveda Specialist"}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {doc.professionalDetails?.experienceYears || 0}+ years experience
+                </p>
+                <Link to="/specialists" className="w-full mt-2">
+                  <Button variant="outline" size="sm" className="w-full text-xs h-7">
+                    Book Consultation
+                  </Button>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
         </div>
-
-        {/* Text Info */}
-        <div className="p-4 flex flex-col items-center text-center mt-12">
-          <h3 className="font-display font-semibold text-sm">{doc.fullName}</h3>
-          <p className="text-xs text-primary font-medium mt-1">
-            {doc.professionalDetails?.qualification || "Ayurveda Specialist"}
-          </p>
-          <p className="text-[10px] text-muted-foreground mt-0.5">
-            {doc.professionalDetails?.experienceYears || 0}+ years experience
-          </p>
-          <Link to="/specialists">
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2 w-full text-xs h-7"
-            >
-              Book Consultation
-            </Button>
-          </Link>
-        </div>
-      </motion.div>
-    ))
-  : Array.from({ length: 8 }).map((_, i) => (
-      <div
-        key={i}
-        className="bg-card rounded-lg h-40 flex items-center justify-center text-muted-foreground"
-      >
-        Specialist not available
-      </div>
-    ))}
-    </div>
-  </div>
-</section>
+      </section>
     </div>
   );
 };

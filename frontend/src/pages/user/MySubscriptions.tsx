@@ -115,14 +115,14 @@ const MySubscriptions = () => {
                             </span>
 
                             {/* BUTTON */}
-                            <button
+                            {/* <button
                                 onClick={() =>
                                     navigate(`/program/${sub.program?._id}`)
                                 }
                                 className="mt-4 w-full bg-green-600 hover:bg-green-700 py-2 rounded text-sm"
                             >
                                 Continue
-                            </button>
+                            </button> */}
 
                         </div>
                     </div>
