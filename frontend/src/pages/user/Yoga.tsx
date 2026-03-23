@@ -135,11 +135,10 @@ const Yoga = () => {
               <button
                 key={level}
                 onClick={() => setActiveLevel(level)}
-                className={`px-4 py-1 rounded-full ${
-                  activeLevel === level
+                className={`px-4 py-1 rounded-full ${activeLevel === level
                     ? "bg-primary text-white"
                     : "bg-gray-200"
-                }`}
+                  }`}
               >
                 {level}
               </button>
@@ -152,11 +151,10 @@ const Yoga = () => {
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-1 rounded-full ${
-                  activeCategory === cat
+                className={`px-4 py-1 rounded-full ${activeCategory === cat
                     ? "bg-primary text-white"
                     : "bg-gray-200"
-                }`}
+                  }`}
               >
                 {cat}
               </button>
@@ -166,71 +164,73 @@ const Yoga = () => {
 
         {/* GRID */}
         {/* GRID */}
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-  {filtered.map((practice, i) => (
-    <motion.div
-      key={practice.id}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: i * 0.05 }}
-      className="bg-white rounded-xl shadow overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => setSelectedYoga(practice)} // <-- click anywhere on card opens detail
-    >
-      <img
-        src={practice.image}
-        className="h-48 w-full object-cover"
-      />
-      <div className="p-4">
-        <div className="flex justify-between items-start">
-          <h3 className="font-bold text-lg">{practice.title}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {filtered.map((practice, i) => (
+            <motion.div
+              key={practice.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="bg-white rounded-xl shadow overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => setSelectedYoga(practice)} // <-- click anywhere on card opens detail
+            >
+              <div className="w-full aspect-[4/3] overflow-hidden rounded-t-xl">
+                <img
+                  src={practice.image}
+                  className="w-full h-full transition-transform duration-300 hover:scale-105"
+                  alt={practice.title}
+                />
+              </div>
+              <div className="p-4">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-bold text-lg">{practice.title}</h3>
 
-          {/* CLICKABLE HEART */}
-          <button
-            className="ml-2"
-            onClick={(e) => {
-              e.stopPropagation(); // prevent opening drawer when clicking heart
-              handleSave(practice.id);
-            }}
-          >
-            <Heart
-              size={20}
-              className={`transition-colors ${
-                savedIds.includes(practice.id)
-                  ? "text-red-500 fill-red-500"
-                  : "text-gray-400"
-              }`}
-            />
-          </button>
+                  {/* CLICKABLE HEART */}
+                  <button
+                    className="ml-2"
+                    onClick={(e) => {
+                      e.stopPropagation(); // prevent opening drawer when clicking heart
+                      handleSave(practice.id);
+                    }}
+                  >
+                    <Heart
+                      size={20}
+                      className={`transition-colors ${savedIds.includes(practice.id)
+                          ? "text-red-500 fill-red-500"
+                          : "text-gray-400"
+                        }`}
+                    />
+                  </button>
+                </div>
+
+                <p className="text-sm text-gray-500 mt-2">
+                  {practice.description}
+                </p>
+                <div className="flex gap-3 text-sm mt-3">
+                  <span>
+                    <Clock size={14} /> {practice.duration}
+                  </span>
+                  <span>
+                    <Flame size={14} /> {practice.calories}
+                  </span>
+                  <span>
+                    <Star size={14} /> {practice.rating}
+                  </span>
+                </div>
+
+                <button
+                  className="text-primary mt-3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedYoga(practice);
+                  }}
+                >
+                  View Details →
+                </button>
+              </div>
+            </motion.div>
+          ))}
         </div>
-
-        <p className="text-sm text-gray-500 mt-2">
-          {practice.description}
-        </p>
-        <div className="flex gap-3 text-sm mt-3">
-          <span>
-            <Clock size={14} /> {practice.duration}
-          </span>
-          <span>
-            <Flame size={14} /> {practice.calories}
-          </span>
-          <span>
-            <Star size={14} /> {practice.rating}
-          </span>
-        </div>
-
-        <button
-          className="text-primary mt-3"
-          onClick={(e) => {
-            e.stopPropagation();
-            setSelectedYoga(practice);
-          }}
-        >
-          View Details →
-        </button>
-      </div>
-    </motion.div>
-  ))}
-</div>
 
         {filtered.length === 0 && (
           <div className="text-center mt-10">No yoga found</div>
