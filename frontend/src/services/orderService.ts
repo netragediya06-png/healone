@@ -1,5 +1,3 @@
-
-
 import API from "./api";
 
 export const createOrder = async (orderData: any) => {
@@ -7,11 +5,7 @@ export const createOrder = async (orderData: any) => {
     const res = await API.post("/orders", orderData);
     return res.data;
   } catch (error: any) {
-    console.log("SERVICE ERROR:", error.response?.data);
-
-    throw {
-      message: error.response?.data?.message || "Order failed",
-    };
+    throw error.response?.data || { message: "Order failed" };
   }
 };
 

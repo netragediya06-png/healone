@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, ShoppingBag, Truck, CreditCard, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { createOrder } from "../../services/orderService";
+import API from '@/services/api'; // axios instance
 
 const Checkout = () => {
   const { items, totalPrice, clearCart, totalItems } = useCart();
@@ -25,44 +25,25 @@ const Checkout = () => {
   };
 
  const handlePlaceOrder = async () => {
+  if (!form.name || !form.email || !form.phone || !form.address || !form.city || !form.pincode) {
+    toast.error('Please fill all required fields');
+    return;
+  }
+
+  if (items.length === 0) {
+    toast.error('Cart is empty');
+    return;
+  }
+
   try {
-    // ✅ LOGIN CHECK
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-
-    if (!user?.token) {
-      alert("⚠️ Please login first");
-      return;
-    }
-
-    // ✅ VALIDATION
-    if (
-      !form.name ||
-      !form.phone ||
-      !form.address ||
-      !form.city ||
-      !form.pincode
-    ) {
-      alert("Please fill all required fields");
-      return;
-    }
-
-    const paymentMap: any = {
-      cod: "COD",
-      upi: "UPI",
-      card: "CARD",
-      netbanking: "NETBANKING",
-    };
-
     const orderData = {
-      products: items.map((item: any) => ({
-        product: item._id,
-        quantity: item.quantity,
-      })),
+      products: items.map(item => ({ product: item._id || item.id, quantity: item.quantity })),
       totalAmount: grandTotal,
-      paymentMethod: paymentMap[form.payment],
+      paymentMethod: form.payment.toUpperCase(), // ⚡ IMPORTANT
       shippingAddress: {
         fullName: form.name,
         phone: form.phone,
+        email: form.email,
         address: form.address,
         city: form.city,
         state: form.state,
@@ -70,22 +51,23 @@ const Checkout = () => {
       },
     };
 
-    console.log("ORDER DATA:", orderData);
+    console.log("Order Data Sent:", orderData); // debug
 
-    const res = await createOrder(orderData);
+    const token = localStorage.getItem("token");
+    const res = await API.post("/orders", orderData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-    console.log("SUCCESS:", res);
-
-    setOrderId(res.order._id);
-    clearCart();
+    setOrderId(res.data.order._id);
     setOrderPlaced(true);
-
+    clearCart();
+    toast.success('Order placed successfully!');
   } catch (error: any) {
-    console.log("FINAL ERROR:", error);
-
-    alert(error.message || "Order failed");
+    console.error("ORDER ERROR:", error.response?.data || error.message);
+    toast.error(error.response?.data?.message || 'Failed to place order');
   }
 };
+
   if (items.length === 0 && !orderPlaced) {
     return (
       <div className="min-h-screen flex items-center justify-center">

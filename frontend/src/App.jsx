@@ -46,6 +46,8 @@ import MyPrograms from "./pages/specialist/wellness-program/MyPrograms.jsx";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
+// import ProfileView from "@/components/profile/ProfileView";
+// import ProfileEdit from "@/components/profile/ProfileEdit";
 
 /* USER PAGES */
 import Index from "./pages/user/Index";
@@ -67,6 +69,8 @@ import NotFound from "./pages/user/NotFound";
 import SubscribePage from "./pages/user/SubscribePage.js";
 import MySubscriptions from "./pages/user/MySubscriptions.js"
 import ProgramDetail from "./pages/user/ProgramDetail.js";
+import ProfileView from "./components/ProfileView"; // ✅ path adjusted
+import ProfileEdit from "./components/ProfileEdit"; // ✅ path adjusted
 /* ---------------- USER LAYOUT ---------------- */
 function UserLayout() {
   return (
@@ -118,6 +122,8 @@ function App() {
           <Route path="/subscribe/:programId" element={<SubscribePage />} />
           <Route path="/my-subscriptions" element={<MySubscriptions />} />
           <Route path="/program/:programId" element={<ProgramDetail />} />
+          <Route path="/profile" element={<ProfileView />} />
+        <Route path="/profile/edit" element={<ProfileEdit />} />
         </Route>
 
         {/* ================= AUTH ROUTES ================= */}
@@ -159,6 +165,7 @@ function App() {
           <Route path="programs/:id" element={<AdminProgramDetail />} />
           <Route path="subscriptions" element={<AdminSubscriptions />} />
           <Route path="orders" element={<AdminOrders />} />
+           
         </Route>
 
         {/* ================= SPECIALIST ROUTES ================= */}

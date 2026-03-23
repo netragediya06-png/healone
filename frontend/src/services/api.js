@@ -10,6 +10,9 @@ API.interceptors.request.use((req) => {
 
   if (token) {
     req.headers.Authorization = `Bearer ${token}`;
+    console.log("✅ TOKEN SENT:", token);
+  } else {
+    console.warn("❌ NO TOKEN FOUND");
   }
 
   return req;

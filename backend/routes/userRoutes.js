@@ -55,4 +55,22 @@ router.delete(
 );
 
 
+
+router.get("/specialists", async (req, res) => {
+  try {
+    const specialists = await User.find({
+      role: "specialist",
+      verificationStatus: "approved",
+      isBlocked: false,
+    });
+
+    res.json({
+      success: true,
+      data: specialists,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

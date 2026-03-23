@@ -126,7 +126,9 @@ const Navbar = () => {
     { label: "Programs", path: "/programs" },
     { label: "Specialists", path: "/specialists" },
     { label: "Dosha Quiz", path: "/dosha-quiz" },
-    { label: "Blog", path: "/blog" },
+    // { label: "Blog", path: "/blog" },
+    
+
   ];
 
   return (
@@ -304,6 +306,7 @@ const Navbar = () => {
             <div className="h-5 w-px bg-border"></div>
 
             {/* PROFILE */}
+            {/* PROFILE */}
             {user ? (
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -311,7 +314,7 @@ const Navbar = () => {
                   className="flex items-center gap-2"
                 >
                   <img
-                    src={user.profilePhoto}
+                    src={user.profilePhoto || "/default-avatar.png"}
                     className="w-9 h-9 rounded-full border"
                   />
                   <ChevronDown className="w-4 h-4" />
@@ -319,14 +322,25 @@ const Navbar = () => {
 
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg">
+                    {/* VIEW PROFILE */}
                     <Link
                       to="/profile"
                       className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
                     >
                       <User className="w-4 h-4" />
-                      Profile
+                      View Profile
                     </Link>
 
+                    {/* EDIT PROFILE */}
+                    {/* <Link
+          to="/profile/edit"
+          className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+        >
+          <User className="w-4 h-4" />
+          Edit Profile
+        </Link> */}
+
+                    {/* LOGOUT */}
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-red-50"

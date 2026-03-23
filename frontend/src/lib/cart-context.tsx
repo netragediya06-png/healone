@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
 export interface CartItem {
+  _id: string;
   id: string;
   name: string;
   price: number;
