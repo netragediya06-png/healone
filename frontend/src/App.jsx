@@ -41,6 +41,7 @@ import EditYoga from "./pages/specialist/Yoga/EditYoga";
 import CreateProgram from "./pages/specialist/wellness-program/CreateProgram.jsx";
 import EditProgram from "./pages/specialist/wellness-program/EditProgram.jsx";
 import MyPrograms from "./pages/specialist/wellness-program/MyPrograms.jsx";
+import SpecialistSubscriptions from "./pages/specialist/SpecialistSubscriptions";
 
 /* ---------------- USER (Lovable UI) ---------------- */
 import Navbar from "./components/Navbar";
@@ -67,11 +68,11 @@ import DoshaQuiz from "./pages/user/DoshaQuiz";
 import VerifyEmail from "./pages/user/VerifyEmail";
 import NotFound from "./pages/user/NotFound";
 import SubscribePage from "./pages/user/SubscribePage.js";
-import MySubscriptions from "./pages/user/MySubscriptions.js"
+import MySubscriptions from "./pages/user/MySubscriptions.js";
 import ProgramDetail from "./pages/user/ProgramDetail.js";
 import ProfileView from "./components/ProfileView"; // ✅ path adjusted
 import ProfileEdit from "./components/ProfileEdit"; // ✅ path adjusted
-import ProductDetail  from "./pages/user/ProductDetail";
+import ProductDetail from "./pages/user/ProductDetail";
 /* ---------------- USER LAYOUT ---------------- */
 function UserLayout() {
   return (
@@ -103,7 +104,6 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         {/* ================= USER ROUTES ================= */}
         <Route element={<UserLayout />}>
           <Route path="/" element={<Index />} />
@@ -124,14 +124,14 @@ function App() {
           <Route path="/my-subscriptions" element={<MySubscriptions />} />
           <Route path="/program/:programId" element={<ProgramDetail />} />
           <Route path="/profile" element={<ProfileView />} />
-        <Route path="/profile/edit" element={<ProfileEdit />} />
-        <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/profile/edit" element={<ProfileEdit />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
         </Route>
 
         {/* ================= AUTH ROUTES ================= */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
-           {/* user login */}
+          {/* user login */}
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
@@ -167,7 +167,6 @@ function App() {
           <Route path="programs/:id" element={<AdminProgramDetail />} />
           <Route path="subscriptions" element={<AdminSubscriptions />} />
           <Route path="orders" element={<AdminOrders />} />
-           
         </Route>
 
         {/* ================= SPECIALIST ROUTES ================= */}
@@ -191,11 +190,12 @@ function App() {
           <Route path="programs" element={<MyPrograms />} />
           <Route path="create-program" element={<CreateProgram />} />
           <Route path="edit-program/:id" element={<EditProgram />} />
+          {/* 🔥 NEW */}
+          <Route path="subscriptions" element={<SpecialistSubscriptions />} />
         </Route>
 
         {/* ================= 404 ================= */}
         <Route path="*" element={<NotFound />} />
-
       </Routes>
     </BrowserRouter>
   );

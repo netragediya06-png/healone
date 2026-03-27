@@ -5,7 +5,8 @@ const {
   subscribeProgram,            // ✅ FIXED
   getUserSubscriptions,
   getAllSubscriptions,
-  checkProgramAccess
+  checkProgramAccess,
+  getSpecialistSubscriptions
 } = require("../controllers/subscriptionController");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
@@ -59,6 +60,16 @@ router.get(
   protect,
   authorize("admin"),
   getAllSubscriptions
+);
+/* ===============================
+   SPECIALIST SUBSCRIPTIONS
+================================ */
+
+router.get(
+  "/specialist/my",
+  protect,
+  authorize("specialist"),
+  getSpecialistSubscriptions
 );
 
 module.exports = router;  

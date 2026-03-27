@@ -166,4 +166,34 @@ exports.checkProgramAccess = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+/* ===============================
+   SPECIALIST PROGRAM SUBSCRIPTIONS
+================================ */
 
+exports.getSpecialistSubscriptions = async (req, res) => {
+  try {
+    // 1. Find programs created by this specialist
+    const programs = await Program.find({
+      specialist: req.user._id,
+    }).select("_id title");
+
+    const programIds = programs.map(p => p._id);
+
+    // 2. Get subscriptions only for those programs
+    const subscriptions = await ProgramSubscription.find({
+      program: { $in: programIds },
+    })
+      .populate("user", "fullName email")
+      .populate("program", "title")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      total: subscriptions.length,
+      subscriptions,
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

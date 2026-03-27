@@ -26,3 +26,8 @@ export const getAllSubscriptions = () =>
 // ==============================
 export const checkProgramAccess = (programId) =>
   API.get(`/subscriptions/access/${programId}`);
+// ==============================
+// SPECIALIST SUBSCRIPTIONS
+// ==============================
+export const getSpecialistSubscriptions = () =>
+  API.get("/subscriptions/specialist/my");

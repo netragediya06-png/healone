@@ -1,14 +1,14 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Users } from "lucide-react";
 import {
   LayoutDashboard,
   Leaf,
   PersonStanding,
   BookOpen,
-  LogOut
+  LogOut,
 } from "lucide-react";
 
 function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
-
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -32,11 +32,9 @@ function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
         openSidebarToggle ? "w-[220px]" : "w-[70px]"
       }`}
     >
-
       {/* HEADER */}
 
       <div className="flex items-center justify-between px-4 py-4 mb-6">
-
         {openSidebarToggle && (
           <h4 className="text-white font-semibold text-sm">
             🌿 HealOne Specialist
@@ -49,13 +47,11 @@ function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
         >
           {openSidebarToggle ? "⟨" : "⟩"}
         </button>
-
       </div>
 
       {/* MENU */}
 
       <ul className="flex flex-col gap-2 flex-1 px-2">
-
         {/* DASHBOARD */}
 
         <SidebarItem
@@ -99,6 +95,16 @@ function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
           open={openSidebarToggle}
           menuItem={menuItem}
         />
+        {/* SUBSCRIPTIONS */}
+
+        <SidebarItem
+          to="/specialist/subscriptions"
+          icon={Users}
+          label="Subscriptions"
+          active={isActive("/specialist/subscriptions")}
+          open={openSidebarToggle}
+          menuItem={menuItem}
+        />
 
         {/* LOGOUT */}
 
@@ -113,21 +119,16 @@ function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
             {openSidebarToggle && <span>Logout</span>}
           </button>
         </li>
-
       </ul>
-
     </aside>
   );
 }
 
-
 /* Sidebar Menu Item */
 
 function SidebarItem({ to, icon: Icon, label, active, open, menuItem }) {
-
   return (
     <li>
-
       <Link
         to={to}
         className={`${menuItem} ${
@@ -138,7 +139,6 @@ function SidebarItem({ to, icon: Icon, label, active, open, menuItem }) {
             : "text-slate-200 hover:bg-green-700 hover:text-white"
         }`}
       >
-
         {/* ACTIVE LEFT BAR */}
 
         {active && open && (
@@ -148,9 +148,7 @@ function SidebarItem({ to, icon: Icon, label, active, open, menuItem }) {
         <Icon size={18} />
 
         {open && <span>{label}</span>}
-
       </Link>
-
     </li>
   );
 }

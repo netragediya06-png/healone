@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import * as cartService from "@/services/cartService";
 import {
   Search,
   ShoppingCart,
@@ -22,7 +23,7 @@ const Navbar = () => {
   const [user, setUser] = useState<any>(null); // ✅ NEW
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const { totalItems, setIsCartOpen } = useCart();
+const { totalItems, setIsCartOpen, setItems } = useCart();
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -38,7 +39,9 @@ const Navbar = () => {
       setUser(JSON.parse(storedUser));
     }
   }, []);
-
+  useEffect(() => {
+  loadCart();
+}, []);
   useEffect(() => {
     fetchMenuData();
   }, []);
@@ -54,6 +57,28 @@ const Navbar = () => {
       console.error("Menu Fetch Error:", error);
     }
   };
+  const loadCart = async () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) return;
+
+  try {
+    const res = await cartService.getCart();
+
+    const formatted = res.data.items.map((item: any) => ({
+      id: item.product._id,
+      name: item.product.name,
+      price: item.product.price,
+      image: item.product.image,
+      quantity: item.quantity,
+      category: item.product.category?.name || "",
+    }));
+
+    setItems(formatted); // 🔥 FIX: restore cart
+  } catch (err) {
+    console.log("Cart load error", err);
+  }
+};
 
   // ✅ CLOSE DROPDOWN CLICK OUTSIDE
   useEffect(() => {

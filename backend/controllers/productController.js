@@ -197,7 +197,7 @@ exports.getActiveProducts = async (req, res) => {
 
     const query = {
       status: "active",
-      stock: { $gt: 0 }
+      
     };
 
     // 🔍 SEARCH

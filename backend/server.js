@@ -44,6 +44,7 @@ const subscriptionRoutes = require("./routes/subscriptionRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const cartRoutes = require("./routes/cartRoutes");
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
@@ -61,6 +62,7 @@ app.use("/api/programs", programRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/cart", cartRoutes);
 
 // ===============================
 // Test Route
