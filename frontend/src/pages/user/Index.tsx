@@ -173,13 +173,13 @@ const Index = () => {
                 variants={fadeUp}
               >
                 <Link
-                  to={`/products?category=${cat.name}`}
+                 to={`/products?category=${cat._id}`}
                   className="group block rounded-lg overflow-hidden relative aspect-[4/3] shadow-card hover:shadow-elevated transition-all hover:-translate-y-0.5"
                 >
                   <img
                     src={cat.image}
                     alt={cat.name}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="absolute inset-0 w-full h-95 object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-foreground/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-3">

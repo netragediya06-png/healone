@@ -20,28 +20,29 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [user, setUser] = useState<any>(null); // ✅ NEW
+  const [user, setUser] = useState<any>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-const { totalItems, setIsCartOpen, setItems } = useCart();
+  const { totalItems, setIsCartOpen, setItems } = useCart();
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
   const [categories, setCategories] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
 
-  // ✅ LOAD USER FROM STORAGE
+  // ✅ LOAD USER
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
+
   useEffect(() => {
-  loadCart();
-}, []);
+    loadCart();
+  }, []);
+
   useEffect(() => {
     fetchMenuData();
   }, []);
@@ -57,30 +58,45 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
       console.error("Menu Fetch Error:", error);
     }
   };
+
   const loadCart = async () => {
-  const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-  if (!token) return;
+    try {
+      const res = await cartService.getCart();
 
-  try {
-    const res = await cartService.getCart();
+      const formatted = res.data.items.map((item: any) => ({
+        id: item.product._id,
+        name: item.product.name,
+        price: item.product.price,
+        image: item.product.image,
+        quantity: item.quantity,
+        category: item.product.category?.name || "",
+      }));
 
-    const formatted = res.data.items.map((item: any) => ({
-      id: item.product._id,
-      name: item.product.name,
-      price: item.product.price,
-      image: item.product.image,
-      quantity: item.quantity,
-      category: item.product.category?.name || "",
-    }));
+      setItems(formatted);
+    } catch (err) {
+      console.log("Cart load error", err);
+    }
+  };
 
-    setItems(formatted); // 🔥 FIX: restore cart
-  } catch (err) {
-    console.log("Cart load error", err);
-  }
-};
+  // ✅ REMOVE DUPLICATE SUBCATEGORIES (🔥 MAIN LOGIC)
+  const uniqueSubCategories = useMemo(() => {
+    const map = new Map();
 
-  // ✅ CLOSE DROPDOWN CLICK OUTSIDE
+    subCategories.forEach((item: any) => {
+      const name = item.name.toLowerCase().trim();
+
+      if (!map.has(name)) {
+        map.set(name, item);
+      }
+    });
+
+    return Array.from(map.values());
+  }, [subCategories]);
+
+  // CLOSE DROPDOWN
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (
@@ -95,7 +111,6 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
   }, []);
 
   // SEARCH
-
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -104,7 +119,7 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
 
     const delay = setTimeout(() => {
       fetchSearchResults();
-    }, 400); // debounce
+    }, 400);
 
     return () => clearTimeout(delay);
   }, [searchQuery]);
@@ -112,9 +127,7 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
   const fetchSearchResults = async () => {
     try {
       setSearchLoading(true);
-
       const res = await productService.getProducts(`?search=${searchQuery}`);
-
       setSearchResults(res.data);
     } catch (err) {
       console.error(err);
@@ -123,7 +136,6 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
     }
   };
 
-  // LOGOUT
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
@@ -151,15 +163,13 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
     { label: "Programs", path: "/programs" },
     { label: "Specialists", path: "/specialists" },
     { label: "Dosha Quiz", path: "/dosha-quiz" },
-    // { label: "Blog", path: "/blog" },
-    
-
   ];
 
   return (
     <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 lg:h-20">
+
           {/* LOGO */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <img src={logo} alt="HealOne" className="h-10 w-10" />
@@ -168,35 +178,31 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
             </span>
           </Link>
 
-          {/* NAV LINKS */}
+          {/* NAV */}
           <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <div key={link.label} className="relative group">
-                <Link
-                  to={link.path}
-                  className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-foreground/80 hover:text-primary transition-colors rounded-md"
-                >
+                <Link to={link.path} className="flex items-center gap-1 px-3 py-2 text-sm">
                   {link.label}
-                  {link.megaMenu && (
-                    <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" />
-                  )}
+                  {link.megaMenu && <ChevronDown className="h-3.5 w-3.5" />}
                 </Link>
 
                 {link.megaMenu && (
                   <div className="absolute left-1/2 -translate-x-1/2 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                     <div className="bg-card rounded-xl shadow-elevated border p-4 min-w-[500px] grid grid-cols-2 gap-4">
-                      {/* LEFT → SUBCATEGORIES */}
+
+                      {/* SUBCATEGORY */}
                       <div>
-                        <h4 className="font-display font-semibold text-sm text-primary mb-3 uppercase tracking-wider">
+                        <h4 className="font-semibold text-sm mb-3">
                           By Product Type
                         </h4>
 
                         <ul className="space-y-1.5 max-h-52 overflow-y-auto pr-2">
-                          {subCategories.map((item: any) => (
+                          {uniqueSubCategories.map((item: any) => (
                             <li key={item._id}>
                               <Link
-                                to={`/products?subcategory=${item._id}`}
-                                className="text-sm text-foreground/70 hover:text-primary hover:pl-1 transition-all block py-0.5"
+                                to={`/products?subcategoryName=${item.name}`}
+                                className="text-sm hover:text-primary"
                               >
                                 {item.name}
                               </Link>
@@ -205,9 +211,9 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
                         </ul>
                       </div>
 
-                      {/* RIGHT → CATEGORIES */}
+                      {/* CATEGORY */}
                       <div>
-                        <h4 className="font-display font-semibold text-sm text-primary mb-3 uppercase tracking-wider">
+                        <h4 className="font-semibold text-sm mb-3">
                           By Health Concern
                         </h4>
 
@@ -216,7 +222,7 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
                             <li key={item._id}>
                               <Link
                                 to={`/products?category=${item._id}`}
-                                className="text-sm text-foreground/70 hover:text-primary hover:pl-1 transition-all block py-0.5"
+                                className="text-sm hover:text-primary"
                               >
                                 {item.name}
                               </Link>
@@ -226,13 +232,11 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
                       </div>
 
                       <div className="col-span-2 pt-3 border-t">
-                        <Link
-                          to="/products"
-                          className="text-sm font-semibold text-primary hover:underline"
-                        >
+                        <Link to="/products" className="text-sm font-semibold text-primary">
                           View All Products →
                         </Link>
                       </div>
+
                     </div>
                   </div>
                 )}
@@ -240,8 +244,9 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
             ))}
           </nav>
 
-          {/* RIGHT SIDE */}
-          <div className="flex items-center gap-3">
+          {/* RIGHT SIDE (UNCHANGED) */}
+          {/* ... your existing code remains same ... */}
+<div className="flex items-center gap-3">
             {/* SEARCH */}
             <div ref={searchRef} className="relative">
               <button
@@ -403,7 +408,12 @@ const { totalItems, setIsCartOpen, setItems } = useCart();
           </nav>
         )}
       </div>
+        
     </header>
   );
 };
+
+
+          
+   
 export default Navbar;
