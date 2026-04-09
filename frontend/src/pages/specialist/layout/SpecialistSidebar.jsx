@@ -1,24 +1,48 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Users } from "lucide-react";
 import {
   LayoutDashboard,
   Leaf,
   PersonStanding,
   BookOpen,
   LogOut,
+  Users,
+  MessageSquare
 } from "lucide-react";
 
 function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
+
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("role");
-    localStorage.removeItem("email");
-    localStorage.removeItem("name");
+    localStorage.clear();
     navigate("/login");
+  };
+
+  // ✅ FIXED FUNCTION
+  const handleSwitchToUser = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login-as-user", { // ✅ FIXED URL
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        localStorage.setItem("token", data.token);
+        navigate("/");
+      } else {
+        alert(data.message || "Switch failed");
+      }
+
+    } catch (error) {
+      console.log("Switch Error:", error);
+      alert("Error switching panel");
+    }
   };
 
   const isActive = (path) => location.pathname.startsWith(path);
@@ -32,8 +56,8 @@ function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
         openSidebarToggle ? "w-[220px]" : "w-[70px]"
       }`}
     >
-      {/* HEADER */}
 
+      {/* HEADER */}
       <div className="flex items-center justify-between px-4 py-4 mb-6">
         {openSidebarToggle && (
           <h4 className="text-white font-semibold text-sm">
@@ -50,20 +74,16 @@ function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
       </div>
 
       {/* MENU */}
-
       <ul className="flex flex-col gap-2 flex-1 px-2">
-        {/* DASHBOARD */}
 
         <SidebarItem
           to="/specialist"
           icon={LayoutDashboard}
           label="Dashboard"
-          active={isActive("/specialist")}
+          active={location.pathname === "/specialist"}
           open={openSidebarToggle}
           menuItem={menuItem}
         />
-
-        {/* REMEDIES */}
 
         <SidebarItem
           to="/specialist/remedies"
@@ -74,8 +94,6 @@ function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
           menuItem={menuItem}
         />
 
-        {/* YOGA */}
-
         <SidebarItem
           to="/specialist/yoga"
           icon={PersonStanding}
@@ -85,8 +103,6 @@ function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
           menuItem={menuItem}
         />
 
-        {/* PROGRAMS */}
-
         <SidebarItem
           to="/specialist/programs"
           icon={BookOpen}
@@ -95,7 +111,6 @@ function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
           open={openSidebarToggle}
           menuItem={menuItem}
         />
-        {/* SUBSCRIPTIONS */}
 
         <SidebarItem
           to="/specialist/subscriptions"
@@ -106,8 +121,29 @@ function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
           menuItem={menuItem}
         />
 
-        {/* LOGOUT */}
+        <SidebarItem
+          to="/specialist/feedback"
+          icon={MessageSquare}
+          label="Feedback"
+          active={isActive("/specialist/feedback")}
+          open={openSidebarToggle}
+          menuItem={menuItem}
+        />
 
+        {/* ✅ SWITCH TO USER PANEL */}
+        <li>
+          <button
+            onClick={handleSwitchToUser}
+            className={`${menuItem} ${
+              openSidebarToggle ? "px-4 justify-start" : "justify-center"
+            } text-lime-300 hover:bg-green-700 hover:text-white`}
+          >
+            <Users size={18} />
+            {openSidebarToggle && <span>User Panel</span>}
+          </button>
+        </li>
+
+        {/* LOGOUT */}
         <li>
           <button
             onClick={handleLogout}
@@ -119,12 +155,13 @@ function SpecialistSidebar({ openSidebarToggle, OpenSidebar }) {
             {openSidebarToggle && <span>Logout</span>}
           </button>
         </li>
+
       </ul>
     </aside>
   );
 }
 
-/* Sidebar Menu Item */
+/* Sidebar Item */
 
 function SidebarItem({ to, icon: Icon, label, active, open, menuItem }) {
   return (
@@ -139,14 +176,11 @@ function SidebarItem({ to, icon: Icon, label, active, open, menuItem }) {
             : "text-slate-200 hover:bg-green-700 hover:text-white"
         }`}
       >
-        {/* ACTIVE LEFT BAR */}
-
         {active && open && (
           <span className="absolute -left-2 top-1/2 -translate-y-1/2 w-[4px] h-5 bg-lime-400 rounded-full"></span>
         )}
 
         <Icon size={18} />
-
         {open && <span>{label}</span>}
       </Link>
     </li>

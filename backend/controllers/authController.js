@@ -494,3 +494,55 @@ exports.resetPassword = async (req, res) => {
     });
   }
 };
+
+
+
+/* =========================
+   SWITCH TO USER PANEL
+========================= */
+
+exports.loginAsUser = async (req, res) => {
+  try {
+    // ✅ Check user exists from middleware
+    const user = req.user;
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    // ✅ Optional security (only specialist allowed)
+    if (user.role !== "specialist") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only specialist can switch.",
+      });
+    }
+
+    // ✅ Generate new token as USER
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: "user", // force role change
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    return res.status(200).json({
+      success: true,
+      token,
+      message: "Switched to user panel successfully",
+    });
+
+  } catch (error) {
+    console.error("SWITCH ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Switch failed",
+    });
+  }
+};

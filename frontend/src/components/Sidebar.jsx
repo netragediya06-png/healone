@@ -10,7 +10,8 @@ import {
   HeartPulse,
   Receipt,
   Package,
-  LogOut
+  LogOut,
+  MessageSquare // ✅ NEW ICON
 } from "lucide-react";
 
 function Sidebar({ openSidebarToggle, OpenSidebar }) {
@@ -18,13 +19,12 @@ function Sidebar({ openSidebarToggle, OpenSidebar }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-const handleLogout = () => {
-  localStorage.clear(); // 🔥 remove everything
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = "/admin/login";
+  };
 
-  // 🔥 FORCE RESET (IMPORTANT)
-  window.location.href = "/admin/login";
-};
-
+  // ✅ FIXED ACTIVE LOGIC
   const isActive = (path) => location.pathname.startsWith(path);
 
   const menuItem =
@@ -38,9 +38,7 @@ const handleLogout = () => {
     >
 
       {/* HEADER */}
-
       <div className="flex items-center justify-between px-4 py-4 mb-6">
-
         {openSidebarToggle && (
           <h4 className="text-white font-semibold text-sm">
             🌿 HealOne Admin
@@ -53,18 +51,17 @@ const handleLogout = () => {
         >
           {openSidebarToggle ? "⟨" : "⟩"}
         </button>
-
       </div>
 
       {/* MENU */}
-
       <ul className="flex flex-col gap-2 flex-1 px-2">
 
+        {/* DASHBOARD (FIXED) */}
         <SidebarItem
           to="/admin"
           icon={LayoutDashboard}
           label="Dashboard"
-          active={isActive("/admin")}
+          active={location.pathname === "/admin"} // ✅ FIX
           open={openSidebarToggle}
           menuItem={menuItem}
         />
@@ -122,6 +119,7 @@ const handleLogout = () => {
           open={openSidebarToggle}
           menuItem={menuItem}
         />
+
         <SidebarItem
           to="/admin/yoga"
           icon={Package}
@@ -158,8 +156,17 @@ const handleLogout = () => {
           menuItem={menuItem}
         />
 
-        {/* LOGOUT */}
+        {/* ✅ NEW FEEDBACK MENU */}
+        <SidebarItem
+          to="/admin/feedback"
+          icon={MessageSquare}
+          label="Feedback"
+          active={isActive("/admin/feedback")}
+          open={openSidebarToggle}
+          menuItem={menuItem}
+        />
 
+        {/* LOGOUT */}
         <li>
           <button
             onClick={handleLogout}
@@ -173,7 +180,6 @@ const handleLogout = () => {
         </li>
 
       </ul>
-
     </aside>
   );
 }
@@ -185,7 +191,6 @@ function SidebarItem({ to, icon: Icon, label, active, open, menuItem }) {
 
   return (
     <li>
-
       <Link
         to={to}
         className={`${menuItem} ${
@@ -198,21 +203,17 @@ function SidebarItem({ to, icon: Icon, label, active, open, menuItem }) {
       >
 
         {/* ACTIVE LEFT BAR */}
-
         {active && open && (
           <span className="absolute -left-2 top-1/2 -translate-y-1/2 w-[4px] h-5 bg-lime-400 rounded-full"></span>
         )}
 
         {/* ICON */}
-
         <Icon size={18} />
 
         {/* LABEL */}
-
         {open && <span>{label}</span>}
 
       </Link>
-
     </li>
   );
 }

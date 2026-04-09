@@ -27,6 +27,7 @@ import AdminProgramList from "./pages/admin/programs/AdminProgramList";
 import AdminProgramDetail from "./pages/admin/programs/AdminProgramDetail";
 import AdminSubscriptions from "./pages/admin/programs/AdminSubscriptions";
 import AdminOrders from "./pages/admin/AdminOrders";
+import AdminFeedback from "./pages/admin/AdminFeedback.jsx";
 
 /* ---------------- SPECIALIST ---------------- */
 import SpecialistRoute from "./pages/specialist/SpecialistRoute";
@@ -42,7 +43,7 @@ import CreateProgram from "./pages/specialist/wellness-program/CreateProgram.jsx
 import EditProgram from "./pages/specialist/wellness-program/EditProgram.jsx";
 import MyPrograms from "./pages/specialist/wellness-program/MyPrograms.jsx";
 import SpecialistSubscriptions from "./pages/specialist/SpecialistSubscriptions";
-
+import SpecialistFeedback from "./pages/specialist/SpecialistFeedback.jsx";
 /* ---------------- USER (Lovable UI) ---------------- */
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -167,6 +168,7 @@ function App() {
           <Route path="programs/:id" element={<AdminProgramDetail />} />
           <Route path="subscriptions" element={<AdminSubscriptions />} />
           <Route path="orders" element={<AdminOrders />} />
+          <Route path="/admin/feedback" element={<AdminFeedback />} />
         </Route>
 
         {/* ================= SPECIALIST ROUTES ================= */}
@@ -192,6 +194,7 @@ function App() {
           <Route path="edit-program/:id" element={<EditProgram />} />
           {/* 🔥 NEW */}
           <Route path="subscriptions" element={<SpecialistSubscriptions />} />
+          <Route path="/specialist/feedback" element={<SpecialistFeedback />} />
         </Route>
 
         {/* ================= 404 ================= */}

@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
-
+const Feedback = require("./models/Feedback");
 const app = express();
 
 // ===============================
@@ -45,6 +45,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const cartRoutes = require("./routes/cartRoutes");
+const feedbackRoutes = require("./routes/feedbackRoutes");
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
@@ -55,6 +56,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/specialists", specialistsRoutes);
 app.use("/api/yoga", yogaRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/feedback", feedbackRoutes);
 
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/subcategories", subCategoryRoutes);
@@ -63,6 +65,7 @@ app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/cart", cartRoutes);
+
 
 // ===============================
 // Test Route

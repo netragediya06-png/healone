@@ -139,7 +139,7 @@ Difficulty: ${remedy.difficulty} | Duration: ${remedy.duration}
             <ScrollArea className="flex-1">
               <div className="p-6 space-y-8">
                 <div className="flex items-center gap-3 bg-card rounded-xl p-4 border">
-                  <img src={remedy.specialist?.profileImage || "/default-user.png"} alt={remedy.specialist?.fullName || "Specialist"} className="w-12 h-12 rounded-full object-cover border-2 border-primary/30" />
+                  <img src={remedy.specialist?.profilePhoto || "/default-user.png"} alt={remedy.specialist?.fullName || "Specialist"} className="w-12 h-12 rounded-full object-cover border-2 border-primary/30" />
                   <div className="flex-1">
                     <p className="font-semibold text-sm">{remedy.specialist?.fullName || "Unknown Specialist"}</p>
                     <p className="text-xs text-muted-foreground">✔️Verified Specialist</p>

@@ -47,6 +47,11 @@ export default function UserLogin() {
 
     localStorage.setItem("role", res.user.role);
 
+
+    // ✅ ADD THIS 🔥
+localStorage.setItem("name", res.user.fullName);
+localStorage.setItem("profilePhoto", res.user.profilePhoto);
+
     // ✅ REDIRECT
     if (res.user.role === "admin") {
       navigate("/admin");
