@@ -55,16 +55,6 @@ router.post(
   authController.resetPassword
 );
 
-
-
-/* =========================
-   SWITCH PANEL
-========================= */
-
-// ✅ SWITCH TO USER PANEL
-router.post("/login-as-user", protect, authController.loginAsUser);
-
-
 /* =========================
    PROFILE ROUTES (PROTECTED)
 ========================= */

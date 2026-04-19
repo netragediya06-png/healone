@@ -1,5 +1,6 @@
 import API from "./api";
 
+/* ================= CREATE ORDER ================= */
 export const createOrder = async (orderData: any) => {
   try {
     const res = await API.post("/orders", orderData);
@@ -9,17 +10,59 @@ export const createOrder = async (orderData: any) => {
   }
 };
 
+/* ================= USER ================= */
+
+// 📦 Get My Orders
 export const getMyOrders = async () => {
-  const res = await API.get("/orders/my");
-  return res.data;
+  try {
+    const res = await API.get("/orders/my");
+    return res.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "Failed to fetch orders" };
+  }
 };
 
+// 📄 Get Single Order
+export const getOrderById = async (orderId: string) => {
+  try {
+    const res = await API.get(`/orders/${orderId}`);
+    return res.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "Failed to fetch order" };
+  }
+};
+
+// ❌ Cancel Order
+export const cancelOrder = async (orderId: string) => {
+  try {
+    const res = await API.put(`/orders/${orderId}/cancel`);
+    return res.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "Cancel failed" };
+  }
+};
+
+/* ================= ADMIN ================= */
+
+// 📊 Get All Orders
 export const getAllOrders = async () => {
-  const res = await API.get("/orders");
-  return res.data;
+  try {
+    const res = await API.get("/orders");
+    return res.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "Failed to fetch all orders" };
+  }
 };
 
-export const updateOrderStatus = async (orderId: string, status: string) => {
-  const res = await API.put(`/orders/${orderId}`, { status });
-  return res.data;
+// 🔄 Update Order Status
+export const updateOrderStatus = async (
+  orderId: string,
+  status: string
+) => {
+  try {
+    const res = await API.put(`/orders/${orderId}/status`, { status });
+    return res.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: "Update failed" };
+  }
 };

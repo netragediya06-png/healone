@@ -1,21 +1,43 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Heart, Share2, Download, Bookmark, BookmarkCheck, Clock, Flame, Star, AlertTriangle, CheckCircle2, Sparkles } from "lucide-react";
+import {
+  X,
+  Heart,
+  Share2,
+  Download,
+  Bookmark,
+  BookmarkCheck,
+  Clock,
+  Flame,
+  Star,
+  AlertTriangle,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { toggleSaveYoga } from "@/services/yogaService";
 
 interface YogaDetailDrawerProps {
   yoga: any | null;
   onClose: () => void;
+  isSaved: boolean;
+  onToggleSave: (id: string) => void;
 }
 
-const YogaDetailDrawer = ({ yoga, onClose }: YogaDetailDrawerProps) => {
-  const [isSaved, setIsSaved] = useState(false);
-
+const YogaDetailDrawer = ({
+  yoga,
+  onClose,
+  isSaved,
+  onToggleSave
+}: YogaDetailDrawerProps) => {
   const toggleSave = () => {
-    setIsSaved(!isSaved);
+    if (!yoga) return;
+
+    onToggleSave(yoga.id);
+
     toast.success(isSaved ? "Yoga removed from saved" : "Yoga saved!");
   };
 
@@ -29,7 +51,7 @@ const YogaDetailDrawer = ({ yoga, onClose }: YogaDetailDrawerProps) => {
       });
     } else {
       await navigator.clipboard.writeText(
-        `${yoga.title}\n\n${yoga.description}\n\nBenefits: ${yoga.benefits?.join(", ")}`
+        `${yoga.title}\n\n${yoga.description}\n\nBenefits: ${yoga.benefits?.join(", ")}`,
       );
       toast.success("Yoga details copied to clipboard!");
     }
@@ -89,7 +111,11 @@ LEVEL: ${yoga.level} | Duration: ${yoga.duration} | Calories: ${yoga.calories} |
           >
             {/* IMAGE & HEADER */}
             <div className="relative h-56 sm:h-64 shrink-0">
-              <img src={yoga.image} alt={yoga.title} className="w-full h-full object-cover" />
+              <img
+                src={yoga.image}
+                alt={yoga.title}
+                className="w-full h-full object-cover"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/30 to-transparent" />
 
               <button
@@ -104,7 +130,11 @@ LEVEL: ${yoga.level} | Duration: ${yoga.duration} | Calories: ${yoga.calories} |
                   onClick={toggleSave}
                   className="bg-background/20 backdrop-blur-md text-background rounded-full p-2 hover:bg-background/40 transition-colors"
                 >
-                  {isSaved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <Bookmark className="h-5 w-5" />}
+                  {isSaved ? (
+                    <BookmarkCheck className="h-5 w-5 text-primary" />
+                  ) : (
+                    <Bookmark className="h-5 w-5" />
+                  )}
                 </button>
                 <button
                   onClick={handleShare}
@@ -142,7 +172,9 @@ LEVEL: ${yoga.level} | Duration: ${yoga.duration} | Calories: ${yoga.calories} |
             <ScrollArea className="flex-1">
               <div className="p-6 space-y-8">
                 {/* DESCRIPTION */}
-                <p className="text-sm text-muted-foreground leading-relaxed">{yoga.description}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {yoga.description}
+                </p>
 
                 {/* BENEFITS */}
                 <div>
@@ -151,7 +183,10 @@ LEVEL: ${yoga.level} | Duration: ${yoga.duration} | Calories: ${yoga.calories} |
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {yoga.benefits?.map((b: string, i: number) => (
-                      <div key={i} className="flex items-start gap-2 bg-primary/5 rounded-lg p-3">
+                      <div
+                        key={i}
+                        className="flex items-start gap-2 bg-primary/5 rounded-lg p-3"
+                      >
                         <Heart className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                         <span className="text-sm">{b}</span>
                       </div>
@@ -168,10 +203,16 @@ LEVEL: ${yoga.level} | Duration: ${yoga.duration} | Calories: ${yoga.calories} |
                     {yoga.steps?.map((s: string, i: number) => (
                       <div key={i} className="flex gap-3">
                         <div className="flex flex-col items-center">
-                          <span className="bg-primary text-primary-foreground font-bold text-xs rounded-full w-7 h-7 flex items-center justify-center shrink-0">{i + 1}</span>
-                          {i < yoga.steps.length - 1 && <div className="w-px h-full bg-border mt-1" />}
+                          <span className="bg-primary text-primary-foreground font-bold text-xs rounded-full w-7 h-7 flex items-center justify-center shrink-0">
+                            {i + 1}
+                          </span>
+                          {i < yoga.steps.length - 1 && (
+                            <div className="w-px h-full bg-border mt-1" />
+                          )}
                         </div>
-                        <p className="text-sm text-muted-foreground leading-relaxed pb-2">{s}</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed pb-2">
+                          {s}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -180,19 +221,28 @@ LEVEL: ${yoga.level} | Duration: ${yoga.duration} | Calories: ${yoga.calories} |
                 {/* CONTRAINDICATIONS */}
                 <div>
                   <h3 className="flex items-center gap-2 font-display font-bold text-base mb-4">
-                    <AlertTriangle className="h-5 w-5 text-destructive" /> Contraindications
+                    <AlertTriangle className="h-5 w-5 text-destructive" />{" "}
+                    Contraindications
                   </h3>
                   <div className="bg-destructive/5 rounded-xl p-4 space-y-2 border border-destructive/20">
-                    <p className="text-sm text-muted-foreground">{yoga.contraindications || "None"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {yoga.contraindications || "None"}
+                    </p>
                   </div>
                 </div>
 
                 {/* CTA */}
                 <div className="bg-gradient-to-r from-primary/10 via-secondary/20 to-primary/10 rounded-xl p-6 text-center">
-                  <p className="font-display font-bold text-base mb-2">Need guidance?</p>
-                  <p className="text-sm text-muted-foreground mb-4">Consult a specialist for personalized yoga guidance.</p>
+                  <p className="font-display font-bold text-base mb-2">
+                    Need guidance?
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Consult a specialist for personalized yoga guidance.
+                  </p>
                   <Link to="/specialists">
-                    <Button size="sm" className="gap-2">Book Consultation</Button>
+                    <Button size="sm" className="gap-2">
+                      Book Consultation
+                    </Button>
                   </Link>
                 </div>
               </div>

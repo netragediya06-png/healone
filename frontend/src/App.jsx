@@ -74,6 +74,11 @@ import ProgramDetail from "./pages/user/ProgramDetail.js";
 import ProfileView from "./components/ProfileView"; // ✅ path adjusted
 import ProfileEdit from "./components/ProfileEdit"; // ✅ path adjusted
 import ProductDetail from "./pages/user/ProductDetail";
+import UserDashboardLayout from "./components/UserDashboardLayout.js";
+import MyOrders from "./pages/user/MyOrders.js"; // ✅ add this
+import OrderDetails from "./pages/user/OrderDetails";
+import Wishlist from "./pages/user/Wishlist";
+
 /* ---------------- USER LAYOUT ---------------- */
 function UserLayout() {
   return (
@@ -124,9 +129,15 @@ function App() {
           <Route path="/subscribe/:programId" element={<SubscribePage />} />
           <Route path="/my-subscriptions" element={<MySubscriptions />} />
           <Route path="/program/:programId" element={<ProgramDetail />} />
-          <Route path="/profile" element={<ProfileView />} />
-          <Route path="/profile/edit" element={<ProfileEdit />} />
           <Route path="/products/:id" element={<ProductDetail />} />
+
+          <Route path="/account" element={<UserDashboardLayout />}>
+            <Route path="profile" element={<ProfileView />} />
+            {/* <Route path="/profile/edit" element={<ProfileEdit />} /> */}
+            <Route path="my-orders" element={<MyOrders />} />
+            <Route path="order/:id" element={<OrderDetails />} />
+            <Route path="/account/wishlist" element={<Wishlist />} />
+          </Route>
         </Route>
 
         {/* ================= AUTH ROUTES ================= */}

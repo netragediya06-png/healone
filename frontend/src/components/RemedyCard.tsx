@@ -1,15 +1,28 @@
-import { motion } from 'framer-motion';
-import { Clock, ChefHat, ArrowRight } from 'lucide-react';
-import { Remedy, remedyCategories } from '@/lib/remedies-data';
+import { motion } from "framer-motion";
+import { Clock, ChefHat, ArrowRight } from "lucide-react";
+import { Remedy, remedyCategories } from "@/lib/remedies-data";
+import { Heart } from "lucide-react";
 
 interface RemedyCardProps {
   remedy: any;
   index: number;
   onViewDetail: (remedy: Remedy) => void;
+
+  // 🔥 ADD THESE
+  onToggleWishlist: (id: string) => void;
+  wishlistIds: string[];
 }
 
-const RemedyCard = ({ remedy, index, onViewDetail }: RemedyCardProps) => {
-  const categoryLabel = remedyCategories.find(c => c.id === remedy.category)?.label;
+const RemedyCard = ({
+  remedy,
+  index,
+  onViewDetail,
+  onToggleWishlist,
+  wishlistIds,
+}: RemedyCardProps) => {
+  const categoryLabel = remedyCategories.find(
+    (c) => c.id === remedy.category,
+  )?.label;
 
   console.log("SPECIALIST:", remedy.specialist);
   console.log("IMAGE:", remedy.specialist?.profilePhoto); // ✅ FIX
@@ -38,13 +51,29 @@ const RemedyCard = ({ remedy, index, onViewDetail }: RemedyCardProps) => {
             <Clock className="h-3 w-3" /> {remedy.duration}
           </span>
         </div>
+        <button
+          className="absolute top-3 right-3 bg-white/80 rounded-full p-2"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleWishlist(remedy._id);
+          }}
+        >
+          <Heart
+            size={18}
+            className={`transition-colors ${
+              wishlistIds.includes(remedy._id)
+                ? "text-red-500 fill-red-500"
+                : "text-gray-400"
+            }`}
+          />
+        </button>
 
         <div className="absolute bottom-3 left-3 right-3">
           <div className="flex items-center gap-2">
             <img
               src={
                 remedy.specialist?.profilePhoto
-                  ? remedy.specialist.profilePhoto   // ✅ FIX
+                  ? remedy.specialist.profilePhoto // ✅ FIX
                   : "/default-user.png"
               }
               alt={remedy.specialist?.fullName || "Specialist"}

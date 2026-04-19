@@ -41,12 +41,11 @@ const userSchema = new mongoose.Schema(
     default: "",
   },
 
-  role: {
-    type: String,
-    enum: ["admin", "specialist", "user"],
-    default: "user",
-    index: true,
-  },
+  roles: {
+  type: [String],
+  enum: ["admin", "specialist", "user"],
+  default: ["user"],
+},
 
   // ========================
   // GOOGLE AUTH
@@ -121,7 +120,7 @@ const userSchema = new mongoose.Schema(
     organizationName: {
       type: String,
       required: function () {
-        return this.role === "specialist";
+        return this.roles.includes("specialist");
       }
     },
 
@@ -201,9 +200,7 @@ const userSchema = new mongoose.Schema(
   {
     url: {
       type: String,
-      required: function () {
-        return this.role === "specialist";
-      }
+      required: true,
     },
     verified: {
       type: Boolean,
@@ -234,6 +231,31 @@ const userSchema = new mongoose.Schema(
   availableTimeSlots: String,
 
   languagesSpoken: [String],
+  // ========================
+// ❤️ WISHLIST & 🔖 SAVED
+// ========================
+
+// ❤️ Wishlist (heart)
+wishlistProducts: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "Product" }
+],
+
+wishlistYoga: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "Yoga" }
+],
+
+wishlistRemedies: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "Remedy" }
+],
+
+// 🔖 Saved (bookmark)
+savedYoga: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "Yoga" }
+],
+
+savedRemedies: [
+  { type: mongoose.Schema.Types.ObjectId, ref: "Remedy" }
+],
 
 },
 { timestamps: true }
@@ -304,5 +326,5 @@ userSchema.methods.generateResetToken = function () {
 // INDEX FOR FAST QUERY
 // ========================
 
-userSchema.index({ role: 1, "verification.status": 1 });
+userSchema.index({ roles: 1, "verification.status": 1 });
 module.exports = mongoose.model("User", userSchema);

@@ -6,8 +6,6 @@ export const useSpecialistForm = () => {
 
   const [form, setForm] = useState<SpecialistFormType>({
     profilePhoto: null,
-    fullName: "",
-    email: "",
     phone: "",
 
     state: "",

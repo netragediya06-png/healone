@@ -3,8 +3,6 @@
 export interface SpecialistFormType {
   // BASIC
   profilePhoto: File | null;
-  fullName: string;
-  email: string;
   phone: string;
 
   // LOCATION

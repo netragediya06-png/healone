@@ -151,7 +151,35 @@ const incrementDownload = async (id: string) => {
   );
   return res.data;
 };
+/* =====================================
+   NEW: WISHLIST & SAVE (CORRECT API)
+===================================== */
 
+import API from "./api"; // 🔥 use your axios instance
+
+// 🔖 SAVE REMEDY
+export const toggleSaveRemedy = async (remedyId: string) => {
+  const res = await API.post("/users/save/remedy", { remedyId });
+  return res.data;
+};
+
+// ❤️ WISHLIST REMEDY
+export const toggleWishlistRemedy = async (remedyId: string) => {
+  const res = await API.post("/users/wishlist/remedy", { remedyId });
+  return res.data;
+};
+
+// 📄 GET SAVED REMEDIES
+export const getSavedRemediesNew = async () => {
+  const res = await API.get("/users/saved-remedies");
+  return res.data;
+};
+
+// 📄 GET WISHLIST REMEDIES
+export const getWishlistRemedies = async () => {
+  const res = await API.get("/users/wishlist-remedies");
+  return res.data;
+};
 
 /* =====================================
    EXPORT

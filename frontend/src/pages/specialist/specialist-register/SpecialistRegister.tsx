@@ -14,6 +14,8 @@ import StepAvailability from "./steps/StepAvailability";
 import StepReview from "./steps/StepReview";
 
 export default function SpecialistRegister() {
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   const {
     step,
     form,
@@ -88,6 +90,13 @@ export default function SpecialistRegister() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
+
+      {/* 🔥 USER INFO */}
+<div className="bg-gray-100 p-4 rounded-lg mb-6">
+  <p className="text-sm text-gray-500">Applying as:</p>
+  <p className="font-semibold">{user.fullName}</p>
+  <p className="text-xs text-gray-500">{user.email}</p>
+</div>
 
       {/* 🔥 Stepper */}
       <Stepper steps={STEPS} currentStep={step} />

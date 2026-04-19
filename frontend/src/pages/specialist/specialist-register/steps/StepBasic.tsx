@@ -30,14 +30,6 @@ export default function StepBasic({ form, updateField, onNext }: Props) {
   const validateAndNext = () => {
     let newErrors: any = {};
 
-    if (!form.fullName.trim()) {
-      newErrors.fullName = "Full name is required";
-    }
-
-    if (!form.email.includes("@")) {
-      newErrors.email = "Valid email required";
-    }
-
     if (!form.phone || form.phone.length < 10) {
       newErrors.phone = "Valid phone number required";
     }
@@ -52,8 +44,6 @@ export default function StepBasic({ form, updateField, onNext }: Props) {
   const handleBlur = () => {
     let newErrors: any = {};
 
-    if (!form.fullName.trim()) newErrors.fullName = "Full name is required";
-    if (!form.email.includes("@")) newErrors.email = "Valid email required";
     if (!form.phone || form.phone.length < 10)
       newErrors.phone = "Valid phone number required";
 
@@ -104,35 +94,7 @@ export default function StepBasic({ form, updateField, onNext }: Props) {
         </p>
       </div>
 
-      {/* FULL NAME */}
-      <div>
-        <label className="block text-sm font-medium">Full Name</label>
-        <input
-          type="text"
-          value={form.fullName}
-          onChange={(e) => updateField("fullName", e.target.value)}
-          onBlur={handleBlur}
-          className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-300"
-        />
-        {errors.fullName && (
-          <p className="text-red-500 text-sm">{errors.fullName}</p>
-        )}
-      </div>
 
-      {/* EMAIL */}
-      <div>
-        <label className="block text-sm font-medium">Email</label>
-        <input
-          type="email"
-          value={form.email}
-          onChange={(e) => updateField("email", e.target.value)}
-          onBlur={handleBlur}
-          className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-300"
-        />
-        {errors.email && (
-          <p className="text-red-500 text-sm">{errors.email}</p>
-        )}
-      </div>
 
       {/* PHONE */}
       <div>

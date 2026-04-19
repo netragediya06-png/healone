@@ -23,10 +23,12 @@ const Products = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchProducts();
     fetchFilters();
+    fetchWishlist();
   }, [category, subcategory]);
 
   const fetchProducts = async () => {
@@ -36,7 +38,8 @@ const Products = () => {
       let query = "";
 
       if (category) query += `?category=${category}`;
-      if (subcategory) query += `${query ? "&" : "?"}subCategory=${subcategory}`;
+      if (subcategory)
+        query += `${query ? "&" : "?"}subCategory=${subcategory}`;
 
       const res = await productService.getProducts(query);
       setProducts(res.data);
@@ -46,7 +49,25 @@ const Products = () => {
       setLoading(false);
     }
   };
+  const fetchWishlist = async () => {
+    try {
+      const res = await productService.getWishlistProducts();
+      setWishlistIds(res.data.map((p: any) => p._id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const handleWishlist = async (id: string) => {
+    try {
+      await productService.toggleWishlistProduct(id);
 
+      setWishlistIds((prev) =>
+        prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
   const fetchFilters = async () => {
     try {
       const catRes = await categoryService.getAllCategories();
@@ -76,7 +97,10 @@ const Products = () => {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative min-h-[50vh] flex items-center overflow-hidden">
-        <img src={productsHero} className="absolute inset-0 w-full h-full object-cover" />
+        <img
+          src={productsHero}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/85 via-foreground/60 to-foreground/30" />
 
         <div className="container mx-auto px-4 relative z-10 py-16">
@@ -134,7 +158,12 @@ const Products = () => {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             {filtered.map((product) => (
-              <ProductCard key={product._id} product={product} />
+              <ProductCard
+                key={product._id}
+                product={product}
+                onToggleWishlist={handleWishlist}
+                wishlistIds={wishlistIds}
+              />
             ))}
           </div>
         </div>

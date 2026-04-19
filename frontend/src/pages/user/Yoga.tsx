@@ -6,9 +6,10 @@ import { Link } from "react-router-dom";
 import yogaHero from "@/assets/yoga-hero.jpg";
 import {
   getApprovedYoga,
-  saveYoga,
-  unsaveYoga,
+  toggleSaveYoga,
+  toggleWishlistYoga,
   getSavedYoga,
+  getWishlistYoga,
 } from "@/services/yogaService";
 import YogaDetailDrawer from "@/components/YogaDetailDrawer";
 
@@ -21,12 +22,14 @@ const Yoga = () => {
   const [activeLevel, setActiveLevel] = useState("All");
   const [activeCategory, setActiveCategory] = useState("All");
   const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [selectedYoga, setSelectedYoga] = useState<any | null>(null);
 
   // ================= FETCH DATA =================
   useEffect(() => {
     fetchYoga();
     fetchSavedYoga();
+    fetchWishlistYoga();
   }, []);
 
   const fetchYoga = async () => {
@@ -56,9 +59,29 @@ const Yoga = () => {
 
   const fetchSavedYoga = async () => {
     try {
-      const saved = await getSavedYoga();
-      const ids = saved.map((y: any) => y._id);
-      setSavedIds(ids);
+      const data = await getSavedYoga();
+      setSavedIds(data.map((y: any) => y._id));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchWishlistYoga = async () => {
+    try {
+      const data = await getWishlistYoga();
+      setWishlistIds(data.map((y: any) => y._id));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleWishlist = async (id: string) => {
+    try {
+      await toggleWishlistYoga(id);
+
+      setWishlistIds((prev) =>
+        prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+      );
     } catch (error) {
       console.error(error);
     }
@@ -66,13 +89,11 @@ const Yoga = () => {
 
   const handleSave = async (id: string) => {
     try {
-      if (savedIds.includes(id)) {
-        await unsaveYoga(id);
-        setSavedIds((prev) => prev.filter((i) => i !== id));
-      } else {
-        await saveYoga(id);
-        setSavedIds((prev) => [...prev, id]);
-      }
+      await toggleSaveYoga(id);
+
+      setSavedIds((prev) =>
+        prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+      );
     } catch (error) {
       console.error(error);
     }
@@ -135,10 +156,11 @@ const Yoga = () => {
               <button
                 key={level}
                 onClick={() => setActiveLevel(level)}
-                className={`px-4 py-1 rounded-full ${activeLevel === level
+                className={`px-4 py-1 rounded-full ${
+                  activeLevel === level
                     ? "bg-primary text-white"
                     : "bg-gray-200"
-                  }`}
+                }`}
               >
                 {level}
               </button>
@@ -151,10 +173,11 @@ const Yoga = () => {
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-1 rounded-full ${activeCategory === cat
+                className={`px-4 py-1 rounded-full ${
+                  activeCategory === cat
                     ? "bg-primary text-white"
                     : "bg-gray-200"
-                  }`}
+                }`}
               >
                 {cat}
               </button>
@@ -189,16 +212,17 @@ const Yoga = () => {
                   <button
                     className="ml-2"
                     onClick={(e) => {
-                      e.stopPropagation(); // prevent opening drawer when clicking heart
-                      handleSave(practice.id);
+                      e.stopPropagation();
+                      handleWishlist(practice.id);
                     }}
                   >
                     <Heart
                       size={20}
-                      className={`transition-colors ${savedIds.includes(practice.id)
+                      className={`transition-colors ${
+                        wishlistIds.includes(practice.id)
                           ? "text-red-500 fill-red-500"
                           : "text-gray-400"
-                        }`}
+                      }`}
                     />
                   </button>
                 </div>
@@ -241,6 +265,8 @@ const Yoga = () => {
       <YogaDetailDrawer
         yoga={selectedYoga}
         onClose={() => setSelectedYoga(null)}
+        isSaved={savedIds.includes(selectedYoga?.id)}
+        onToggleSave={handleSave}
       />
     </div>
   );

@@ -12,7 +12,7 @@ exports.becomeSpecialist = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (user.role === "specialist") {
+    if (user.roles.includes("specialist")) {
       return res.status(400).json({
         message: "Already a specialist",
       });
@@ -43,6 +43,47 @@ exports.becomeSpecialist = async (req, res) => {
       days,
     } = req.body;
 
+    // =========================
+    // 🔥 VALIDATION (PRO LEVEL)
+    // =========================
+
+    // 📌 Required fields
+    if (!organizationName) {
+      return res.status(400).json({
+        message: "Organization name is required",
+      });
+    }
+
+    if (!specialization) {
+      return res.status(400).json({
+        message: "Specialization is required",
+      });
+    }
+
+    if (!experienceYears) {
+      return res.status(400).json({
+        message: "Experience is required",
+      });
+    }
+
+    // 📌 Documents required
+    if (
+      !req.files ||
+      !req.files.documents ||
+      req.files.documents.length === 0
+    ) {
+      return res.status(400).json({
+        message: "Please upload required documents",
+      });
+    }
+
+    // 📌 Phone validation
+    if (!user.phone || user.phone.length < 10) {
+      return res.status(400).json({
+        message: "Valid phone number required",
+      });
+    }
+
     // 🔥 FIX ARRAY
     const parsedDays = typeof days === "string" ? JSON.parse(days) : days || [];
 
@@ -72,7 +113,9 @@ exports.becomeSpecialist = async (req, res) => {
     // =========================
     // 🔥 UPDATE USER
     // =========================
-    user.role = "specialist";
+    if (!user.roles.includes("specialist")) {
+      user.roles.push("specialist");
+    }
 
     user.verification = {
       status: "pending",
@@ -153,7 +196,7 @@ exports.getSpecialists = async (req, res) => {
   try {
     const { status } = req.query;
 
-    let filter = { role: "specialist" };
+    let filter = { roles: "specialist" };
 
     if (status) {
       filter["verification.status"] = status;
@@ -175,7 +218,7 @@ exports.getSingleSpecialist = async (req, res) => {
   try {
     const specialist = await User.findById(req.params.id).select("-password");
 
-    if (!specialist || specialist.role !== "specialist") {
+    if (!specialist || !specialist.roles.includes("specialist")) {
       return res.status(404).json({
         message: "Specialist not found",
       });
@@ -193,7 +236,7 @@ exports.updateSpecialistProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
 
-    if (!user || user.role !== "specialist") {
+    if (!user || !user.roles.includes("specialist")) {
       return res.status(403).json({ message: "Access denied" });
     }
 
@@ -219,7 +262,7 @@ exports.deleteSpecialist = async (req, res) => {
   try {
     const specialist = await User.findById(req.params.id);
 
-    if (!specialist || specialist.role !== "specialist") {
+    if (!specialist || !specialist.roles.includes("specialist")) {
       return res.status(404).json({
         message: "Specialist not found",
       });
@@ -241,7 +284,7 @@ exports.approveSpecialist = async (req, res) => {
   try {
     const specialist = await User.findById(req.params.id);
 
-    if (!specialist || specialist.role !== "specialist") {
+    if (!specialist || !specialist.roles.includes("specialist")) {
       return res.status(404).json({ message: "Specialist not found" });
     }
 
@@ -262,7 +305,7 @@ exports.rejectSpecialist = async (req, res) => {
   try {
     const specialist = await User.findById(req.params.id);
 
-    if (!specialist || specialist.role !== "specialist") {
+    if (!specialist || !specialist.roles.includes("specialist")) {
       return res.status(404).json({ message: "Specialist not found" });
     }
 
@@ -284,7 +327,7 @@ exports.getFilteredSpecialists = async (req, res) => {
     const { city, service } = req.query;
 
     let filter = {
-      role: "specialist",
+      roles: "specialist",
       "verification.status": "approved",
       isActive: true,
     };

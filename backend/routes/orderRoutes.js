@@ -1,22 +1,39 @@
 const express = require("express");
 const router = express.Router();
 
-// ✅ IMPORTANT FIX
 const {
   createOrder,
   getUserOrders,
   getAllOrders,
   updateOrderStatus,
+  getOrderById,
+  cancelOrder,
 } = require("../controllers/orderController");
 
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
-/* USER */
+/* ================= USER ROUTES ================= */
+
+// 🛒 Create Order
 router.post("/", protect, createOrder);
+
+// 📦 Get My Orders
 router.get("/my", protect, getUserOrders);
 
-/* ADMIN */
+// 📄 Get Single Order Details
+router.get("/:id", protect, getOrderById);
+
+// ❌ Cancel Order
+router.put("/:id/cancel", protect, cancelOrder);
+
+
+/* ================= ADMIN ROUTES ================= */
+
+// 📊 Get All Orders (Admin)
 router.get("/", protect, adminOnly, getAllOrders);
-router.put("/:id", protect, adminOnly, updateOrderStatus);
+
+// 🔄 Update Order Status (Admin)
+router.put("/:id/status", protect, adminOnly, updateOrderStatus);
+
 
 module.exports = router;

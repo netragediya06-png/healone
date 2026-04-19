@@ -8,7 +8,13 @@ import { remedyCategories } from "@/lib/remedies-data";
 import remedyService from "@/services/remedyService";
 import RemedyCard from "@/components/RemedyCard";
 import RemedyDetailSheet from "@/components/RemedyDetailSheet";
-import { useEffect } from 'react';
+import { useEffect } from "react";
+import {
+  toggleSaveRemedy,
+  toggleWishlistRemedy,
+  getSavedRemediesNew,
+  getWishlistRemedies,
+} from "@/services/remedyService";
 
 const Remedies = () => {
   const [activeCategory, setActiveCategory] = useState("all");
@@ -16,28 +22,78 @@ const Remedies = () => {
   const [selectedRemedy, setSelectedRemedy] = useState<any | null>(null);
   const [remedies, setRemedies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
+
+
+const handleViewDetail = (remedy: any) => {
+  setSelectedRemedy(remedy);
+};
 
   useEffect(() => {
-  const fetchRemedies = async () => {
+    const fetchRemedies = async () => {
+      try {
+        const data = await remedyService.getApprovedRemedies();
+        setRemedies(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRemedies();
+    fetchSavedRemedies();
+    fetchWishlistRemedies();
+  }, []);
+  const fetchSavedRemedies = async () => {
     try {
-      const data = await remedyService.getApprovedRemedies();
-      setRemedies(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+      const data = await getSavedRemediesNew();
+      setSavedIds(data.map((r: any) => r._id));
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  fetchRemedies();
-}, []);
+  const fetchWishlistRemedies = async () => {
+    try {
+      const data = await getWishlistRemedies();
+      setWishlistIds(data.map((r: any) => r._id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const handleSave = async (id: string) => {
+    try {
+      await toggleSaveRemedy(id);
 
+      setSavedIds((prev) =>
+        prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleWishlist = async (id: string) => {
+    try {
+      await toggleWishlistRemedy(id);
+
+      setWishlistIds((prev) =>
+        prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
   const filtered = remedies.filter((r) => {
     const matchCat = activeCategory === "all" || r.category === activeCategory;
     const matchSearch =
       r.title.toLowerCase().includes(search.toLowerCase()) ||
       r.description.toLowerCase().includes(search.toLowerCase()) ||
-      r.tags?.some((t: string) => t.toLowerCase().includes(search.toLowerCase()));
+      r.tags?.some((t: string) =>
+        t.toLowerCase().includes(search.toLowerCase()),
+      );
     return matchCat && matchSearch;
   });
 
@@ -125,10 +181,11 @@ const Remedies = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filtered.map((remedy, i) => (
             <RemedyCard
-              key={remedy._id}
               remedy={remedy}
               index={i}
-              onViewDetail={setSelectedRemedy}
+              onViewDetail={handleViewDetail}
+              onToggleWishlist={handleWishlist} // 🔥
+              wishlistIds={wishlistIds} // 🔥
             />
           ))}
         </div>

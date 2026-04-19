@@ -22,6 +22,8 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState<any>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+  const activeRole = localStorage.getItem("activeRole");
 
   const { totalItems, setIsCartOpen, setItems } = useCart();
   const navigate = useNavigate();
@@ -137,11 +139,26 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    setUser(null);
-    navigate("/");
-    window.location.reload();
+  localStorage.clear(); // ✅ removes EVERYTHING (roles, activeRole, etc)
+
+  setUser(null);
+
+  navigate("/");
+  window.location.reload(); // ensures navbar refresh
+};
+  const handleSwitchRole = () => {
+    if (roles.length < 2) return;
+
+    const newRole = activeRole === "specialist" ? "user" : "specialist";
+
+    localStorage.setItem("activeRole", newRole);
+
+    // 🔁 redirect
+    if (newRole === "specialist") {
+      navigate("/specialist");
+    } else {
+      navigate("/");
+    }
   };
 
   useEffect(() => {
@@ -169,7 +186,6 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 lg:h-20">
-
           {/* LOGO */}
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <img src={logo} alt="HealOne" className="h-10 w-10" />
@@ -182,7 +198,10 @@ const Navbar = () => {
           <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <div key={link.label} className="relative group">
-                <Link to={link.path} className="flex items-center gap-1 px-3 py-2 text-sm">
+                <Link
+                  to={link.path}
+                  className="flex items-center gap-1 px-3 py-2 text-sm"
+                >
                   {link.label}
                   {link.megaMenu && <ChevronDown className="h-3.5 w-3.5" />}
                 </Link>
@@ -190,7 +209,6 @@ const Navbar = () => {
                 {link.megaMenu && (
                   <div className="absolute left-1/2 -translate-x-1/2 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                     <div className="bg-card rounded-xl shadow-elevated border p-4 min-w-[500px] grid grid-cols-2 gap-4">
-
                       {/* SUBCATEGORY */}
                       <div>
                         <h4 className="font-semibold text-sm mb-3">
@@ -232,11 +250,13 @@ const Navbar = () => {
                       </div>
 
                       <div className="col-span-2 pt-3 border-t">
-                        <Link to="/products" className="text-sm font-semibold text-primary">
+                        <Link
+                          to="/products"
+                          className="text-sm font-semibold text-primary"
+                        >
                           View All Products →
                         </Link>
                       </div>
-
                     </div>
                   </div>
                 )}
@@ -246,7 +266,7 @@ const Navbar = () => {
 
           {/* RIGHT SIDE (UNCHANGED) */}
           {/* ... your existing code remains same ... */}
-<div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
             {/* SEARCH */}
             <div ref={searchRef} className="relative">
               <button
@@ -327,59 +347,76 @@ const Navbar = () => {
             </button>
 
             {/* CTA */}
-            <Link
-              to="/become-specialist"
-              className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition"
-            >
-              Join Specialist
-            </Link>
+            {/* ROLE BASED BUTTON */}
+
+            {roles.includes("specialist") ? (
+              activeRole === "user" && (
+                <button
+                  onClick={() => {
+                    localStorage.setItem("activeRole", "specialist");
+                    navigate("/specialist");
+                    window.location.reload();
+                  }}
+                  className="px-4 py-1.5 rounded-full border border-blue-500 text-blue-600 text-sm font-medium hover:bg-blue-50 transition"
+                >
+                  Switch to Specialist
+                </button>
+              )
+            ) : (
+              <Link
+                to="/become-specialist"
+                className="px-4 py-1.5 rounded-full bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
+              >
+                Join Specialist
+              </Link>
+            )}
             <div className="h-5 w-px bg-border"></div>
 
             {/* PROFILE */}
             {/* PROFILE */}
             {user ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2"
-                >
-                  <img
-                    src={user.profilePhoto || "/default-avatar.png"}
-                    className="w-9 h-9 rounded-full border"
-                  />
-                  <ChevronDown className="w-4 h-4" />
-                </button>
+              <div className="flex items-center gap-3">
 
-                {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg">
-                    {/* VIEW PROFILE */}
-                    <Link
-                      to="/profile"
-                      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
-                    >
-                      <User className="w-4 h-4" />
-                      View Profile
-                    </Link>
+                {/* 🏷 ROLE BADGE */}
+                <span className="text-[10px] uppercase bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-semibold tracking-wide">
+                  {activeRole}
+                </span>
 
-                    {/* EDIT PROFILE */}
-                    {/* <Link
-          to="/profile/edit"
-          className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
-        >
-          <User className="w-4 h-4" />
-          Edit Profile
-        </Link> */}
+                {/* PROFILE DROPDOWN */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="flex items-center gap-2"
+                  >
+                    <img
+                      src={user.profilePhoto || "/default-avatar.png"}
+                      className="w-9 h-9 rounded-full border object-cover"
+                    />
+                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                  </button>
 
-                    {/* LOGOUT */}
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-red-50"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Logout
-                    </button>
-                  </div>
-                )}
+                  {dropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-52 bg-white border rounded-xl shadow-xl overflow-hidden">
+                      <Link
+                        to="/account/profile"
+                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-100 text-sm"
+                      >
+                        <User className="w-4 h-4" />
+                        Profile
+                      </Link>
+
+                      <div className="border-t my-1"></div>
+
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 px-4 py-2.5 w-full text-left text-red-600 hover:bg-red-50 text-sm"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="hidden lg:flex gap-3">
@@ -408,12 +445,8 @@ const Navbar = () => {
           </nav>
         )}
       </div>
-        
     </header>
   );
 };
 
-
-          
-   
 export default Navbar;

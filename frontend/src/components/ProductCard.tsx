@@ -6,6 +6,12 @@ import { toast } from "sonner";
 import * as cartService from "@/services/cartService";
 import { useCart } from "@/lib/cart-context"; // ✅ IMPORTANT
 
+interface ProductCardProps {
+  product: any;
+  onToggleWishlist: (id: string) => void;
+  wishlistIds: string[];
+}
+
 type ProductType = {
   stock: number;
   _id: string;
@@ -21,8 +27,11 @@ type ProductType = {
   badge?: string;
 };
 
-const ProductCard = ({ product }: { product: ProductType }) => {
-  const [saved, setSaved] = useState(false);
+const ProductCard = ({
+  product,
+  onToggleWishlist,
+  wishlistIds,
+}: ProductCardProps) => {
   const [added, setAdded] = useState(false);
 
   const { setItems } = useCart(); // ✅ IMPORTANT
@@ -72,14 +81,6 @@ const ProductCard = ({ product }: { product: ProductType }) => {
     }
   };
 
-  // ❤️ Wishlist
-  const handleToggleSave = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setSaved(!saved);
-    toast.success(saved ? "Removed from wishlist" : "Saved to wishlist!");
-  };
-
   return (
     <Link to={`/products/${product._id}`} className="group block">
       <div className="bg-card rounded-xl overflow-hidden border hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
@@ -90,26 +91,28 @@ const ProductCard = ({ product }: { product: ProductType }) => {
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
-
           {product.badge && (
             <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs font-bold px-2.5 py-1 rounded-full">
               {product.badge}
             </span>
           )}
-
           <button
-            onClick={handleToggleSave}
-            className={`absolute top-3 right-3 h-8 w-8 rounded-full flex items-center justify-center transition-all ${
-              saved
-                ? "bg-red-500 text-white"
-                : "bg-background/80 text-foreground/60 hover:bg-background hover:text-destructive"
-            }`}
+            className="absolute top-2 right-2 bg-white/80 rounded-full p-2"
+            onClick={(e) => {
+              e.preventDefault(); // 🔥 IMPORTANT
+              e.stopPropagation();
+              onToggleWishlist(product._id);
+            }}
           >
             <Heart
-              className={`h-4 w-4 ${saved ? "fill-red-500 text-white" : ""}`}
+              size={18}
+              className={`transition-colors ${
+                wishlistIds?.includes(product._id)
+                  ? "text-red-500 fill-red-500"
+                  : "text-gray-400"
+              }`}
             />
           </button>
-
           {discount > 0 && (
             <span className="absolute bottom-3 left-3 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded-full">
               -{discount}%

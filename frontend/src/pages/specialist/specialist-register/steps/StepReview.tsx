@@ -8,6 +8,8 @@ interface Props {
 }
 
 export default function StepReview({ form }: Props) {
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -66,7 +68,9 @@ const handleSubmit = async () => {
     // ======================
     const res = await becomeSpecialist(formData);
 
-    setMessage(res.message || "Submitted successfully");
+    setMessage(
+  "Your application has been submitted successfully. Please wait 24 hours for admin approval."
+);
 
   } catch (error: any) {
     setMessage(error.response?.data?.message || "Something went wrong");
@@ -81,9 +85,9 @@ const handleSubmit = async () => {
       {/* BASIC */}
       <div>
         <h3 className="font-semibold">Basic Info</h3>
-        <p>{form.fullName}</p>
-        <p>{form.email}</p>
-        <p>{form.phone}</p>
+        <p>{user.fullName}</p>
+        <p>{user.email}</p>
+        <p>{form.phone}</p> 
       </div>
 
       {/* LOCATION */}
@@ -136,7 +140,9 @@ const handleSubmit = async () => {
 
       {/* MESSAGE */}
       {message && (
-        <p className="text-green-600">{message}</p>
+        <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-4 rounded-lg">
+  {message}
+</div>
       )}
     </div>
   );

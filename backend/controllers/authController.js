@@ -13,7 +13,7 @@ const generateToken = (user) => {
   return jwt.sign(
     {
       id: user._id,
-      role: user.role,
+      roles: user.roles,
     },
     process.env.JWT_SECRET,
     { expiresIn: "7d" },
@@ -105,7 +105,7 @@ exports.register = async (req, res) => {
       email,
       password,
       phone,
-      role: role || "user",
+      roles: role === "specialist" ? ["user", "specialist"] : ["user"],
       profilePhoto,
 
       location: {
@@ -205,7 +205,7 @@ exports.register = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        role: user.role,
+        roles: user.roles,
       },
     });
   } catch (error) {
@@ -273,7 +273,7 @@ exports.login = async (req, res) => {
         message: "User not found",
       });
     }
-    if (user.role === "admin") {
+    if (user.roles.includes("admin")) {
       return res.status(403).json({
         message: "Invalid credentials",
       });
@@ -298,7 +298,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    if (user.role === "specialist") {
+    if (user.roles.includes("specialist")) {
       if (user.verification?.status === "pending") {
         return res.status(403).json({
           message: "Your specialist account is under admin review",
@@ -325,7 +325,7 @@ exports.login = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        role: user.role,
+        roles: user.roles,
         profilePhoto: user.profilePhoto,
       },
 
@@ -356,7 +356,7 @@ exports.adminLogin = async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
 
     // 🚨 Only admin allowed
-    if (!user || user.role !== "admin") {
+    if (!user || !user.roles.includes("admin")) {
       return res.status(403).json({
         message: "Access denied",
       });
@@ -387,7 +387,7 @@ exports.adminLogin = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
-        role: user.role,
+        roles: user.roles,
       },
       token: generateToken(user),
     });
@@ -491,58 +491,6 @@ exports.resetPassword = async (req, res) => {
     console.error("RESET PASSWORD ERROR:", error);
     res.status(500).json({
       message: "Server error",
-    });
-  }
-};
-
-
-
-/* =========================
-   SWITCH TO USER PANEL
-========================= */
-
-exports.loginAsUser = async (req, res) => {
-  try {
-    // ✅ Check user exists from middleware
-    const user = req.user;
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
-    }
-
-    // ✅ Optional security (only specialist allowed)
-    if (user.role !== "specialist") {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied. Only specialist can switch.",
-      });
-    }
-
-    // ✅ Generate new token as USER
-    const token = jwt.sign(
-      {
-        id: user._id,
-        role: "user", // force role change
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    return res.status(200).json({
-      success: true,
-      token,
-      message: "Switched to user panel successfully",
-    });
-
-  } catch (error) {
-    console.error("SWITCH ERROR:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Switch failed",
     });
   }
 };
