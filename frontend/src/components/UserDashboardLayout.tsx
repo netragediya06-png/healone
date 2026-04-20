@@ -28,7 +28,7 @@ const UserDashboardLayout = () => {
     },
     {
       label: "Programs",
-      path: "/account/programs",
+      path: "/account/my-subscriptions",
       icon: <Activity className="w-4 h-4" />,
     },
   ];

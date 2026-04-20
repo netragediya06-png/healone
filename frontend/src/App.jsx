@@ -72,7 +72,7 @@ import SubscribePage from "./pages/user/SubscribePage.js";
 import MySubscriptions from "./pages/user/MySubscriptions.js";
 import ProgramDetail from "./pages/user/ProgramDetail.js";
 import ProfileView from "./components/ProfileView"; // ✅ path adjusted
-import ProfileEdit from "./components/ProfileEdit"; // ✅ path adjusted
+import ProfileEdit from "./components/ProfileEdit";
 import ProductDetail from "./pages/user/ProductDetail";
 import UserDashboardLayout from "./components/UserDashboardLayout.js";
 import MyOrders from "./pages/user/MyOrders.js"; // ✅ add this
@@ -133,10 +133,12 @@ function App() {
 
           <Route path="/account" element={<UserDashboardLayout />}>
             <Route path="profile" element={<ProfileView />} />
+            <Route path="profile/edit" element={<ProfileEdit />} />
             {/* <Route path="/profile/edit" element={<ProfileEdit />} /> */}
             <Route path="my-orders" element={<MyOrders />} />
             <Route path="order/:id" element={<OrderDetails />} />
             <Route path="/account/wishlist" element={<Wishlist />} />
+            <Route path="my-subscriptions" element={<MySubscriptions />} />
           </Route>
         </Route>
 

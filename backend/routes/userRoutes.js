@@ -19,7 +19,9 @@ const {
   getSavedRemedies,
   getWishlistRemedies,
     toggleWishlistProduct,
-  getWishlistProducts
+  getWishlistProducts,
+  getMyProfile,
+  updateMyProfile
 
 } = require("../controllers/userController");
 
@@ -139,6 +141,7 @@ router.post("/wishlist/product", protect, toggleWishlistProduct);
 
 // 📄 Get Wishlist Products
 router.get("/wishlist-products", protect, getWishlistProducts);
-
+router.get("/me", protect, getMyProfile);
+router.put("/me", protect, updateMyProfile);
 
 module.exports = router;

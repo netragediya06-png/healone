@@ -36,6 +36,9 @@ const uploadProfileImage = (file: File) => {
     },
   });
 };
+const getMyProfile = async () => {
+  return API.get("/users/me");
+};
 
 
 export default {
@@ -44,4 +47,5 @@ export default {
   getSubscribedPrograms,
   updateProfile,
   uploadProfileImage, // ✅ ADD THIS
+  getMyProfile,
 };

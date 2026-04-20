@@ -48,6 +48,30 @@ const Navbar = () => {
   useEffect(() => {
     fetchMenuData();
   }, []);
+  useEffect(() => {
+  const updateUser = () => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  };
+
+  window.addEventListener("userUpdated", updateUser);
+
+  return () => {
+    window.removeEventListener("userUpdated", updateUser);
+  };
+}, []);
+  useEffect(() => {
+  const handler = () => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+  };
+
+  window.addEventListener("storage", handler);
+
+  return () => window.removeEventListener("storage", handler);
+}, []);
 
   const fetchMenuData = async () => {
     try {

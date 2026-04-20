@@ -64,71 +64,65 @@ const MySubscriptions = () => {
             </h1>
 
             {/* GRID */}
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
 
-                {subs.map((sub) => (
-                    <div
-                        key={sub._id}
-                        className="bg-gray-100 rounded-lg overflow-hidden shadow hover:scale-105 transition duration-300"
-                    >
-                        {/* IMAGE */}
-                        <img
-                            src={
-                                sub.program?.coverImage ||
-                                "https://via.placeholder.com/400x250"
-                            }
-                            alt={sub.program?.title}
-                            className="w-full h-40 object-cover"
-                        />
+  {subs.map((sub) => (
+    <div
+      key={sub._id}
+      className="bg-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition duration-300 overflow-hidden"
+    >
+      {/* IMAGE */}
+      <div className="relative">
+        <img
+          src={
+            sub.program?.coverImage ||
+            "https://via.placeholder.com/400x250"
+          }
+          alt={sub.program?.title}
+          className="w-full h-32 object-cover"
+        />
 
-                        {/* CONTENT */}
-                        <div className="p-4">
+        {/* STATUS BADGE */}
+        <span
+          className={`absolute top-2 right-2 px-2 py-0.5 text-[10px] rounded-full text-white ${
+            sub.status === "active"
+              ? "bg-green-600"
+              : "bg-red-500"
+          }`}
+        >
+          {sub.status}
+        </span>
+      </div>
 
-                            <h2 className="text-lg font-semibold">
-                                {sub.program?.title}
-                            </h2>
+      {/* CONTENT */}
+      <div className="p-3 space-y-1">
 
-                            <p className="text-sm text-gray-800 mt-1">
-                                Plan: {sub.plan?.name}
-                            </p>
-                            <p className="text-sm text-gray-800">
-                                Payment: {sub.paymentMethod || "N/A"}
-                            </p>
-                            <p className="text-sm text-gray-800">
-                                Paid: ₹{sub.amountPaid}
-                            </p>
+        <h2 className="text-sm font-semibold line-clamp-2">
+          {sub.program?.title}
+        </h2>
 
-                            <p className="text-sm text-gray-800">
-                                Valid till:
-                                {" "}
-                                {new Date(sub.endDate).toLocaleDateString()}
-                            </p>
+        <p className="text-xs text-gray-600">
+          Plan: <span className="font-medium">{sub.plan?.name}</span>
+        </p>
 
-                            {/* STATUS */}
-                            <span
-                                className={`inline-block mt-2 px-2 py-1 text-xs rounded ${sub.status === "active"
-                                    ? "bg-green-600"
-                                    : "bg-red-600"
-                                    }`}
-                            >
-                                {sub.status}
-                            </span>
+        <p className="text-xs text-gray-500">
+          Payment: {sub.paymentMethod || "N/A"}
+        </p>
 
-                            {/* BUTTON */}
-                            {/* <button
-                                onClick={() =>
-                                    navigate(`/program/${sub.program?._id}`)
-                                }
-                                className="mt-4 w-full bg-green-600 hover:bg-green-700 py-2 rounded text-sm"
-                            >
-                                Continue
-                            </button> */}
+        <p className="text-xs text-gray-500">
+          Paid: ₹{sub.amountPaid}
+        </p>
 
-                        </div>
-                    </div>
-                ))}
+        <p className="text-xs text-gray-500">
+          Valid till:{" "}
+          {new Date(sub.endDate).toLocaleDateString()}
+        </p>
 
-            </div>
+      </div>
+    </div>
+  ))}
+
+</div>
 
         </div>
     );
