@@ -49,29 +49,29 @@ const Navbar = () => {
     fetchMenuData();
   }, []);
   useEffect(() => {
-  const updateUser = () => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  };
+    const updateUser = () => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    };
 
-  window.addEventListener("userUpdated", updateUser);
+    window.addEventListener("userUpdated", updateUser);
 
-  return () => {
-    window.removeEventListener("userUpdated", updateUser);
-  };
-}, []);
+    return () => {
+      window.removeEventListener("userUpdated", updateUser);
+    };
+  }, []);
   useEffect(() => {
-  const handler = () => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
-  };
+    const handler = () => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) setUser(JSON.parse(storedUser));
+    };
 
-  window.addEventListener("storage", handler);
+    window.addEventListener("storage", handler);
 
-  return () => window.removeEventListener("storage", handler);
-}, []);
+    return () => window.removeEventListener("storage", handler);
+  }, []);
 
   const fetchMenuData = async () => {
     try {
@@ -163,13 +163,13 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-  localStorage.clear(); // ✅ removes EVERYTHING (roles, activeRole, etc)
+    localStorage.clear(); // ✅ removes EVERYTHING (roles, activeRole, etc)
 
-  setUser(null);
+    setUser(null);
 
-  navigate("/");
-  window.location.reload(); // ensures navbar refresh
-};
+    navigate("/");
+    window.location.reload(); // ensures navbar refresh
+  };
   const handleSwitchRole = () => {
     if (roles.length < 2) return;
 
@@ -400,11 +400,14 @@ const Navbar = () => {
             {/* PROFILE */}
             {user ? (
               <div className="flex items-center gap-3">
-
                 {/* 🏷 ROLE BADGE */}
-                <span className="text-[10px] uppercase bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-semibold tracking-wide">
-                  {activeRole}
-                </span>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-sm font-medium text-gray-800">
+                    {user.fullName}
+                  </span>
+
+                  
+                </div>
 
                 {/* PROFILE DROPDOWN */}
                 <div className="relative" ref={dropdownRef}>

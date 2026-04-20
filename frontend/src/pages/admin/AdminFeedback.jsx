@@ -10,7 +10,15 @@ const AdminFeedback = () => {
 
   const fetchFeedback = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/feedback/all");
+      const res = await axios.get(
+        "http://localhost:5000/api/feedback",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
       setData(res.data);
     } catch (err) {
       console.error("Error fetching feedback:", err);
@@ -21,9 +29,17 @@ const AdminFeedback = () => {
     if (!window.confirm("Are you sure you want to delete this feedback?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/feedback/${id}`);
+      await axios.delete(
+        `http://localhost:5000/api/feedback/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
       alert("Feedback deleted successfully ✅");
-      fetchFeedback(); // refresh list
+      fetchFeedback();
     } catch (err) {
       console.error("Error deleting feedback:", err);
       alert("Failed to delete feedback ❌");
@@ -37,7 +53,7 @@ const AdminFeedback = () => {
       <table className="w-full border">
         <thead>
           <tr className="bg-gray-200">
-            <th className="p-2 border">Name</th>
+            <th className="p-2 border">User</th>
             <th className="p-2 border">Email</th>
             <th className="p-2 border">Subject</th>
             <th className="p-2 border">Message</th>
@@ -49,15 +65,28 @@ const AdminFeedback = () => {
         <tbody>
           {data.map((item) => (
             <tr key={item._id}>
-              <td className="p-2 border">{item.name}</td>
-              <td className="p-2 border">{item.email}</td>
-              <td className="p-2 border">{item.subject}</td>
-              <td className="p-2 border">{item.message}</td>
               <td className="p-2 border">
-                {item.type === "admin"
-                  ? "Admin"
-                  : item.specialistId?.name || "Specialist"}
+                {item.user?.fullName || "N/A"}
               </td>
+
+              <td className="p-2 border">
+                {item.user?.email || "N/A"}
+              </td>
+
+              <td className="p-2 border">
+                {item.subject || "-"}
+              </td>
+
+              <td className="p-2 border">
+                {item.message}
+              </td>
+
+              <td className="p-2 border">
+                {item.targetType === "admin"
+                  ? "Admin"
+                  : item.specialist?.fullName || "Specialist"}
+              </td>
+
               <td className="p-2 border">
                 <button
                   onClick={() => handleDelete(item._id)}
